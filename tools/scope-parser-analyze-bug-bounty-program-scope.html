@@ -1,0 +1,641 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scope Parser — Analyze Bug Bounty Program Scope</title>
+  <meta name="description" content="Parse bug bounty scope text into domains, out-of-scope items, vuln types, severity, rules. Export JSON.">
+  <link rel="canonical" href="https://bugbountyreality.com/tools/scope-parser">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Scope Parser — Analyze Bug Bounty Program Scope",
+    "url": "https://bugbountyreality.com/tools/scope-parser",
+    "description": "Parse bug bounty scope text into in-scope domains, out-of-scope items, allowed vulnerability types, severity ratings, special rules.",
+    "applicationCategory": "Security Tool",
+    "operatingSystem": "All",
+    "browserRequirements": "JavaScript enabled"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://bugbountyreality.com/"},
+      {"@type": "ListItem", "position": 2, "name": "Tools", "item": "https://bugbountyreality.com/tools/"},
+      {"@type": "ListItem", "position": 3, "name": "Scope Parser", "item": "https://bugbountyreality.com/tools/scope-parser"}
+    ]
+  }
+  </script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #0a0a0a;
+      color: #e0e0e0;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      padding: 2rem 1rem;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 2rem;
+      border-bottom: 1px solid #2a2a2a;
+      padding-bottom: 1rem;
+    }
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #b388ff, #82b1ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .subhead {
+      color: #aaa;
+      margin-top: 0.25rem;
+      font-size: 0.95rem;
+    }
+    .breadcrumb {
+      font-size: 0.85rem;
+      color: #888;
+      margin-bottom: 1rem;
+    }
+    .breadcrumb a {
+      color: #82b1ff;
+      text-decoration: none;
+    }
+    .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 800px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+    .card {
+      background: #131313;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+    }
+    .card h2 {
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      color: #ccc;
+      border-left: 3px solid #b388ff;
+      padding-left: 0.75rem;
+    }
+    textarea {
+      width: 100%;
+      background: #0f0f0f;
+      border: 1px solid #333;
+      color: #ddd;
+      padding: 1rem;
+      border-radius: 12px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.9rem;
+      resize: vertical;
+      min-height: 240px;
+      outline: none;
+      transition: border 0.2s;
+    }
+    textarea:focus {
+      border-color: #b388ff;
+    }
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.2rem;
+    }
+    .btn {
+      background: #1e1e1e;
+      border: 1px solid #3a3a3a;
+      color: #e0e0e0;
+      padding: 0.6rem 1.4rem;
+      border-radius: 40px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-primary {
+      background: #7c4dff;
+      border-color: #7c4dff;
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: #651fff;
+      border-color: #651fff;
+    }
+    .btn-outline {
+      background: transparent;
+      border-color: #7c4dff;
+      color: #b388ff;
+    }
+    .btn-outline:hover {
+      background: #1a1a2e;
+    }
+    .btn:hover {
+      transform: scale(0.98);
+      filter: brightness(1.1);
+    }
+    .scope-output {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+    .scope-section {
+      background: #0d0d0d;
+      border-radius: 12px;
+      padding: 0.8rem 1rem;
+      border-left: 3px solid #424242;
+    }
+    .scope-section h3 {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #aaa;
+      margin-bottom: 0.5rem;
+    }
+    .chip-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 0.6rem;
+    }
+    .chip {
+      background: #1e1e2a;
+      padding: 0.2rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      border: 1px solid #333;
+      color: #cfcfcf;
+    }
+    .chip.wildcard {
+      border-color: #b388ff;
+      background: #2a1f3a;
+      color: #d4bfff;
+    }
+    .chip.api {
+      border-color: #4fc3f7;
+      background: #0d2a3a;
+      color: #a0e0ff;
+    }
+    .chip.mobile {
+      border-color: #69f0ae;
+      background: #0d2a1a;
+      color: #a0f0c0;
+    }
+    .chip.out {
+      border-color: #ef5350;
+      background: #2a1010;
+      color: #ffab91;
+    }
+    .chip.vuln {
+      border-color: #ffb74d;
+      background: #2a1f0a;
+      color: #ffcc80;
+    }
+    .chip.severity {
+      border-color: #4dd0e1;
+      background: #0a2a2a;
+      color: #80deea;
+    }
+    .chip.rule {
+      border-color: #ce93d8;
+      background: #1a1a2a;
+      color: #e1bee7;
+    }
+    .scope-map {
+      margin-top: 0.5rem;
+      background: #0a0a0a;
+      border-radius: 12px;
+      padding: 0.8rem;
+      border: 1px solid #2a2a2a;
+      min-height: 70px;
+    }
+    .map-bar {
+      display: flex;
+      height: 24px;
+      border-radius: 30px;
+      overflow: hidden;
+      background: #1f1f1f;
+      margin: 0.5rem 0;
+    }
+    .map-bar span {
+      display: block;
+      height: 100%;
+    }
+    .bar-in { background: #7c4dff; }
+    .bar-out { background: #ef5350; }
+    .bar-vuln { background: #ffb74d; }
+    .bar-sev { background: #4dd0e1; }
+    .map-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.7rem;
+      color: #aaa;
+      margin-top: 0.4rem;
+    }
+    .map-legend i {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      margin-right: 4px;
+    }
+    .status-msg {
+      font-size: 0.85rem;
+      color: #b388ff;
+      margin-top: 0.5rem;
+      min-height: 1.4rem;
+    }
+    .footer-note {
+      margin-top: 2.5rem;
+      text-align: center;
+      color: #555;
+      font-size: 0.8rem;
+      border-top: 1px solid #1a1a1a;
+      padding-top: 1.5rem;
+    }
+    .inline-code {
+      background: #1a1a1a;
+      padding: 0.1rem 0.3rem;
+      border-radius: 6px;
+      font-family: monospace;
+      color: #b388ff;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a href="https://bugbountyreality.com/">Home</a> / 
+    <a href="https://bugbountyreality.com/tools/">Tools</a> / 
+    <span>Scope Parser</span>
+  </div>
+
+  <header>
+    <h1>🔭 Scope Parser</h1>
+    <div class="subhead">Analyze Bug Bounty Program Scope — paste any scope text, get structured insights</div>
+  </header>
+
+  <div class="grid-2">
+    <!-- Input panel -->
+    <div class="card">
+      <h2>📋 Paste scope text</h2>
+      <textarea id="scopeInput" placeholder="Paste bug bounty scope here... e.g.&#10;*.example.com, api.example.com, mobile app: com.example.app&#10;Out of scope: *.dev.example.com, *.staging&#10;Allowed: XSS, SQLi, CSRF, IDOR&#10;Severity: Critical, High, Medium&#10;Rules: 90-day disclosure, no DoS, no race conditions">*.example.com, api.example.com, *.admin.example.com
+Out of scope: *.dev.example.com, *.staging.example.com, 3rd party services
+Allowed: XSS, SQL Injection, CSRF, IDOR, SSRF, RCE
+Severity: Critical, High, Medium
+Special: 90-day disclosure, no DoS attacks, no race conditions, only latest version
+Mobile: com.example.app (Android), com.example.ios (iOS)</textarea>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="parseBtn">⚡ Parse scope</button>
+        <button class="btn btn-outline" id="exportBtn">📤 Export JSON</button>
+        <button class="btn" id="resetBtn">↺ Reset sample</button>
+      </div>
+      <div id="statusMsg" class="status-msg">Ready — paste or use sample, then parse.</div>
+    </div>
+
+    <!-- Output panel -->
+    <div class="card scope-output" id="outputPanel">
+      <h2>📊 Parsed scope</h2>
+      <div id="parsedContent">
+        <div style="color:#666; font-style:italic; padding:0.5rem 0;">Parsed results will appear here after parsing.</div>
+      </div>
+
+      <!-- Visual scope map -->
+      <div class="scope-map" id="scopeMapContainer">
+        <div style="display:flex; justify-content:space-between; color:#888; font-size:0.75rem; margin-bottom:4px;">
+          <span>Scope map</span>
+          <span id="mapStats">0 items</span>
+        </div>
+        <div class="map-bar" id="mapBar">
+          <span style="width:0%" class="bar-in"></span>
+          <span style="width:0%" class="bar-out"></span>
+          <span style="width:0%" class="bar-vuln"></span>
+          <span style="width:0%" class="bar-sev"></span>
+        </div>
+        <div class="map-legend">
+          <span><i class="bar-in"></i> in-scope</span>
+          <span><i class="bar-out"></i> out-of-scope</span>
+          <span><i class="bar-vuln"></i> vuln types</span>
+          <span><i class="bar-sev"></i> severity</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Patterns / tips -->
+  <div style="margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: 1rem; background: #0f0f0f; border-radius: 16px; padding: 1rem 1.5rem; border:1px solid #1f1f1f;">
+    <div style="color:#aaa; font-size:0.85rem;"><span style="color:#b388ff;">✦</span> Common patterns: <span class="inline-code">*.example.com</span> <span class="inline-code">api.*</span> <span class="inline-code">mobile: com.*</span></div>
+    <div style="color:#aaa; font-size:0.85rem;"><span style="color:#b388ff;">✦</span> Wildcards, API endpoints, mobile apps auto‑detected.</div>
+    <div style="color:#aaa; font-size:0.85rem;"><span style="color:#b388ff;">✦</span> Top programs: HackerOne, Bugcrowd, Synack.</div>
+  </div>
+
+  <div class="footer-note">
+    bugbountyreality.com — Scope Parser · Data stays in your browser · Export as JSON
+  </div>
+</div>
+
+<script>
+  (function() {
+    const inputEl = document.getElementById('scopeInput');
+    const parseBtn = document.getElementById('parseBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const statusMsg = document.getElementById('statusMsg');
+    const parsedContent = document.getElementById('parsedContent');
+    const mapBar = document.getElementById('mapBar');
+    const mapStats = document.getElementById('mapStats');
+
+    // sample data
+    const sampleText = `*.example.com, api.example.com, *.admin.example.com
+Out of scope: *.dev.example.com, *.staging.example.com, 3rd party services
+Allowed: XSS, SQL Injection, CSRF, IDOR, SSRF, RCE
+Severity: Critical, High, Medium
+Special: 90-day disclosure, no DoS attacks, no race conditions, only latest version
+Mobile: com.example.app (Android), com.example.ios (iOS)`;
+
+    // reset sample
+    resetBtn.addEventListener('click', () => {
+      inputEl.value = sampleText;
+      statusMsg.textContent = '📄 Sample loaded. Click "Parse scope".';
+      parsedContent.innerHTML = `<div style="color:#666; font-style:italic; padding:0.5rem 0;">Sample loaded — parse to see results.</div>`;
+      resetMap();
+    });
+
+    // reset map
+    function resetMap() {
+      mapBar.innerHTML = `<span style="width:0%" class="bar-in"></span><span style="width:0%" class="bar-out"></span><span style="width:0%" class="bar-vuln"></span><span style="width:0%" class="bar-sev"></span>`;
+      mapStats.textContent = '0 items';
+    }
+
+    // parse logic
+    function parseScope(text) {
+      const result = {
+        inScope: { domains: [], wildcards: [], apiEndpoints: [], mobileApps: [] },
+        outOfScope: [],
+        vulnTypes: [],
+        severity: [],
+        specialRules: []
+      };
+
+      if (!text.trim()) return result;
+
+      const lines = text.split(/\n/);
+      let currentSection = 'inScope';
+
+      const domainPattern = /(?:\*\.)?([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/gi;
+      const apiPattern = /api[^,\s]*/gi;
+      const mobilePattern = /(?:com|org|io|app)\.[a-zA-Z0-9._-]+/gi;
+      const wildcardPattern = /\*\./gi;
+
+      for (let line of lines) {
+        const lower = line.toLowerCase().trim();
+        if (!lower) continue;
+
+        // detect section headers
+        if (lower.includes('out of scope') || lower.includes('out-of-scope') || lower.includes('excluded')) {
+          currentSection = 'outOfScope';
+          continue;
+        }
+        if (lower.includes('allowed') || lower.includes('vulnerability') || lower.includes('vuln type')) {
+          currentSection = 'vulnTypes';
+          continue;
+        }
+        if (lower.includes('severity') || lower.includes('accepted severity') || lower.includes('rating')) {
+          currentSection = 'severity';
+          continue;
+        }
+        if (lower.includes('special') || lower.includes('rule') || lower.includes('disclosure') || lower.includes('note')) {
+          currentSection = 'specialRules';
+          continue;
+        }
+        if (lower.includes('mobile') || lower.includes('app:') || lower.includes('android') || lower.includes('ios')) {
+          // extract mobile apps from line
+          const mobiles = line.match(/com\.[a-zA-Z0-9._-]+/gi);
+          if (mobiles) {
+            mobiles.forEach(m => {
+              if (!result.inScope.mobileApps.includes(m)) result.inScope.mobileApps.push(m);
+            });
+          }
+          // also treat as in-scope but we keep mobile separate
+          currentSection = 'inScope';
+        }
+
+        // tokenize by comma, semicolon, newline
+        const tokens = line.split(/[,;]/).map(t => t.trim()).filter(t => t.length > 0);
+
+        for (let token of tokens) {
+          const tLower = token.toLowerCase();
+
+          // decide based on current section
+          if (currentSection === 'outOfScope') {
+            if (!result.outOfScope.includes(token)) result.outOfScope.push(token);
+          } else if (currentSection === 'vulnTypes') {
+            // extract clean vuln names
+            const clean = token.replace(/^(xss|sql\s*injection|csrf|idor|ssrf|rce|xxe|sqli|lfi|rfi|command\s*injection|open\s*redirect|clickjacking)/gi, (match) => match);
+            if (clean.length > 1 && !result.vulnTypes.includes(clean)) result.vulnTypes.push(clean);
+          } else if (currentSection === 'severity') {
+            const sev = token.replace(/^severity[:\s]*/i, '').trim();
+            if (sev && !result.severity.includes(sev)) result.severity.push(sev);
+          } else if (currentSection === 'specialRules') {
+            if (token.length > 2 && !result.specialRules.includes(token)) result.specialRules.push(token);
+          } else {
+            // inScope: detect domains, wildcards, api, mobile
+            // wildcard detection
+            if (token.includes('*.')) {
+              const wild = token.match(/\*\.\S+/gi);
+              if (wild) wild.forEach(w => { if (!result.inScope.wildcards.includes(w)) result.inScope.wildcards.push(w); });
+            }
+            // api endpoints
+            if (/(api|graphql|rest|v1|v2)/i.test(token)) {
+              const apis = token.match(/(?:https?:\/\/)?(?:api\S+)/gi);
+              if (apis) apis.forEach(a => { if (!result.inScope.apiEndpoints.includes(a)) result.inScope.apiEndpoints.push(a); });
+              else if (token.toLowerCase().includes('api')) {
+                if (!result.inScope.apiEndpoints.includes(token)) result.inScope.apiEndpoints.push(token);
+              }
+            }
+            // mobile apps
+            const mob = token.match(/(com|org|io)\.[a-zA-Z0-9._-]+/gi);
+            if (mob) mob.forEach(m => { if (!result.inScope.mobileApps.includes(m)) result.inScope.mobileApps.push(m); });
+            // general domain (fallback)
+            const doms = token.match(/(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}/gi);
+            if (doms) {
+              doms.forEach(d => {
+                // avoid duplicates and wildcard-only
+                if (!result.inScope.domains.includes(d) && !d.startsWith('*.')) result.inScope.domains.push(d);
+              });
+            }
+          }
+        }
+      }
+
+      // deduplicate arrays
+      result.inScope.domains = [...new Set(result.inScope.domains)];
+      result.inScope.wildcards = [...new Set(result.inScope.wildcards)];
+      result.inScope.apiEndpoints = [...new Set(result.inScope.apiEndpoints)];
+      result.inScope.mobileApps = [...new Set(result.inScope.mobileApps)];
+      result.outOfScope = [...new Set(result.outOfScope)];
+      result.vulnTypes = [...new Set(result.vulnTypes)];
+      result.severity = [...new Set(result.severity)];
+      result.specialRules = [...new Set(result.specialRules)];
+
+      return result;
+    }
+
+    // render parsed result
+    function renderResult(parsed) {
+      if (!parsed) {
+        parsedContent.innerHTML = `<div style="color:#666; font-style:italic;">No data.</div>`;
+        resetMap();
+        return;
+      }
+
+      const { inScope, outOfScope, vulnTypes, severity, specialRules } = parsed;
+      let html = '';
+
+      // in-scope domains
+      html += `<div class="scope-section"><h3>🌐 In‑scope domains</h3><div class="chip-list">`;
+      inScope.domains.forEach(d => html += `<span class="chip">${d}</span>`);
+      if (inScope.domains.length === 0) html += `<span style="color:#555;">—</span>`;
+      html += `</div></div>`;
+
+      // wildcards
+      html += `<div class="scope-section"><h3>⭐ Wildcards</h3><div class="chip-list">`;
+      inScope.wildcards.forEach(w => html += `<span class="chip wildcard">${w}</span>`);
+      if (inScope.wildcards.length === 0) html += `<span style="color:#555;">—</span>`;
+      html += `</div></div>`;
+
+      // API endpoints
+      html += `<div class="scope-section"><h3>⚙️ API endpoints</h3><div class="chip-list">`;
+      inScope.apiEndpoints.forEach(a => html += `<span class="chip api">${a}</span>`);
+      if (inScope.apiEndpoints.length === 0) html += `<span style="color:#555;">—</span>`;
+      html += `</div></div>`;
+
+      // mobile apps
+      html += `<div class="scope-section"><h3>📱 Mobile apps</h3><div class="chip-list">`;
+      inScope.mobileApps.forEach(m => html += `<span class="chip mobile">${m}</span>`);
+      if (inScope.mobileApps.length === 0) html += `<span style="color:#555;">—</span>`;
+      html += `</div></div>`;
+
+      // out-of-scope
+      html += `<div class="scope-section"><h3>🚫 Out‑of‑scope</h3><div class="chip-list">`;
+      outOfScope.forEach(o => html += `<span class="chip out">${o}</span>`);
+      if (outOfScope.length === 0) html += `<span style="color:#555;">—</span>`;
+      html += `</div></div>`;
+
+      // vuln types
+      html += `<div class="scope-section"><h3>🔓 Allowed vuln types</h3><div class="chip-list">`;
+      vulnTypes.forEach(v => html += `<span class="chip vuln">${v}</span>`);
+      if (vulnTypes.length === 0) html += `<span style="color:#555;">—</span>`;
+      html += `</div></div>`;
+
+      // severity
+      html += `<div class="scope-section"><h3>⚠️ Accepted severity</h3><div class="chip-list">`;
+      severity.forEach(s => html += `<span class="chip severity">${s}</span>`);
+      if (severity.length === 0) html += `<span style="color:#555;">—</span>`;
+      html += `</div></div>`;
+
+      // special rules
+      html += `<div class="scope-section"><h3>📜 Special rules</h3><div class="chip-list">`;
+      specialRules.forEach(r => html += `<span class="chip rule">${r}</span>`);
+      if (specialRules.length === 0) html += `<span style="color:#555;">—</span>`;
+      html += `</div></div>`;
+
+      parsedContent.innerHTML = html;
+
+      // update map
+      const total = inScope.domains.length + inScope.wildcards.length + inScope.apiEndpoints.length + inScope.mobileApps.length + outOfScope.length + vulnTypes.length + severity.length;
+      mapStats.textContent = `${total} items`;
+
+      const inCount = inScope.domains.length + inScope.wildcards.length + inScope.apiEndpoints.length + inScope.mobileApps.length;
+      const outCount = outOfScope.length;
+      const vulnCount = vulnTypes.length;
+      const sevCount = severity.length;
+      const sum = inCount + outCount + vulnCount + sevCount || 1;
+
+      const inP = (inCount / sum) * 100;
+      const outP = (outCount / sum) * 100;
+      const vulnP = (vulnCount / sum) * 100;
+      const sevP = (sevCount / sum) * 100;
+
+      mapBar.innerHTML = `
+        <span style="width:${inP}%" class="bar-in"></span>
+        <span style="width:${outP}%" class="bar-out"></span>
+        <span style="width:${vulnP}%" class="bar-vuln"></span>
+        <span style="width:${sevP}%" class="bar-sev"></span>
+      `;
+    }
+
+    // main parse action
+    function performParse() {
+      const text = inputEl.value;
+      if (!text.trim()) {
+        statusMsg.textContent = '⚠️ Please paste some scope text.';
+        return;
+      }
+      const parsed = parseScope(text);
+      renderResult(parsed);
+      statusMsg.textContent = `✅ Parsed ${new Date().toLocaleTimeString()}`;
+    }
+
+    // export JSON
+    function exportJSON() {
+      const text = inputEl.value;
+      if (!text.trim()) {
+        statusMsg.textContent = '⚠️ Nothing to export — paste and parse first.';
+        return;
+      }
+      const parsed = parseScope(text);
+      const json = JSON.stringify(parsed, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `scope-parsed-${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      statusMsg.textContent = '📦 JSON exported successfully.';
+    }
+
+    // event listeners
+    parseBtn.addEventListener('click', performParse);
+    exportBtn.addEventListener('click', exportJSON);
+
+    // initial sample load
+    inputEl.value = sampleText;
+    performParse();
+
+  })();
+</script>
+</body>
+</html>

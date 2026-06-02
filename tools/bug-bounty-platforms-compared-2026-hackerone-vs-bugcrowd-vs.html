@@ -1,0 +1,527 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bug Bounty Platforms Compared 2026 — HackerOne vs Bugcrowd vs Immunefi</title>
+  <meta name="description" content="Compare HackerOne, Bugcrowd, Immunefi, huntr, Intigriti, YesWeHack, 0din.ai side-by-side. Filter by payout, response time, program type & fees.">
+  <link rel="canonical" href="https://bugbountyreality.com/compare-bug-bounty-platforms-2026">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #0a0a0a;
+      color: #e8e8e8;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      padding: 2rem 1.5rem;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.25rem;
+      color: #f0f0f0;
+    }
+    .subhead {
+      color: #a0a0a0;
+      margin-bottom: 2rem;
+      border-left: 3px solid #2d9c6c;
+      padding-left: 1rem;
+      font-size: 1.05rem;
+    }
+    .breadcrumb {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+      color: #7a7a7a;
+    }
+    .breadcrumb a {
+      color: #b0b0b0;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+    }
+    .breadcrumb a:hover { border-bottom-color: #2d9c6c; }
+    .breadcrumb span { color: #5a5a5a; }
+
+    /* filters & chips */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.2rem 2rem;
+      background: #141414;
+      padding: 1.25rem 1.5rem;
+      border-radius: 16px;
+      margin-bottom: 2rem;
+      align-items: center;
+      border: 1px solid #2a2a2a;
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+    .filter-group label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #b8b8b8;
+      letter-spacing: 0.3px;
+    }
+    .filter-group select {
+      background: #1e1e1e;
+      color: #ddd;
+      border: 1px solid #333;
+      padding: 0.4rem 1.8rem 0.4rem 0.8rem;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23aaa' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.7rem center;
+      cursor: pointer;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-left: 0.2rem;
+    }
+    .chip {
+      background: #222;
+      padding: 0.3rem 1rem;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      border: 1px solid #3a3a3a;
+      cursor: pointer;
+      transition: all 0.1s;
+      color: #ccc;
+    }
+    .chip.active {
+      background: #2d9c6c;
+      border-color: #2d9c6c;
+      color: #0a0a0a;
+      font-weight: 500;
+    }
+    .chip:hover { border-color: #5a5a5a; }
+
+    /* table */
+    .table-wrapper {
+      overflow-x: auto;
+      border-radius: 18px;
+      border: 1px solid #2a2a2a;
+      background: #0f0f0f;
+      margin-bottom: 2rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #1a1a1a;
+      color: #c0c0c0;
+      font-weight: 500;
+      padding: 1rem 0.8rem;
+      text-align: left;
+      border-bottom: 2px solid #2d2d2d;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      position: relative;
+    }
+    th:hover { color: #f0f0f0; }
+    th .sort-arrow {
+      margin-left: 6px;
+      opacity: 0.4;
+    }
+    th.sorted-asc .sort-arrow, th.sorted-desc .sort-arrow { opacity: 1; color: #2d9c6c; }
+    td {
+      padding: 0.9rem 0.8rem;
+      border-bottom: 1px solid #232323;
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #181818; }
+    .platform-name {
+      font-weight: 500;
+      color: #e0e0e0;
+    }
+    .badge {
+      background: #1f3a2c;
+      color: #8cd4b0;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 30px;
+      margin-left: 0.4rem;
+      white-space: nowrap;
+    }
+    .compare-check {
+      width: 24px;
+      height: 24px;
+      accent-color: #2d9c6c;
+      cursor: pointer;
+    }
+    .highlight-row td {
+      background: #1a2a22 !important;
+    }
+    .cta-compare {
+      background: #1d2b24;
+      border: 1px solid #2d9c6c;
+      color: #b8e6d0;
+      padding: 0.5rem 1.2rem;
+      border-radius: 40px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.1s;
+      margin-top: 0.5rem;
+      display: inline-block;
+    }
+    .cta-compare:hover {
+      background: #2d9c6c;
+      color: #0a0a0a;
+    }
+    .compare-panel {
+      background: #121212;
+      border: 1px solid #2d2d2d;
+      border-radius: 20px;
+      padding: 1.5rem;
+      margin-bottom: 2.5rem;
+      display: none;
+    }
+    .compare-panel.active { display: block; }
+    .compare-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+    .compare-card {
+      background: #1a1a1a;
+      border-radius: 16px;
+      padding: 1rem;
+      border: 1px solid #2d2d2d;
+    }
+    .compare-card h4 { color: #ddd; margin-bottom: 0.4rem; }
+    .compare-card p { font-size: 0.8rem; color: #aaa; }
+
+    /* FAQ */
+    .faq-section {
+      margin-top: 3rem;
+      border-top: 1px solid #222;
+      padding-top: 2rem;
+    }
+    .faq-section h2 { font-size: 1.6rem; margin-bottom: 1.5rem; color: #eee; }
+    .faq-item {
+      background: #111;
+      border-radius: 16px;
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 0.8rem;
+      border: 1px solid #242424;
+    }
+    .faq-item h3 { font-size: 1.1rem; font-weight: 500; color: #ddd; margin-bottom: 0.3rem; }
+    .faq-item p { color: #a8a8a8; font-size: 0.9rem; }
+
+    .footer-note {
+      margin-top: 3rem;
+      color: #5a5a5a;
+      font-size: 0.8rem;
+      text-align: center;
+      border-top: 1px solid #1e1e1e;
+      padding-top: 2rem;
+    }
+    @media (max-width: 700px) {
+      h1 { font-size: 1.7rem; }
+      .filter-bar { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <!-- Breadcrumb + structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bugbountyreality.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Platforms", "item": "https://bugbountyreality.com/compare" },
+      { "@type": "ListItem", "position": 3, "name": "Bug Bounty Platforms Compared 2026" }
+    ]
+  }
+  </script>
+  <div class="breadcrumb">
+    <a href="https://bugbountyreality.com/">🏠 Home</a> <span>›</span>
+    <a href="https://bugbountyreality.com/compare">Platforms</a> <span>›</span>
+    <span>Compare 2026</span>
+  </div>
+
+  <h1>Bug Bounty Platforms Compared 2026</h1>
+  <div class="subhead">HackerOne vs Bugcrowd vs Immunefi · real data · interactive</div>
+
+  <!-- filter chips + dropdowns -->
+  <div class="filter-bar" id="filterBar">
+    <div class="filter-group">
+      <label>💰 Payout range</label>
+      <select id="payoutFilter">
+        <option value="all">All</option>
+        <option value="high">$100M+ paid</option>
+        <option value="mid">$10M – $100M</option>
+        <option value="niche">Under $10M / niche</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>⏱️ Response time</label>
+      <select id="responseFilter">
+        <option value="all">All</option>
+        <option value="fast">Fast (≤24h)</option>
+        <option value="medium">~2-5 days</option>
+        <option value="variable">Variable</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>🧩 Program type</label>
+      <div class="chips" id="programChips">
+        <span class="chip active" data-type="all">All</span>
+        <span class="chip" data-type="web">Web</span>
+        <span class="chip" data-type="mobile">Mobile</span>
+        <span class="chip" data-type="smart">Smart contract</span>
+        <span class="chip" data-type="ai">AI</span>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label>💸 Platform fees</label>
+      <select id="feeFilter">
+        <option value="all">All</option>
+        <option value="low">Low (0-10%)</option>
+        <option value="medium">10-20%</option>
+        <option value="high">20%+</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- compare mode toggle + panel -->
+  <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-bottom: 0.5rem;">
+    <span style="color:#777; font-size:0.8rem; align-self:center;">Select up to 3 platforms</span>
+    <button class="cta-compare" id="compareBtn">🔍 Compare selected</button>
+  </div>
+  <div class="compare-panel" id="comparePanel"></div>
+
+  <!-- table -->
+  <div class="table-wrapper">
+    <table id="platformTable">
+      <thead>
+        <tr>
+          <th style="width:30px">⚖️</th>
+          <th data-col="name">Platform <span class="sort-arrow">↕</span></th>
+          <th data-col="payout">Payouts paid <span class="sort-arrow">↕</span></th>
+          <th data-col="response">Avg response <span class="sort-arrow">↕</span></th>
+          <th data-col="type">Program focus <span class="sort-arrow">↕</span></th>
+          <th data-col="fee">Platform fee <span class="sort-arrow">↕</span></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- FAQ (FAQPage schema) -->
+  <section class="faq-section" itemscope="" itemtype="https://schema.org/FAQPage">
+    <h2>❓ Choosing a bug bounty platform — 5 FAQs</h2>
+    <div class="faq-item" itemscope="" itemprop="mainEntity" itemtype="https://schema.org/Question">
+      <h3 itemprop="name">1. Which platform pays the most?</h3>
+      <div itemscope="" itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p itemprop="text">HackerOne has paid over $300M, Bugcrowd $100M+, Immunefi $100M+ (DeFi). For open-source, huntr offers $1.5K–$4K MFV.</p></div>
+    </div>
+    <div class="faq-item" itemscope="" itemprop="mainEntity" itemtype="https://schema.org/Question">
+      <h3 itemprop="name">2. What platform is best for smart contracts?</h3>
+      <div itemscope="" itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p itemprop="text">Immunefi is #1 for DeFi/smart contracts. HackerOne and Bugcrowd also have solid blockchain programs.</p></div>
+    </div>
+    <div class="faq-item" itemscope="" itemprop="mainEntity" itemtype="https://schema.org/Question">
+      <h3 itemprop="name">3. Which platforms have the fastest response?</h3>
+      <div itemscope="" itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p itemprop="text">HackerOne and Bugcrowd average 24-48h. Immunefi varies, but some programs respond within hours. Intigriti and YesWeHack are also responsive.</p></div>
+    </div>
+    <div class="faq-item" itemscope="" itemprop="mainEntity" itemtype="https://schema.org/Question">
+      <h3 itemprop="name">4. Are there platforms with low fees?</h3>
+      <div itemscope="" itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p itemprop="text">huntr (open source) has 0% platform fee. Intigriti and YesWeHack charge ~15-20%. HackerOne/Bugcrowd vary by program.</p></div>
+    </div>
+    <div class="faq-item" itemscope="" itemprop="mainEntity" itemtype="https://schema.org/Question">
+      <h3 itemprop="name">5. Which platform for AI / mobile?</h3>
+      <div itemscope="" itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><p itemprop="text">0din.ai focuses on AI/ML security. HackerOne and Bugcrowd have mobile & AI programs. YesWeHack covers web+mobile.</p></div>
+    </div>
+  </section>
+
+  <div class="footer-note">Data updated 2026 · bugbountyreality.com</div>
+</div>
+
+<script>
+  (function() {
+    // ----- real platform data -----
+    const platforms = [
+      { id: 'h1', name: 'HackerOne', payout: '>$300M', payoutVal: 300, response: '~24-48h', responseVal: 1, type: 'web,mobile,ai', fee: 'variable (0-20%)', feeVal: 2, focus: 'Web, mobile, AI' },
+      { id: 'bc', name: 'Bugcrowd', payout: '>$100M', payoutVal: 100, response: '~24-48h', responseVal: 1, type: 'web,mobile,ai', fee: 'variable (10-20%)', feeVal: 2, focus: 'Web, mobile, AI' },
+      { id: 'im', name: 'Immunefi', payout: '$100M+', payoutVal: 100, response: '~2-5 days', responseVal: 2, type: 'smart', fee: '~10-15%', feeVal: 1, focus: 'Smart contract, DeFi' },
+      { id: 'hu', name: 'huntr', payout: '$1.5K-$4K MFV', payoutVal: 5, response: '~2-5 days', responseVal: 2, type: 'web,mobile', fee: '0% (OSS)', feeVal: 0, focus: 'Open source' },
+      { id: 'in', name: 'Intigriti', payout: '€10M+', payoutVal: 15, response: '~48h', responseVal: 1, type: 'web,mobile', fee: '~15-20%', feeVal: 2, focus: 'Web, mobile' },
+      { id: 'yw', name: 'YesWeHack', payout: '€10M+', payoutVal: 15, response: '~24-72h', responseVal: 2, type: 'web,mobile', fee: '~15-20%', feeVal: 2, focus: 'Web, mobile' },
+      { id: 'od', name: '0din.ai', payout: 'Niche (AI)', payoutVal: 3, response: 'variable', responseVal: 3, type: 'ai', fee: 'low (0-10%)', feeVal: 0, focus: 'AI / ML security' }
+    ];
+
+    const tbody = document.getElementById('tableBody');
+    const payoutFilter = document.getElementById('payoutFilter');
+    const responseFilter = document.getElementById('responseFilter');
+    const feeFilter = document.getElementById('feeFilter');
+    const programChips = document.querySelectorAll('#programChips .chip');
+    const compareBtn = document.getElementById('compareBtn');
+    const comparePanel = document.getElementById('comparePanel');
+
+    let currentType = 'all';
+    let sortCol = null;
+    let sortAsc = true;
+    let selectedForCompare = new Set();
+
+    // render table
+    function renderTable(data) {
+      tbody.innerHTML = '';
+      data.forEach(p => {
+        const tr = document.createElement('tr');
+        if (selectedForCompare.has(p.id)) tr.classList.add('highlight-row');
+        const checked = selectedForCompare.has(p.id) ? 'checked' : '';
+        tr.innerHTML = `
+          <td><input type="checkbox" class="compare-check" data-id="${p.id}" ${checked}></td>
+          <td class="platform-name">${p.name}</td>
+          <td>${p.payout}</td>
+          <td>${p.response}</td>
+          <td>${p.focus}</td>
+          <td>${p.fee}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      // attach checkbox events
+      document.querySelectorAll('.compare-check').forEach(cb => {
+        cb.addEventListener('change', function(e) {
+          const id = this.dataset.id;
+          if (this.checked) {
+            if (selectedForCompare.size >= 3) { this.checked = false; return; }
+            selectedForCompare.add(id);
+          } else {
+            selectedForCompare.delete(id);
+          }
+          // re-apply highlight
+          document.querySelectorAll('#tableBody tr').forEach((tr, idx) => {
+            const rowId = platforms.find(p => p.name === tr.children[1]?.textContent)?.id;
+            if (rowId && selectedForCompare.has(rowId)) tr.classList.add('highlight-row');
+            else tr.classList.remove('highlight-row');
+          });
+        });
+      });
+    }
+
+    // filter + sort
+    function getFilteredData() {
+      let data = [...platforms];
+      // payout
+      const pVal = payoutFilter.value;
+      if (pVal === 'high') data = data.filter(d => d.payoutVal >= 100);
+      else if (pVal === 'mid') data = data.filter(d => d.payoutVal >= 10 && d.payoutVal < 100);
+      else if (pVal === 'niche') data = data.filter(d => d.payoutVal < 10);
+      // response
+      const rVal = responseFilter.value;
+      if (rVal === 'fast') data = data.filter(d => d.responseVal === 1);
+      else if (rVal === 'medium') data = data.filter(d => d.responseVal === 2);
+      else if (rVal === 'variable') data = data.filter(d => d.responseVal === 3);
+      // fee
+      const fVal = feeFilter.value;
+      if (fVal === 'low') data = data.filter(d => d.feeVal === 0);
+      else if (fVal === 'medium') data = data.filter(d => d.feeVal === 1);
+      else if (fVal === 'high') data = data.filter(d => d.feeVal >= 2);
+      // type chip
+      if (currentType !== 'all') {
+        data = data.filter(d => d.type.split(',').includes(currentType));
+      }
+      // sort
+      if (sortCol) {
+        data.sort((a,b) => {
+          let va, vb;
+          if (sortCol === 'name') { va = a.name.toLowerCase(); vb = b.name.toLowerCase(); return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va); }
+          else if (sortCol === 'payout') { va = a.payoutVal; vb = b.payoutVal; return sortAsc ? va - vb : vb - va; }
+          else if (sortCol === 'response') { va = a.responseVal; vb = b.responseVal; return sortAsc ? va - vb : vb - va; }
+          else if (sortCol === 'type') { va = a.focus; vb = b.focus; return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va); }
+          else if (sortCol === 'fee') { va = a.feeVal; vb = b.feeVal; return sortAsc ? va - vb : vb - va; }
+          return 0;
+        });
+      }
+      return data;
+    }
+
+    function update() {
+      const data = getFilteredData();
+      renderTable(data);
+    }
+
+    // chip logic
+    programChips.forEach(chip => {
+      chip.addEventListener('click', function() {
+        programChips.forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        currentType = this.dataset.type;
+        update();
+      });
+    });
+
+    // sorting
+    document.querySelectorAll('#platformTable th[data-col]').forEach(th => {
+      th.addEventListener('click', function() {
+        const col = this.dataset.col;
+        if (sortCol === col) sortAsc = !sortAsc;
+        else { sortCol = col; sortAsc = true; }
+        document.querySelectorAll('th').forEach(h => h.classList.remove('sorted-asc','sorted-desc'));
+        this.classList.add(sortAsc ? 'sorted-asc' : 'sorted-desc');
+        update();
+      });
+    });
+
+    // filter dropdowns
+    [payoutFilter, responseFilter, feeFilter].forEach(sel => sel.addEventListener('change', update));
+
+    // compare button
+    compareBtn.addEventListener('click', function() {
+      if (selectedForCompare.size === 0) { comparePanel.classList.remove('active'); return; }
+      const selected = platforms.filter(p => selectedForCompare.has(p.id));
+      let html = '<div class="compare-grid">';
+      selected.forEach(p => {
+        html += `<div class="compare-card"><h4>${p.name}</h4><p>💰 ${p.payout}</p><p>⏱️ ${p.response}</p><p>🧩 ${p.focus}</p><p>💸 ${p.fee}</p></div>`;
+      });
+      html += '</div>';
+      comparePanel.innerHTML = html;
+      comparePanel.classList.add('active');
+    });
+
+    // init
+    update();
+  })();
+</script>
+
+<!-- Article structured data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Bug Bounty Platforms Compared 2026 — HackerOne vs Bugcrowd vs Immunefi",
+  "description": "Interactive comparison of top bug bounty platforms: payout, response, program types, fees. Filter & sort real data.",
+  "author": { "@type": "Organization", "name": "BugBountyReality" },
+  "datePublished": "2026-01-15",
+  "mainEntityOfPage": "https://bugbountyreality.com/compare-bug-bounty-platforms-2026"
+}
+</script>
+</body>
+</html>
