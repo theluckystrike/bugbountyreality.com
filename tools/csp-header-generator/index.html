@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSP Header Generator</title>
+    <meta name="description" content="Build Content Security Policy headers with interactive directives. Strict, moderate, and permissive presets. Copy headers for immediate deployment.">
+    <meta name="theme-color" content="#ef4444">
+    <link rel="canonical" href="https://bugbountyreality.com/tools/csp-header-generator">
+    <meta property="og:title" content="CSP Header Generator">
+    <meta property="og:description" content="Generate secure Content Security Policy headers for web applications.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://bugbountyreality.com/tools/csp-header-generator">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="CSP Header Generator">
+    <meta name="twitter:description" content="Interactive CSP header builder for security.">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "CSP Header Generator",
+        "description": "Interactive Content Security Policy header builder for web security",
+        "url": "https://bugbountyreality.com/tools/csp-header-generator",
+        "applicationCategory": "UtilityApplication",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        }
+    }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1a2f4a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+        }
+
+        .presets {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .preset-btn {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #cbd5e1;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .preset-btn:hover {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .preset-btn.active {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border-color: #ef4444;
+            color: white;
+        }
+
+        .directive-group {
+            margin-bottom: 24px;
+            border-left: 4px solid #ef4444;
+            padding-left: 16px;
+        }
+
+        .directive-group h3 {
+            color: #cbd5e1;
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+
+        .directive-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            background: rgba(15, 23, 42, 0.5);
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #ef4444;
+        }
+
+        .directive-label {
+            flex: 1;
+        }
+
+        .directive-name {
+            color: #e2e8f0;
+            font-weight: 600;
+            display: block;
+            font-size: 0.95rem;
+        }
+
+        .directive-desc {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        select {
+            padding: 8px 12px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #ef4444;
+        }
+
+        .output-section {
+            margin-top: 24px;
+        }
+
+        .output-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+
+        .header-output {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            font-family: 'Monaco', monospace;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            word-break: break-all;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .copy-btn {
+            background: rgba(34, 197, 94, 0.8);
+            border: 1px solid #22c55e;
+        }
+
+        .copy-btn:hover {
+            background: rgba(34, 197, 94, 1);
+            box-shadow: 0 8px 16px rgba(34, 197, 94, 0.3);
+        }
+
+        .reset-btn {
+            background: rgba(107, 114, 128, 0.5);
+            border: 1px solid rgba(107, 114, 128, 0.6);
+        }
+
+        .reset-btn:hover {
+            background: rgba(107, 114, 128, 0.7);
+        }
+
+        .copy-feedback {
+            color: #22c55e;
+            font-size: 0.9rem;
+            margin-left: 12px;
+            display: none;
+        }
+
+        .copy-feedback.show {
+            display: inline;
+        }
+
+        .explanation {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid #ef4444;
+            padding: 16px;
+            border-radius: 6px;
+            margin-top: 24px;
+        }
+
+        .explanation h3 {
+            color: #cbd5e1;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        .explanation p {
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        footer {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(239, 68, 68, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .presets {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .card {
+                padding: 16px;
+            }
+        }
+    </style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2241192243363112" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CSP Header Generator</h1>
+            <p class="subtitle">Build secure Content Security Policy headers</p>
+        </header>
+
+        <div class="card">
+            <h2 style="color: #cbd5e1; margin-bottom: 16px; font-size: 1.2rem;">Quick Presets</h2>
+            <div class="presets">
+                <button class="preset-btn active" onclick="applyPreset('strict')">Strict</button>
+                <button class="preset-btn" onclick="applyPreset('moderate')">Moderate</button>
+                <button class="preset-btn" onclick="applyPreset('permissive')">Permissive</button>
+            </div>
+
+            <div class="directive-group">
+                <h3>Core Directives</h3>
+                <div class="directive-item">
+                    <input type="checkbox" id="default-src" checked onchange="updatePreview()">
+                    <div class="directive-label">
+                        <span class="directive-name">default-src</span>
+                        <span class="directive-desc">Default fallback for other directives</span>
+                    </div>
+                    <select onchange="updatePreview()">
+                        <option value="'self'">'self'</option>
+                        <option value="'none'">'none'</option>
+                        <option value="*">*</option>
+                    </select>
+                </div>
+
+                <div class="directive-item">
+                    <input type="checkbox" id="script-src" checked onchange="updatePreview()">
+                    <div class="directive-label">
+                        <span class="directive-name">script-src</span>
+                        <span class="directive-desc">Controls script execution sources</span>
+                    </div>
+                    <select onchange="updatePreview()">
+                        <option value="'self'">'self'</option>
+                        <option value="'self' 'unsafe-inline'">'self' 'unsafe-inline'</option>
+                        <option value="'self' 'unsafe-eval'">'self' 'unsafe-eval'</option>
+                        <option value="'none'">'none'</option>
+                    </select>
+                </div>
+
+                <div class="directive-item">
+                    <input type="checkbox" id="style-src" checked onchange="updatePreview()">
+                    <div class="directive-label">
+                        <span class="directive-name">style-src</span>
+                        <span class="directive-desc">Restricts inline style sources</span>
+                    </div>
+                    <select onchange="updatePreview()">
+                        <option value="'self'">'self'</option>
+                        <option value="'self' 'unsafe-inline'">'self' 'unsafe-inline'</option>
+                        <option value="'none'">'none'</option>
+                    </select>
+                </div>
+
+                <div class="directive-item">
+                    <input type="checkbox" id="img-src" checked onchange="updatePreview()">
+                    <div class="directive-label">
+                        <span class="directive-name">img-src</span>
+                        <span class="directive-desc">Allows image loading sources</span>
+                    </div>
+                    <select onchange="updatePreview()">
+                        <option value="'self'">'self'</option>
+                        <option value="'self' https:">'self' https:</option>
+                        <option value="*">*</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="directive-group">
+                <h3>Advanced Directives</h3>
+                <div class="directive-item">
+                    <input type="checkbox" id="connect-src" checked onchange="updatePreview()">
+                    <div class="directive-label">
+                        <span class="directive-name">connect-src</span>
+                        <span class="directive-desc">Restricts XHR/fetch/WebSocket sources</span>
+                    </div>
+                    <select onchange="updatePreview()">
+                        <option value="'self'">'self'</option>
+                        <option value="'self' https:">'self' https:</option>
+                    </select>
+                </div>
+
+                <div class="directive-item">
+                    <input type="checkbox" id="font-src" onchange="updatePreview()">
+                    <div class="directive-label">
+                        <span class="directive-name">font-src</span>
+                        <span class="directive-desc">Restricts font loading sources</span>
+                    </div>
+                    <select onchange="updatePreview()">
+                        <option value="'self'">'self'</option>
+                        <option value="'self' https:">'self' https:</option>
+                    </select>
+                </div>
+
+                <div class="directive-item">
+                    <input type="checkbox" id="frame-src" onchange="updatePreview()">
+                    <div class="directive-label">
+                        <span class="directive-name">frame-src</span>
+                        <span class="directive-desc">Controls embedded iframe sources</span>
+                    </div>
+                    <select onchange="updatePreview()">
+                        <option value="'self'">'self'</option>
+                        <option value="'none'">'none'</option>
+                    </select>
+                </div>
+
+                <div class="directive-item">
+                    <input type="checkbox" id="upgrade-insecure" onchange="updatePreview()">
+                    <div class="directive-label">
+                        <span class="directive-name">upgrade-insecure-requests</span>
+                        <span class="directive-desc">Automatically upgrade HTTP requests to HTTPS</span>
+                    </div>
+                </div>
+
+                <div class="directive-item">
+                    <input type="checkbox" id="report-uri" onchange="updatePreview()">
+                    <div class="directive-label">
+                        <span class="directive-name">report-uri</span>
+                        <span class="directive-desc">Endpoint to report CSP violations</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="output-section">
+                <h3 style="color: #cbd5e1; margin-bottom: 16px; font-size: 1.2rem;">Generated Header</h3>
+                <div class="output-label">Content-Security-Policy</div>
+                <div class="header-output" id="headerOutput">default-src 'self';</div>
+                <div class="button-group">
+                    <button class="copy-btn" onclick="copyToClipboard()">📋 Copy Header</button>
+                    <span class="copy-feedback" id="copyFeedback">Copied to clipboard!</span>
+                    <button class="reset-btn" onclick="resetForm()">Reset</button>
+                </div>
+            </div>
+
+            <div class="explanation">
+                <h3>How to Deploy</h3>
+                <p><strong>Via HTTP Header:</strong> Add to your web server config (Apache, Nginx, etc.)</p>
+                <p><strong>Via Meta Tag:</strong> Use &lt;meta http-equiv="Content-Security-Policy" content="..."&gt;</p>
+                <p><strong>Testing:</strong> Use report-only mode (Content-Security-Policy-Report-Only) to detect violations without blocking</p>
+                <p><strong>Common Pitfalls:</strong> Avoid 'unsafe-inline' for scripts/styles. Don't use overly permissive policies. Monitor reports for issues.</p>
+            </div>
+        </div>
+
+        <footer>
+            © 2026 bugbountyreality.com — Bug Bounty & Security Tools
+        </footer>
+<div style="margin:20px auto;max-width:728px;text-align:center">
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2241192243363112" data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+    </div>
+
+    <script>
+        const presets = {
+            strict: {
+                'default-src': "'self'",
+                'script-src': "'self'",
+                'style-src': "'self'",
+                'img-src': "'self'",
+                'connect-src': "'self'",
+                'font-src': false,
+                'frame-src': false,
+                'upgrade-insecure': false,
+                'report-uri': false
+            },
+            moderate: {
+                'default-src': "'self'",
+                'script-src': "'self'",
+                'style-src': "'self' 'unsafe-inline'",
+                'img-src': "'self' https:",
+                'connect-src': "'self' https:",
+                'font-src': true,
+                'frame-src': true,
+                'upgrade-insecure': true,
+                'report-uri': true
+            },
+            permissive: {
+                'default-src': "*",
+                'script-src': false,
+                'style-src': false,
+                'img-src': false,
+                'connect-src': false,
+                'font-src': false,
+                'frame-src': false,
+                'upgrade-insecure': false,
+                'report-uri': false
+            }
+        };
+
+        function applyPreset(preset) {
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const config = presets[preset];
+            for (const [key, value] of Object.entries(config)) {
+                const checkbox = document.getElementById(key);
+                if (checkbox) {
+                    checkbox.checked = value !== false;
+                }
+            }
+            updatePreview();
+        }
+
+        function updatePreview() {
+            let cspHeader = '';
+
+            if (document.getElementById('default-src').checked) {
+                const value = document.querySelector('select[id="default-src"]')?.parentElement?.querySelector('select')?.value || "'self'";
+                cspHeader += `default-src ${value}; `;
+            }
+
+            if (document.getElementById('script-src').checked) {
+                const options = {
+                    "'self'": "'self'",
+                    "'self' 'unsafe-inline'": "'self' 'unsafe-inline'",
+                    "'self' 'unsafe-eval'": "'self' 'unsafe-eval'",
+                    "'none'": "'none'"
+                };
+                const value = document.querySelector('input#script-src').nextElementSibling.nextElementSibling.nextElementSibling.value || "'self'";
+                cspHeader += `script-src ${value}; `;
+            }
+
+            if (document.getElementById('style-src').checked) {
+                const value = document.querySelectorAll('select')[2]?.value || "'self'";
+                cspHeader += `style-src ${value}; `;
+            }
+
+            if (document.getElementById('img-src').checked) {
+                const value = document.querySelectorAll('select')[3]?.value || "'self'";
+                cspHeader += `img-src ${value}; `;
+            }
+
+            if (document.getElementById('connect-src').checked) {
+                const value = document.querySelectorAll('select')[4]?.value || "'self'";
+                cspHeader += `connect-src ${value}; `;
+            }
+
+            if (document.getElementById('font-src').checked) {
+                cspHeader += "font-src 'self'; ";
+            }
+
+            if (document.getElementById('frame-src').checked) {
+                cspHeader += "frame-src 'self'; ";
+            }
+
+            if (document.getElementById('upgrade-insecure').checked) {
+                cspHeader += "upgrade-insecure-requests; ";
+            }
+
+            if (document.getElementById('report-uri').checked) {
+                cspHeader += "report-uri https://yourserver.com/csp-report; ";
+            }
+
+            document.getElementById('headerOutput').textContent = cspHeader.trim() || "default-src 'self';";
+        }
+
+        function copyToClipboard() {
+            const text = document.getElementById('headerOutput').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const feedback = document.getElementById('copyFeedback');
+                feedback.classList.add('show');
+                setTimeout(() => feedback.classList.remove('show'), 2000);
+            });
+        }
+
+        function resetForm() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.checked = cb.id !== 'upgrade-insecure' && cb.id !== 'font-src' && cb.id !== 'frame-src' && cb.id !== 'report-uri';
+            });
+            updatePreview();
+        }
+
+        updatePreview();
+    </script>
+</body>
+</html>

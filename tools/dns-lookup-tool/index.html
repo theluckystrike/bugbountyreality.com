@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNS Lookup Tool</title>
+    <meta name="description" content="DNS record lookup simulator for security research. Explore A, AAAA, CNAME, MX, TXT, NS, SOA records with educational security explanations.">
+    <meta name="theme-color" content="#ef4444">
+    <link rel="canonical" href="https://bugbountyreality.com/tools/dns-lookup-tool">
+    <meta property="og:title" content="DNS Lookup Tool">
+    <meta property="og:description" content="Analyze DNS records for security research and reconnaissance.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://bugbountyreality.com/tools/dns-lookup-tool">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="DNS Lookup Tool">
+    <meta name="twitter:description" content="Educational DNS record lookup simulator.">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "DNS Lookup Tool",
+        "description": "Educational DNS record lookup simulator for security reconnaissance",
+        "url": "https://bugbountyreality.com/tools/dns-lookup-tool",
+        "applicationCategory": "UtilityApplication",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        }
+    }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1a2f4a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #cbd5e1;
+            font-size: 0.95rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 0.95rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #ef4444;
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+            padding-bottom: 12px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #cbd5e1;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border-color: #ef4444;
+            color: white;
+        }
+
+        .tab-btn:hover {
+            border-color: #ef4444;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .result-item {
+            background: rgba(15, 23, 42, 0.5);
+            border-left: 4px solid #ef4444;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-radius: 8px;
+        }
+
+        .result-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .result-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #ef4444;
+            font-family: 'Monaco', monospace;
+            word-break: break-all;
+        }
+
+        .record-type {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 16px;
+            margin-bottom: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #ef4444;
+        }
+
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .record-name {
+            font-weight: 600;
+            color: #cbd5e1;
+            font-size: 1rem;
+        }
+
+        .record-data {
+            font-family: 'Monaco', monospace;
+            font-size: 0.9rem;
+            color: #ef4444;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            word-break: break-all;
+        }
+
+        .record-explanation {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 8px;
+        }
+
+        .security-note {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid #ef4444;
+            padding: 12px;
+            margin-top: 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+        }
+
+        footer {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(239, 68, 68, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab-btn {
+                width: 100%;
+            }
+
+            .card {
+                padding: 16px;
+            }
+        }
+    </style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2241192243363112" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>DNS Lookup Tool</h1>
+            <p class="subtitle">Educational DNS record reconnaissance simulator</p>
+        </header>
+
+        <div class="card">
+            <div class="input-group">
+                <label for="domain">Domain Name</label>
+                <input type="text" id="domain" placeholder="example.com">
+            </div>
+
+            <button onclick="performDNSLookup()">Lookup DNS Records</button>
+        </div>
+
+        <div class="card results" id="results">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('a')">A Records</button>
+                <button class="tab-btn" onclick="switchTab('aaaa')">AAAA Records</button>
+                <button class="tab-btn" onclick="switchTab('cname')">CNAME</button>
+                <button class="tab-btn" onclick="switchTab('mx')">MX Records</button>
+                <button class="tab-btn" onclick="switchTab('txt')">TXT Records</button>
+                <button class="tab-btn" onclick="switchTab('ns')">NS Records</button>
+                <button class="tab-btn" onclick="switchTab('soa')">SOA Record</button>
+            </div>
+
+            <div id="a" class="tab-content active">
+                <h3 style="margin-bottom: 16px; color: #cbd5e1;">A Records (IPv4)</h3>
+                <div id="aContent"></div>
+            </div>
+
+            <div id="aaaa" class="tab-content">
+                <h3 style="margin-bottom: 16px; color: #cbd5e1;">AAAA Records (IPv6)</h3>
+                <div id="aaaaContent"></div>
+            </div>
+
+            <div id="cname" class="tab-content">
+                <h3 style="margin-bottom: 16px; color: #cbd5e1;">CNAME Records</h3>
+                <div id="cnameContent"></div>
+            </div>
+
+            <div id="mx" class="tab-content">
+                <h3 style="margin-bottom: 16px; color: #cbd5e1;">MX Records (Mail Exchange)</h3>
+                <div id="mxContent"></div>
+            </div>
+
+            <div id="txt" class="tab-content">
+                <h3 style="margin-bottom: 16px; color: #cbd5e1;">TXT Records</h3>
+                <div id="txtContent"></div>
+            </div>
+
+            <div id="ns" class="tab-content">
+                <h3 style="margin-bottom: 16px; color: #cbd5e1;">NS Records (Nameservers)</h3>
+                <div id="nsContent"></div>
+            </div>
+
+            <div id="soa" class="tab-content">
+                <h3 style="margin-bottom: 16px; color: #cbd5e1;">SOA Record (Start of Authority)</h3>
+                <div id="soaContent"></div>
+            </div>
+        </div>
+
+        <footer>
+            © 2026 bugbountyreality.com — Bug Bounty & Security Tools
+        </footer>
+<div style="margin:20px auto;max-width:728px;text-align:center">
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2241192243363112" data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+    </div>
+
+    <script>
+        const dnsData = {
+            'example.com': {
+                a: ['93.184.216.34'],
+                aaaa: ['2606:2800:220:1:248:1893:25c8:1946'],
+                cname: [],
+                mx: [
+                    { priority: 10, host: 'mail.example.com' },
+                    { priority: 20, host: 'mail2.example.com' }
+                ],
+                txt: [
+                    'v=spf1 include:_spf.example.com ~all',
+                    'google-site-verification=abc123',
+                    'dmarc=v=DMARC1; p=quarantine'
+                ],
+                ns: ['ns1.example.com', 'ns2.example.com', 'ns3.example.com', 'ns4.example.com'],
+                soa: {
+                    primary: 'ns1.example.com',
+                    admin: 'admin.example.com',
+                    serial: 2024060901,
+                    refresh: 10800,
+                    retry: 3600,
+                    expire: 604800,
+                    ttl: 86400
+                }
+            },
+            'google.com': {
+                a: ['142.250.185.46'],
+                aaaa: ['2607:f8b0:4004:817::200e'],
+                cname: [],
+                mx: [
+                    { priority: 5, host: 'gmail-smtp-in.l.google.com' },
+                    { priority: 10, host: 'alt1.gmail-smtp-in.l.google.com' }
+                ],
+                txt: [
+                    'v=spf1 include:_spf.google.com ~all',
+                    'google-site-verification=xyz789',
+                    'v=DMARC1; p=reject; rua=mailto:dmarc@google.com'
+                ],
+                ns: ['ns1.google.com', 'ns2.google.com', 'ns3.google.com', 'ns4.google.com'],
+                soa: {
+                    primary: 'ns1.google.com',
+                    admin: 'admin.google.com',
+                    serial: 2024060901,
+                    refresh: 900,
+                    retry: 900,
+                    expire: 1800,
+                    ttl: 300
+                }
+            }
+        };
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function performDNSLookup() {
+            const domain = document.getElementById('domain').value.trim().toLowerCase();
+            if (!domain) {
+                alert('Please enter a domain name');
+                return;
+            }
+
+            const data = dnsData[domain] || generateMockDNS(domain);
+            displayResults(domain, data);
+            document.getElementById('results').classList.add('active');
+        }
+
+        function generateMockDNS(domain) {
+            const ip = Math.floor(Math.random() * 256) + '.' + Math.floor(Math.random() * 256) + '.' + Math.floor(Math.random() * 256) + '.' + Math.floor(Math.random() * 256);
+            return {
+                a: [ip],
+                aaaa: ['2001:db8::' + Math.random().toString(16).substr(2, 8)],
+                cname: [],
+                mx: [{ priority: 10, host: 'mail.' + domain }],
+                txt: ['v=spf1 include:_spf.' + domain + ' ~all'],
+                ns: ['ns1.' + domain, 'ns2.' + domain],
+                soa: {
+                    primary: 'ns1.' + domain,
+                    admin: 'admin.' + domain,
+                    serial: 2024060901,
+                    refresh: 10800,
+                    retry: 3600,
+                    expire: 604800,
+                    ttl: 86400
+                }
+            };
+        }
+
+        function displayResults(domain, data) {
+            // A Records
+            document.getElementById('aContent').innerHTML = data.a.map(ip => `
+                <div class="record-type">
+                    <div class="record-data">${ip}</div>
+                    <div class="record-explanation">
+                        IPv4 address for ${domain}. Used for routing traffic to the server.
+                    </div>
+                    <div class="security-note">
+                        <strong>Security Note:</strong> A records can reveal infrastructure. Attackers use A record lookups during reconnaissance to identify targets and potential server locations.
+                    </div>
+                </div>
+            `).join('');
+
+            // AAAA Records
+            document.getElementById('aaaaContent').innerHTML = data.aaaa.map(ip => `
+                <div class="record-type">
+                    <div class="record-data">${ip}</div>
+                    <div class="record-explanation">
+                        IPv6 address for ${domain}. Modern version of A records for IPv6 traffic.
+                    </div>
+                    <div class="security-note">
+                        <strong>Security Note:</strong> IPv6 adoption is lower but growing. Ensure firewall rules cover both IPv4 and IPv6.
+                    </div>
+                </div>
+            `).join('');
+
+            // CNAME Records
+            document.getElementById('cnameContent').innerHTML = data.cname.length ? data.cname.map(cn => `
+                <div class="record-type">
+                    <div class="record-data">${cn}</div>
+                    <div class="record-explanation">
+                        Canonical name alias for ${domain}.
+                    </div>
+                </div>
+            `).join('') : '<div class="record-type">No CNAME records found</div>';
+
+            // MX Records
+            document.getElementById('mxContent').innerHTML = data.mx.map(mx => `
+                <div class="record-type">
+                    <div class="record-header">
+                        <span class="record-name">Priority: ${mx.priority}</span>
+                    </div>
+                    <div class="record-data">${mx.host}</div>
+                    <div class="record-explanation">
+                        Mail server for ${domain}. Lower priority values are tried first.
+                    </div>
+                    <div class="security-note">
+                        <strong>Security Note:</strong> MX records reveal email infrastructure. Check for mail server misconfigurations, open relays, and weak authentication (SPF/DKIM/DMARC).
+                    </div>
+                </div>
+            `).join('');
+
+            // TXT Records
+            document.getElementById('txtContent').innerHTML = data.txt.map(txt => `
+                <div class="record-type">
+                    <div class="record-data">${txt}</div>
+                    <div class="record-explanation">
+                        Text record containing configuration data.
+                    </div>
+                    <div class="security-note">
+                        <strong>Security Note:</strong> TXT records include SPF, DKIM, and DMARC policies. Review for misconfigurations that could enable email spoofing or domain hijacking.
+                    </div>
+                </div>
+            `).join('');
+
+            // NS Records
+            document.getElementById('nsContent').innerHTML = data.ns.map(ns => `
+                <div class="record-type">
+                    <div class="record-data">${ns}</div>
+                    <div class="record-explanation">
+                        Nameserver responsible for DNS resolution of ${domain}.
+                    </div>
+                    <div class="security-note">
+                        <strong>Security Note:</strong> NS records identify the DNS provider. Check for DNS takeover risks, DNS hijacking, and zone transfer vulnerabilities (AXFR).
+                    </div>
+                </div>
+            `).join('');
+
+            // SOA Record
+            const soa = data.soa;
+            document.getElementById('soaContent').innerHTML = `
+                <div class="record-type">
+                    <div class="record-header">
+                        <span class="record-name">Primary Nameserver</span>
+                    </div>
+                    <div class="record-data">${soa.primary}</div>
+                </div>
+                <div class="record-type">
+                    <div class="record-header">
+                        <span class="record-name">Admin Email</span>
+                    </div>
+                    <div class="record-data">${soa.admin}</div>
+                </div>
+                <div class="record-type">
+                    <div class="record-header">
+                        <span class="record-name">Serial</span>
+                    </div>
+                    <div class="record-data">${soa.serial}</div>
+                    <div class="record-explanation">Version number for zone updates</div>
+                </div>
+                <div class="record-type">
+                    <div class="record-header">
+                        <span class="record-name">Refresh (seconds)</span>
+                    </div>
+                    <div class="record-data">${soa.refresh}</div>
+                    <div class="record-explanation">How often secondary nameservers check for updates</div>
+                </div>
+                <div class="record-type">
+                    <div class="record-header">
+                        <span class="record-name">TTL (Time To Live)</span>
+                    </div>
+                    <div class="record-data">${soa.ttl} seconds</div>
+                    <div class="record-explanation">How long DNS results are cached</div>
+                    <div class="security-note">
+                        <strong>Security Note:</strong> Lower TTL increases resilience against DNS hijacking but raises query load. Balance security with performance.
+                    </div>
+                </div>
+            `;
+        }
+
+        document.getElementById('domain').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') performDNSLookup();
+        });
+    </script>
+</body>
+</html>

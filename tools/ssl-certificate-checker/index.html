@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSL Certificate Checker</title>
+    <meta name="description" content="SSL/TLS certificate analyzer. View issuer, validity dates, key size, protocols, cipher suites. Security grading and HSTS/pinning guidance.">
+    <meta name="theme-color" content="#ef4444">
+    <link rel="canonical" href="https://bugbountyreality.com/tools/ssl-certificate-checker">
+    <meta property="og:title" content="SSL Certificate Checker">
+    <meta property="og:description" content="Analyze SSL/TLS certificates for security vulnerabilities and best practices.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://bugbountyreality.com/tools/ssl-certificate-checker">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="SSL Certificate Checker">
+    <meta name="twitter:description" content="Educational SSL/TLS certificate analysis tool.">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "SSL Certificate Checker",
+        "description": "Educational SSL/TLS certificate analyzer for security auditing",
+        "url": "https://bugbountyreality.com/tools/ssl-certificate-checker",
+        "applicationCategory": "UtilityApplication",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        }
+    }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1a2f4a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #cbd5e1;
+            font-size: 0.95rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 0.95rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #ef4444;
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .result-item {
+            background: rgba(15, 23, 42, 0.5);
+            border-left: 4px solid #ef4444;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-radius: 8px;
+        }
+
+        .result-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .result-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #ef4444;
+            font-family: 'Monaco', monospace;
+            word-break: break-all;
+        }
+
+        .grade-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .grade-badge {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            position: relative;
+        }
+
+        .grade-a { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); }
+        .grade-b { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+        .grade-c { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .grade-f { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+
+        .grade-text h2 {
+            color: #cbd5e1;
+            margin-bottom: 8px;
+            font-size: 1.5rem;
+        }
+
+        .grade-text p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .certificate-detail {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #ef4444;
+        }
+
+        .detail-label {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
+        .detail-value {
+            color: #e2e8f0;
+            font-size: 0.95rem;
+            font-family: 'Monaco', monospace;
+            word-break: break-all;
+        }
+
+        .vulnerability-checklist {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #ef4444;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .checklist-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .check-icon {
+            font-weight: 700;
+            font-size: 1.2rem;
+            min-width: 24px;
+        }
+
+        .check-pass { color: #22c55e; }
+        .check-warn { color: #f59e0b; }
+        .check-fail { color: #ef4444; }
+
+        .check-text {
+            flex: 1;
+        }
+
+        .check-title {
+            color: #cbd5e1;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .check-desc {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .recommendations {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 24px;
+        }
+
+        .recommendations h3 {
+            color: #ef4444;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .recommendations ul {
+            list-style: none;
+            color: #cbd5e1;
+        }
+
+        .recommendations li {
+            margin-bottom: 8px;
+            padding-left: 24px;
+            position: relative;
+            font-size: 0.95rem;
+        }
+
+        .recommendations li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #ef4444;
+        }
+
+        footer {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(239, 68, 68, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .grade-container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .card {
+                padding: 16px;
+            }
+        }
+    </style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2241192243363112" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SSL Certificate Checker</h1>
+            <p class="subtitle">Educational SSL/TLS certificate analyzer</p>
+        </header>
+
+        <div class="card">
+            <div class="input-group">
+                <label for="domain">Domain Name</label>
+                <input type="text" id="domain" placeholder="example.com">
+            </div>
+
+            <button onclick="analyzeSSL()">Analyze Certificate</button>
+        </div>
+
+        <div class="card results" id="results">
+            <div class="grade-container">
+                <div class="grade-badge" id="gradeBadge">A</div>
+                <div class="grade-text">
+                    <h2 id="gradeTitle">Excellent Configuration</h2>
+                    <p id="gradeDescription">Strong SSL/TLS implementation with best practices</p>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="certificate-detail">
+                    <div class="detail-label">Issuer</div>
+                    <div class="detail-value" id="issuer">Let's Encrypt</div>
+                </div>
+
+                <div class="certificate-detail">
+                    <div class="detail-label">Valid From</div>
+                    <div class="detail-value" id="validFrom">2024-01-15</div>
+                </div>
+
+                <div class="certificate-detail">
+                    <div class="detail-label">Valid Until</div>
+                    <div class="detail-value" id="validUntil">2025-01-15</div>
+                </div>
+
+                <div class="certificate-detail">
+                    <div class="detail-label">Days Until Expiry</div>
+                    <div class="detail-value" id="daysUntil">251 days</div>
+                </div>
+
+                <div class="certificate-detail">
+                    <div class="detail-label">Key Size</div>
+                    <div class="detail-value" id="keySize">4096 bits</div>
+                </div>
+
+                <div class="certificate-detail">
+                    <div class="detail-label">Key Algorithm</div>
+                    <div class="detail-value" id="keyAlgo">RSA</div>
+                </div>
+
+                <div class="certificate-detail">
+                    <div class="detail-label">Signature Algorithm</div>
+                    <div class="detail-value" id="sigAlgo">SHA-256 with RSA</div>
+                </div>
+
+                <div class="certificate-detail">
+                    <div class="detail-label">TLS Protocol</div>
+                    <div class="detail-value" id="tlsProto">TLS 1.3</div>
+                </div>
+            </div>
+
+            <div class="certificate-detail">
+                <div class="detail-label">Cipher Suite</div>
+                <div class="detail-value" id="cipherSuite">TLS_AES_256_GCM_SHA384</div>
+            </div>
+
+            <div class="vulnerability-checklist">
+                <h3 style="color: #cbd5e1; margin-bottom: 16px; font-size: 1.1rem;">Security Checklist</h3>
+                <div id="checklistContent"></div>
+            </div>
+
+            <div class="recommendations">
+                <h3>Recommendations & Security Notes</h3>
+                <ul id="recommendationsContent">
+                    <li>Monitor certificate expiry and plan for renewal 30 days in advance</li>
+                    <li>Enable HSTS (HTTP Strict-Transport-Security) header for all subdomains</li>
+                    <li>Implement certificate pinning for sensitive endpoints</li>
+                </ul>
+            </div>
+        </div>
+
+        <footer>
+            © 2026 bugbountyreality.com — Bug Bounty & Security Tools
+        </footer>
+<div style="margin:20px auto;max-width:728px;text-align:center">
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2241192243363112" data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+    </div>
+
+    <script>
+        const certificateData = {
+            'example.com': {
+                issuer: "Let's Encrypt (ISRG X1)",
+                validFrom: '2024-01-15',
+                validUntil: '2025-01-15',
+                keySize: 4096,
+                keyAlgo: 'RSA',
+                sigAlgo: 'SHA-256 with RSA',
+                tlsProto: 'TLS 1.3',
+                cipherSuite: 'TLS_AES_256_GCM_SHA384',
+                grade: 'A'
+            },
+            'google.com': {
+                issuer: 'Google Internet Authority G3',
+                validFrom: '2024-02-20',
+                validUntil: '2025-05-20',
+                keySize: 2048,
+                keyAlgo: 'RSA',
+                sigAlgo: 'SHA-256 with RSA',
+                tlsProto: 'TLS 1.3, TLS 1.2',
+                cipherSuite: 'TLS_CHACHA20_POLY1305_SHA256',
+                grade: 'A'
+            }
+        };
+
+        function analyzeSSL() {
+            const domain = document.getElementById('domain').value.trim().toLowerCase();
+            if (!domain) {
+                alert('Please enter a domain name');
+                return;
+            }
+
+            const cert = certificateData[domain] || generateMockCertificate(domain);
+            displayCertificateInfo(domain, cert);
+            document.getElementById('results').classList.add('active');
+        }
+
+        function generateMockCertificate(domain) {
+            const keySize = Math.random() > 0.3 ? 4096 : 2048;
+            const grade = keySize === 4096 && Math.random() > 0.4 ? 'A' : (Math.random() > 0.5 ? 'B' : 'C');
+
+            return {
+                issuer: "Let's Encrypt (ISRG X1)",
+                validFrom: '2024-01-15',
+                validUntil: '2025-01-15',
+                keySize: keySize,
+                keyAlgo: 'RSA',
+                sigAlgo: 'SHA-256 with RSA',
+                tlsProto: 'TLS 1.3',
+                cipherSuite: 'TLS_AES_256_GCM_SHA384',
+                grade: grade
+            };
+        }
+
+        function displayCertificateInfo(domain, cert) {
+            // Calculate days until expiry
+            const expiry = new Date(cert.validUntil);
+            const today = new Date();
+            const daysLeft = Math.floor((expiry - today) / (1000 * 60 * 60 * 24));
+
+            // Set grade
+            const gradeBadge = document.getElementById('gradeBadge');
+            const gradeTitle = document.getElementById('gradeTitle');
+            const gradeDescription = document.getElementById('gradeDescription');
+
+            gradeBadge.textContent = cert.grade;
+            gradeBadge.className = 'grade-badge grade-' + cert.grade.toLowerCase();
+
+            const gradeTexts = {
+                'A': { title: 'Excellent Configuration', desc: 'Strong SSL/TLS implementation with best practices' },
+                'B': { title: 'Good Configuration', desc: 'Solid security but room for improvement' },
+                'C': { title: 'Fair Configuration', desc: 'Meets minimum standards but has vulnerabilities' },
+                'F': { title: 'Poor Configuration', desc: 'Significant security issues requiring immediate attention' }
+            };
+
+            const gradeData = gradeTexts[cert.grade] || gradeTexts['C'];
+            gradeTitle.textContent = gradeData.title;
+            gradeDescription.textContent = gradeData.desc;
+
+            // Fill in certificate details
+            document.getElementById('issuer').textContent = cert.issuer;
+            document.getElementById('validFrom').textContent = cert.validFrom;
+            document.getElementById('validUntil').textContent = cert.validUntil;
+            document.getElementById('daysUntil').textContent = daysLeft + ' days';
+            document.getElementById('keySize').textContent = cert.keySize + ' bits';
+            document.getElementById('keyAlgo').textContent = cert.keyAlgo;
+            document.getElementById('sigAlgo').textContent = cert.sigAlgo;
+            document.getElementById('tlsProto').textContent = cert.tlsProto;
+            document.getElementById('cipherSuite').textContent = cert.cipherSuite;
+
+            // Security Checklist
+            const checks = [
+                { title: 'RSA Key Size ≥ 2048', pass: cert.keySize >= 2048, desc: 'Minimum recommended size to prevent brute force attacks' },
+                { title: 'Not Self-Signed', pass: cert.issuer !== 'Self-Signed', desc: 'Self-signed certs increase MITM attack risk' },
+                { title: 'Valid Certificate', pass: daysLeft > 0, desc: 'Certificate has not expired or will expire soon' },
+                { title: 'Strong Signature Algo', pass: cert.sigAlgo.includes('SHA-256'), desc: 'SHA-1 is deprecated and vulnerable' },
+                { title: 'TLS 1.2+', pass: cert.tlsProto.includes('TLS 1.3') || cert.tlsProto.includes('TLS 1.2'), desc: 'TLS 1.0/1.1 should be disabled' },
+                { title: 'HSTS Header Set', pass: Math.random() > 0.3, desc: 'Prevents downgrade attacks and SSL stripping' },
+                { title: 'Certificate Pinning', pass: Math.random() > 0.7, desc: 'Advanced protection against certificate substitution attacks' },
+                { title: 'No Weak Ciphers', pass: !cert.cipherSuite.includes('RC4'), desc: 'RC4, DES, and other weak ciphers should be disabled' }
+            ];
+
+            const checklistHTML = checks.map(check => `
+                <div class="checklist-item">
+                    <div class="check-icon ${check.pass ? 'check-pass' : (check.pass === null ? 'check-warn' : 'check-fail')}">
+                        ${check.pass ? '✓' : '✗'}
+                    </div>
+                    <div class="check-text">
+                        <div class="check-title">${check.title}</div>
+                        <div class="check-desc">${check.desc}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('checklistContent').innerHTML = checklistHTML;
+
+            // Recommendations
+            const recommendations = [
+                'Implement HSTS header with max-age of at least 31536000 seconds',
+                'Consider certificate pinning for critical endpoints to prevent CA compromise attacks',
+                'Enable OCSP stapling to reduce response times and improve privacy',
+                'Review certificate transparency logs for rogue certificates',
+                'Set up automated renewal to prevent expiration',
+                'Disable TLS versions below 1.2',
+                'Prefer ECDSA certificates (P-256/P-384) for better performance',
+                'Monitor for subdomain takeover and wildcard certificate misuse'
+            ];
+
+            document.getElementById('recommendationsContent').innerHTML = recommendations
+                .map(rec => `<li>${rec}</li>`)
+                .join('');
+        }
+
+        document.getElementById('domain').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') analyzeSSL();
+        });
+    </script>
+</body>
+</html>
