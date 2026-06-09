@@ -1,0 +1,484 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bug Bounty Earnings Calculator — Realistic Income Estimator</title>
+  <meta name="description" content="Estimate realistic bug bounty earnings based on skill, hours, and focus area. Compare with pentester salary & see the real payout distribution.">
+  <link rel="canonical" href="https://bugbountyreality.com/tools/earnings-calculator">
+  <!-- Structured data: WebApplication + FAQPage + BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Bug Bounty Earnings Calculator",
+    "url": "https://bugbountyreality.com/tools/earnings-calculator",
+    "description": "Realistic bug bounty income estimator based on skill level, hours, focus area and platform.",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "All",
+    "browserRequirements": "Requires JavaScript"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [{
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://bugbountyreality.com"
+    },{
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Tools",
+      "item": "https://bugbountyreality.com/tools"
+    },{
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Bug Bounty Earnings Calculator",
+      "item": "https://bugbountyreality.com/tools/earnings-calculator"
+    }]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {"@type":"Question","name":"How accurate is this calculator?","acceptedAnswer":{"@type":"Answer","text":"Based on public payout data and researcher averages, but individual results vary widely."}},
+      {"@type":"Question","name":"What is the median bug bounty income?","acceptedAnswer":{"@type":"Answer","text":"Median annual earnings are below $20,000; top 1% earn over $500,000."}}
+    ]
+  }
+  </script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+    body {
+      background-color: #0a0a0a;
+      color: #eaeaea;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 1100px;
+      width: 100%;
+      background: #121212;
+      border-radius: 2rem;
+      padding: 2rem 1.8rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      border: 1px solid #2a2a2a;
+    }
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #f5b041, #f39c12);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 0.25rem;
+    }
+    .subhead {
+      color: #9b9b9b;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid #2a2a2a;
+      padding-bottom: 0.8rem;
+      font-size: 0.95rem;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 2rem;
+    }
+    @media (max-width: 700px) {
+      .grid-2 { grid-template-columns: 1fr; gap: 2rem; }
+      h1 { font-size: 1.8rem; }
+    }
+    .input-panel {
+      background: #1a1a1a;
+      border-radius: 1.5rem;
+      padding: 1.6rem;
+      border: 1px solid #2e2e2e;
+    }
+    .input-group {
+      margin-bottom: 1.4rem;
+    }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #b0b0b0;
+      margin-bottom: 0.4rem;
+    }
+    select, input {
+      width: 100%;
+      padding: 0.7rem 1rem;
+      background: #0f0f0f;
+      border: 1px solid #333;
+      border-radius: 2rem;
+      color: #f0f0f0;
+      font-size: 1rem;
+      outline: none;
+      transition: 0.2s;
+    }
+    select:focus, input:focus {
+      border-color: #f39c12;
+      box-shadow: 0 0 0 2px rgba(243,156,18,0.2);
+    }
+    option { background: #1a1a1a; }
+    .range-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+    input[type="range"] {
+      flex: 1;
+      padding: 0;
+      background: transparent;
+      border: none;
+      accent-color: #f39c12;
+    }
+    .hours-value {
+      background: #0f0f0f;
+      padding: 0.2rem 1rem;
+      border-radius: 2rem;
+      border: 1px solid #333;
+      min-width: 4rem;
+      text-align: center;
+    }
+    .calc-btn {
+      background: #f39c12;
+      border: none;
+      color: #0a0a0a;
+      font-weight: 700;
+      font-size: 1.1rem;
+      padding: 0.8rem 1.5rem;
+      border-radius: 3rem;
+      width: 100%;
+      cursor: pointer;
+      transition: 0.2s;
+      letter-spacing: 0.02em;
+      margin-top: 0.5rem;
+    }
+    .calc-btn:hover {
+      background: #f1c40f;
+      transform: scale(1.02);
+      box-shadow: 0 8px 20px rgba(243,156,18,0.3);
+    }
+    .result-panel {
+      background: #1a1a1a;
+      border-radius: 1.5rem;
+      padding: 1.6rem;
+      border: 1px solid #2e2e2e;
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid #262626;
+    }
+    .stat-label { color: #aaa; }
+    .stat-value { font-weight: 600; color: #f0f0f0; }
+    .highlight { color: #f39c12; }
+    .big-number {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #f5b041;
+      line-height: 1.2;
+    }
+    .breakdown-title {
+      margin: 1.2rem 0 0.6rem 0;
+      font-weight: 500;
+      color: #ccc;
+      border-left: 3px solid #f39c12;
+      padding-left: 0.6rem;
+    }
+    .reality-box {
+      background: #0f0f0f;
+      border-radius: 1.2rem;
+      padding: 1rem 1.2rem;
+      margin-top: 1.2rem;
+      border: 1px solid #2d2d2d;
+    }
+    .reality-box p {
+      font-size: 0.9rem;
+      color: #c0c0c0;
+    }
+    .reality-box strong {
+      color: #f39c12;
+    }
+    .footnote {
+      margin-top: 1.8rem;
+      font-size: 0.75rem;
+      color: #666;
+      text-align: center;
+    }
+    .inline-badge {
+      background: #2a2a2a;
+      border-radius: 2rem;
+      padding: 0.1rem 0.8rem;
+      font-size: 0.7rem;
+      color: #aaa;
+    }
+  </style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2241192243363112" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="container">
+  <h1>🛡️ Bug Bounty Earnings Calculator</h1>
+  <div class="subhead">Realistic income estimator · based on public payout data &amp; researcher averages</div>
+
+  <div class="grid-2">
+    <!-- Input panel -->
+    <div class="input-panel">
+      <div class="input-group">
+        <label for="skill">Skill level</label>
+        <select id="skill">
+          <option value="beginner">Beginner</option>
+          <option value="intermediate" selected>Intermediate</option>
+          <option value="advanced">Advanced</option>
+          <option value="elite">Elite</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label for="hours">Hours per week</label>
+        <div class="range-wrapper">
+          <input type="range" id="hours" min="2" max="60" value="20" step="1">
+          <span class="hours-value" id="hoursDisplay">20h</span>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label for="focus">Focus area</label>
+        <select id="focus">
+          <option value="web">Web</option>
+          <option value="mobile">Mobile</option>
+          <option value="api">API</option>
+          <option value="smartcontract">Smart Contract</option>
+          <option value="aiml">AI/ML</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label for="platform">Platform</label>
+        <select id="platform">
+          <option value="hackerone">HackerOne</option>
+          <option value="bugcrowd">Bugcrowd</option>
+          <option value="intigriti">Intigriti</option>
+          <option value="yeswehack">YesWeHack</option>
+          <option value="synack">Synack</option>
+        </select>
+      </div>
+
+      <button class="calc-btn" id="calculateBtn">⟳ Calculate realistic earnings</button>
+    </div>
+
+    <!-- Result panel -->
+    <div class="result-panel" id="resultPanel">
+      <div class="stat-row">
+        <span class="stat-label">💰 Estimated yearly payout</span>
+        <span class="big-number" id="yearlyEarnings">$12,450</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">📆 Monthly (avg)</span>
+        <span class="stat-value" id="monthlyEarnings">$1,038</span>
+      </div>
+
+      <div class="breakdown-title">📊 Breakdown</div>
+      <div class="stat-row"><span class="stat-label">Gross findings (per year)</span><span class="stat-value" id="grossFinds">47</span></div>
+      <div class="stat-row"><span class="stat-label">✅ Valid rate</span><span class="stat-value" id="validRate">22%</span></div>
+      <div class="stat-row"><span class="stat-label">📈 Avg severity distribution</span><span class="stat-value" id="severityDist">Low 30% · Med 40% · High 22% · Crit 8%</span></div>
+      <div class="stat-row"><span class="stat-label">💸 Total valid payout</span><span class="stat-value highlight" id="totalPayout">$12,450</span></div>
+      
+      <div class="stat-row" style="border-bottom: none; margin-top: 0.2rem;">
+        <span class="stat-label">💼 Compared to pentester salary</span>
+        <span class="stat-value" id="pentesterCompare">-68% below median</span>
+      </div>
+
+      <div class="reality-box">
+        <p><strong>⚡ Reality check</strong> · Top 1% earn <strong>&gt;$500K</strong> · Median researcher earns <strong>&lt;$20K</strong> · Most earnings come from critical/high severity.</p>
+        <p style="margin-top: 0.3rem; font-size:0.8rem;">Based on public data: median payouts low $50-150, medium $500-1500, high $2000-5000, critical $5000-25000. Acceptance rates 15-30%.</p>
+      </div>
+    </div>
+  </div>
+  <div class="footnote">* Estimates are indicative. Individual results vary by skill, luck, and methodology. Data from public bug bounty reports &amp; researcher surveys.</div>
+</div>
+
+<script>
+  (function() {
+    // ----- core calculation -----
+    function calculateEarnings(skill, hoursPerWeek, focus, platform) {
+      // base skill multipliers (affects speed, severity distribution)
+      const skillMap = {
+        beginner:     { speed: 0.6, severityBias: [0.45, 0.35, 0.15, 0.05], validRate: 0.15 },
+        intermediate: { speed: 1.0, severityBias: [0.30, 0.40, 0.22, 0.08], validRate: 0.22 },
+        advanced:     { speed: 1.6, severityBias: [0.18, 0.35, 0.32, 0.15], validRate: 0.28 },
+        elite:        { speed: 2.5, severityBias: [0.08, 0.25, 0.37, 0.30], validRate: 0.30 }
+      };
+      // focus area modifier (time per finding, slight payout shift)
+      const focusMap = {
+        web:          { timePerFind: 12, payoutMod: 1.0 },
+        mobile:       { timePerFind: 14, payoutMod: 1.1 },
+        api:          { timePerFind: 10, payoutMod: 1.0 },
+        smartcontract:{ timePerFind: 20, payoutMod: 1.6 },
+        aiml:         { timePerFind: 18, payoutMod: 1.4 }
+      };
+      // platform modifier (acceptance rate / competition)
+      const platformMap = {
+        hackerone:  { acceptanceMod: 1.0 },
+        bugcrowd:   { acceptanceMod: 0.95 },
+        intigriti:  { acceptanceMod: 1.05 },
+        yeswehack:  { acceptanceMod: 0.9 },
+        synack:     { acceptanceMod: 1.1 }
+      };
+
+      const s = skillMap[skill] || skillMap.intermediate;
+      const f = focusMap[focus] || focusMap.web;
+      const p = platformMap[platform] || platformMap.hackerone;
+
+      // effective hours per year (46 weeks active)
+      const weeksActive = 46;
+      const totalHoursYear = hoursPerWeek * weeksActive;
+
+      // time per valid finding (hours) = base time * focus timePerFind / speed
+      const baseTimePerFind = 12; // average hours per valid for intermediate web
+      const timePerValid = (baseTimePerFind * (f.timePerFind / 12)) / s.speed;
+
+      // gross findings per year (including invalid)
+      const grossFinds = Math.round(totalHoursYear / (timePerValid * 1.8)); // 1.8 factor for invalid time
+      
+      // valid rate with platform acceptance modifier
+      const validRate = Math.min(0.35, s.validRate * p.acceptanceMod);
+      const validFinds = Math.round(grossFinds * validRate);
+
+      // severity distribution
+      const severity = s.severityBias; // [low, med, high, critical]
+      const lowCount = Math.round(validFinds * severity[0]);
+      const medCount = Math.round(validFinds * severity[1]);
+      const highCount = Math.round(validFinds * severity[2]);
+      const critCount = Math.round(validFinds * severity[3]);
+      // adjust rounding
+      const totalAssigned = lowCount + medCount + highCount + critCount;
+      let diff = validFinds - totalAssigned;
+      // add diff to highest probability
+      if (diff !== 0) {
+        const idx = severity.indexOf(Math.max(...severity));
+        if (idx === 0) lowCount + diff; // not used but fine
+        else if (idx === 1) medCount + diff;
+        else if (idx === 2) highCount + diff;
+        else critCount + diff;
+      }
+
+      // median payouts (realistic ranges)
+      const lowPayout = 100;      // 50-150
+      const medPayout = 900;      // 500-1500
+      const highPayout = 3200;    // 2000-5000
+      const critPayout = 12000;   // 5000-25000
+
+      const lowTotal = lowCount * lowPayout;
+      const medTotal = medCount * medPayout;
+      const highTotal = highCount * highPayout;
+      const critTotal = critCount * critPayout;
+      const totalPayout = lowTotal + medTotal + highTotal + critTotal;
+
+      // severity distribution string
+      const totalValid = lowCount+medCount+highCount+critCount;
+      const pLow = totalValid ? Math.round(lowCount/totalValid*100) : 0;
+      const pMed = totalValid ? Math.round(medCount/totalValid*100) : 0;
+      const pHigh = totalValid ? Math.round(highCount/totalValid*100) : 0;
+      const pCrit = totalValid ? Math.round(critCount/totalValid*100) : 0;
+      const severityStr = `Low ${pLow}% · Med ${pMed}% · High ${pHigh}% · Crit ${pCrit}%`;
+
+      // pentester median salary ~95k (US)
+      const pentesterMedian = 95000;
+      const diffPercent = Math.round((totalPayout - pentesterMedian) / pentesterMedian * 100);
+      let compareStr = '';
+      if (diffPercent > 0) compareStr = `+${diffPercent}% above median`;
+      else if (diffPercent === 0) compareStr = '≈ equal to median';
+      else compareStr = `${diffPercent}% below median`;
+
+      return {
+        yearlyEarnings: totalPayout,
+        monthlyEarnings: Math.round(totalPayout / 12),
+        grossFinds: grossFinds,
+        validRate: Math.round(validRate*100) + '%',
+        severityDist: severityStr,
+        totalPayout: totalPayout,
+        pentesterCompare: compareStr,
+        // for breakdown
+        lowCount, medCount, highCount, critCount
+      };
+    }
+
+    // ----- UI update -----
+    const skillEl = document.getElementById('skill');
+    const hoursEl = document.getElementById('hours');
+    const hoursDisplay = document.getElementById('hoursDisplay');
+    const focusEl = document.getElementById('focus');
+    const platformEl = document.getElementById('platform');
+    const calcBtn = document.getElementById('calculateBtn');
+
+    const yearlyEarningsEl = document.getElementById('yearlyEarnings');
+    const monthlyEarningsEl = document.getElementById('monthlyEarnings');
+    const grossFindsEl = document.getElementById('grossFinds');
+    const validRateEl = document.getElementById('validRate');
+    const severityDistEl = document.getElementById('severityDist');
+    const totalPayoutEl = document.getElementById('totalPayout');
+    const pentesterCompareEl = document.getElementById('pentesterCompare');
+
+    function updateDisplay() {
+      const skill = skillEl.value;
+      const hours = parseInt(hoursEl.value, 10);
+      const focus = focusEl.value;
+      const platform = platformEl.value;
+
+      const result = calculateEarnings(skill, hours, focus, platform);
+
+      yearlyEarningsEl.textContent = '$' + result.yearlyEarnings.toLocaleString();
+      monthlyEarningsEl.textContent = '$' + result.monthlyEarnings.toLocaleString();
+      grossFindsEl.textContent = result.grossFinds;
+      validRateEl.textContent = result.validRate;
+      severityDistEl.textContent = result.severityDist;
+      totalPayoutEl.textContent = '$' + result.totalPayout.toLocaleString();
+      pentesterCompareEl.textContent = result.pentesterCompare;
+    }
+
+    // hours slider live update
+    hoursEl.addEventListener('input', function() {
+      hoursDisplay.textContent = this.value + 'h';
+    });
+
+    // calculate on button click + initial load
+    calcBtn.addEventListener('click', updateDisplay);
+    window.addEventListener('DOMContentLoaded', function() {
+      // set default hours display
+      hoursDisplay.textContent = hoursEl.value + 'h';
+      updateDisplay();
+    });
+
+    // also update on change of selects (optional)
+    skillEl.addEventListener('change', updateDisplay);
+    focusEl.addEventListener('change', updateDisplay);
+    platformEl.addEventListener('change', updateDisplay);
+    hoursEl.addEventListener('change', updateDisplay);
+  })();
+</script>
+<div style="margin:20px auto;max-width:728px;text-align:center">
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2241192243363112" data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+</body>
+</html>

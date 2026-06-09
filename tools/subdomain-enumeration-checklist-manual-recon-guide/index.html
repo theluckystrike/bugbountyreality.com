@@ -1,0 +1,427 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subdomain Enumeration Checklist — Manual Recon Guide</title>
+  <meta name="description" content="40-item interactive checklist for subdomain discovery: DNS, OSINT, Google dorking, GitHub recon, cloud enumeration.">
+  <link rel="canonical" href="https://bugbountyreality.com/tools/subdomain-enumeration-checklist">
+  <!-- Structured data: Article + BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Subdomain Enumeration Checklist — Manual Recon Guide",
+    "description": "40-item interactive checklist for subdomain discovery: DNS, OSINT, Google dorking, GitHub recon, cloud enumeration.",
+    "author": {
+      "@type": "Organization",
+      "name": "BugBountyReality"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "BugBountyReality"
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://bugbountyreality.com/tools/subdomain-enumeration-checklist"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bugbountyreality.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Tools", "item": "https://bugbountyreality.com/tools" },
+      { "@type": "ListItem", "position": 3, "name": "Subdomain Enumeration Checklist", "item": "https://bugbountyreality.com/tools/subdomain-enumeration-checklist" }
+    ]
+  }
+  </script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #0a0a0a;
+      color: #e5e5e5;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      line-height: 1.5;
+      padding: 1.5rem;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 2rem;
+      border-bottom: 1px solid #2a2a2a;
+      padding-bottom: 1rem;
+    }
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #f0e68c, #ffb347);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .subhead {
+      color: #a0a0a0;
+      margin-top: 0.25rem;
+      font-size: 1.05rem;
+    }
+    .progress-area {
+      background: #141414;
+      border-radius: 16px;
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem 1.5rem;
+      border: 1px solid #2a2a2a;
+    }
+    .progress-label {
+      font-weight: 500;
+      color: #ccc;
+    }
+    .progress-bar-bg {
+      flex: 2;
+      min-width: 160px;
+      height: 12px;
+      background: #2a2a2a;
+      border-radius: 40px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #f0e68c, #ffb347);
+      border-radius: 40px;
+      transition: width 0.25s ease;
+    }
+    .progress-stats {
+      font-size: 0.95rem;
+      color: #cfcfcf;
+      background: #1e1e1e;
+      padding: 0.3rem 1rem;
+      border-radius: 40px;
+      white-space: nowrap;
+    }
+    .export-btn {
+      background: #2a2a2a;
+      border: 1px solid #3a3a3a;
+      color: #f0e68c;
+      padding: 0.4rem 1.2rem;
+      border-radius: 40px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .export-btn:hover {
+      background: #3a3a3a;
+      border-color: #f0e68c;
+    }
+    .category {
+      margin-bottom: 2.5rem;
+    }
+    .category h2 {
+      font-size: 1.5rem;
+      font-weight: 500;
+      margin-bottom: 0.75rem;
+      padding-left: 0.25rem;
+      border-left: 5px solid #f0e68c;
+      padding-left: 0.8rem;
+      color: #f0e68c;
+    }
+    .checklist-item {
+      background: #111111;
+      border: 1px solid #262626;
+      border-radius: 18px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 0.8rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 0.8rem 1rem;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .checklist-item:hover {
+      border-color: #3d3d3d;
+    }
+    .item-check {
+      flex-shrink: 0;
+      margin-top: 0.2rem;
+    }
+    .item-check input[type="checkbox"] {
+      width: 1.2rem;
+      height: 1.2rem;
+      accent-color: #f0e68c;
+      cursor: pointer;
+      transform: scale(1.1);
+    }
+    .item-content {
+      flex: 1;
+      min-width: 200px;
+    }
+    .item-title {
+      font-weight: 600;
+      color: #f0f0f0;
+      font-size: 1.05rem;
+    }
+    .item-desc {
+      color: #b0b0b0;
+      font-size: 0.92rem;
+      margin: 0.2rem 0 0.4rem 0;
+    }
+    .item-command {
+      background: #1c1c1c;
+      padding: 0.3rem 0.8rem;
+      border-radius: 30px;
+      display: inline-block;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.85rem;
+      color: #f5e7a7;
+      border: 1px solid #2e2e2e;
+      margin-top: 0.1rem;
+      word-break: break-all;
+    }
+    .item-example {
+      color: #8a8a8a;
+      font-size: 0.85rem;
+      margin-top: 0.3rem;
+      background: #1a1a1a;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      display: inline-block;
+      border: 1px solid #2a2a2a;
+    }
+    .footer-note {
+      margin-top: 3rem;
+      text-align: center;
+      color: #5a5a5a;
+      font-size: 0.85rem;
+      border-top: 1px solid #1f1f1f;
+      padding-top: 1.8rem;
+    }
+    @media (max-width: 600px) {
+      h1 { font-size: 1.6rem; }
+      .progress-area { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2241192243363112" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🔍 Subdomain Enumeration Checklist</h1>
+    <div class="subhead">Manual recon guide · 40 techniques across DNS, OSINT, Google dorking, GitHub & cloud</div>
+  </header>
+
+  <!-- progress + export -->
+  <div class="progress-area" id="progressArea">
+    <span class="progress-label">🧾 Progress</span>
+    <div class="progress-bar-bg">
+      <div class="progress-fill" id="progressFill" style="width:0%;"></div>
+    </div>
+    <span class="progress-stats" id="progressStats">0 / 40</span>
+    <button class="export-btn" id="exportMarkdownBtn">⬇️ Export .md</button>
+  </div>
+
+  <!-- main checklist -->
+  <div id="checklistContainer"></div>
+
+  <div class="footer-note">
+    BugBountyReality · Subdomain enumeration manual checklist · Updated 2025
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ----- 40 items data -----
+    const categories = [
+      {
+        name: "DNS Techniques",
+        items: [
+          { title: "DNS zone transfer (AXFR)", desc: "Attempt full zone transfer from nameservers.", command: "dig axfr @<nameserver> <domain>", example: "dig axfr @ns1.example.com example.com" },
+          { title: "DNS brute force (subdomains)", desc: "Brute force common subdomain names using wordlist.", command: "gobuster dns -d <domain> -w subdomains.txt", example: "gobuster dns -d example.com -w common.txt" },
+          { title: "DNS resolver subdomain scan", desc: "Resolve subdomains from a list using massdns.", command: "massdns -r resolvers.txt -t A -o S -w output.txt subdomains.txt", example: "massdns -r resolvers.txt -t A sublist.txt" },
+          { title: "Certificate Transparency (crt.sh)", desc: "Query crt.sh for logged certificates (subdomains).", command: "curl -s 'https://crt.sh/?q=%25.<domain>&output=json'", example: "curl -s 'https://crt.sh/?q=%25.example.com&output=json' | jq -r '.[].name_value'" },
+          { title: "Subdomain takeover check", desc: "Check if subdomain points to unclaimed service.", command: "subjack -d <domain> -w subdomains.txt -t 100", example: "subjack -d example.com -w subs.txt -ssl" },
+          { title: "DNS wildcard detection", desc: "Detect wildcard DNS responses.", command: "dig A randomstring.<domain>", example: "dig A xyz123.example.com" },
+          { title: "Reverse DNS lookup (PTR)", desc: "Find subdomains via reverse IP ranges.", command: "dnsrecon -r <CIDR> -t ptr", example: "dnsrecon -r 192.168.0.0/24 -t ptr" },
+          { title: "DNS cache snooping", desc: "Check cached DNS entries (if recursive resolver).", command: "dig +norecurse <sub> @<resolver>", example: "dig +norecurse admin.example.com @8.8.8.8" },
+          { title: "NSEC walking (DNSSEC)", desc: "Enumerate subdomains via NSEC records.", command: "ldns-walk <domain>", example: "ldns-walk example.com" },
+          { title: "DNS zone walking (dnsrecon)", desc: "Automated zone walk with dnsrecon.", command: "dnsrecon -d <domain> -t zonewalk", example: "dnsrecon -d example.com -t zonewalk" }
+        ]
+      },
+      {
+        name: "OSINT (Open Source Intelligence)",
+        items: [
+          { title: "Wayback Machine (archive.org)", desc: "Fetch historical subdomains from Wayback CDX.", command: "curl 'http://web.archive.org/cdx/search/cdx?url=*.<domain>&output=json'", example: "curl 'http://web.archive.org/cdx/search/cdx?url=*.example.com&output=json'" },
+          { title: "Shodan search", desc: "Search Shodan for subdomains / hostnames.", command: "shodan search hostname:<domain>", example: "shodan search hostname:example.com" },
+          { title: "SecurityTrails (API)", desc: "Query SecurityTrails for subdomains.", command: "curl -s 'https://api.securitytrails.com/v1/domain/<domain>/subdomains'", example: "curl -H 'APIKEY: xxx' 'https://api.securitytrails.com/v1/domain/example.com/subdomains'" },
+          { title: "crt.sh (advanced)", desc: "Query crt.sh with identity and parse.", command: "curl -s 'https://crt.sh/?q=<domain>&output=json' | jq -r '.[].name_value'", example: "curl -s 'https://crt.sh/?q=example.com&output=json' | jq -r '.[].name_value' | sort -u" },
+          { title: "AlienVault OTX", desc: "Retrieve subdomains from AlienVault OTX.", command: "curl -s 'https://otx.alienvault.com/api/v1/indicators/domain/<domain>/passive_dns'", example: "curl -s 'https://otx.alienvault.com/api/v1/indicators/domain/example.com/passive_dns'" },
+          { title: "VirusTotal (passive DNS)", desc: "Query VirusTotal for subdomains.", command: "curl -s 'https://www.virustotal.com/api/v3/domains/<domain>/subdomains'", example: "curl -H 'x-apikey: xxx' 'https://www.virustotal.com/api/v3/domains/example.com/subdomains'" },
+          { title: "Rapid7 FDNS dataset", desc: "Use Rapid7 forward DNS dataset (massive).", command: "zcat fdns*.gz | grep '<domain>'", example: "zcat fdns_a.json.gz | grep 'example.com'" },
+          { title: "ThreatCrowd", desc: "Search ThreatCrowd for subdomains.", command: "curl -s 'https://www.threatcrowd.org/searchApi/v2/domain/report/?domain=<domain>'", example: "curl -s 'https://www.threatcrowd.org/searchApi/v2/domain/report/?domain=example.com'" },
+          { title: "DNSDumpster", desc: "Use DNSDumpster to map subdomains.", command: "curl -s 'https://dnsdumpster.com/' (manual or API)", example: "Visit dnsdumpster.com & search domain" },
+          { title: "PassiveTotal (RiskIQ)", desc: "Passive DNS from RiskIQ.", command: "curl -s 'https://api.passivetotal.org/v2/enrichment/subdomains?query=<domain>'", example: "curl -u 'user:key' 'https://api.passivetotal.org/v2/enrichment/subdomains?query=example.com'" }
+        ]
+      },
+      {
+        name: "Google Dorking",
+        items: [
+          { title: "site: search with subdomain", desc: "Find subdomains indexed by Google.", command: "site:*.example.com", example: "site:*.example.com" },
+          { title: "inurl: subdomain pattern", desc: "Search for subdomains in URL.", command: "inurl:sub.example.com", example: "inurl:mail.example.com" },
+          { title: "intitle: subdomain keyword", desc: "Search page titles for subdomain references.", command: "intitle:example.com -site:example.com", example: "intitle:example.com -site:example.com" },
+          { title: "filetype: combined", desc: "Find config files that may reveal subdomains.", command: "filetype:xml site:example.com", example: "filetype:xml site:example.com" },
+          { title: "intext: subdomain pattern", desc: "Search inside pages for subdomain strings.", command: "intext:*.example.com", example: "intext:*.example.com" },
+          { title: "cache: subdomain lookup", desc: "Check cached pages for subdomains.", command: "cache:sub.example.com", example: "cache:dev.example.com" },
+          { title: "link: subdomain discovery", desc: "Find linked subdomains (deprecated but sometimes works).", command: "link:example.com", example: "link:example.com" },
+          { title: "related: domain", desc: "Find related domains (may include subdomains).", command: "related:example.com", example: "related:example.com" },
+          { title: "site: with filetype:txt", desc: "Find text files containing subdomains.", command: "site:example.com filetype:txt", example: "site:example.com filetype:txt" },
+          { title: "Google dork: intitle:index.of", desc: "Directory listing may expose subdomains.", command: "intitle:index.of site:example.com", example: "intitle:index.of site:example.com" }
+        ]
+      },
+      {
+        name: "GitHub Recon",
+        items: [
+          { title: "Search org repositories", desc: "Search GitHub for organization repos with subdomain.", command: "org:<org> subdomain", example: "org:example subdomain" },
+          { title: "CI/CD configs (actions, travis)", desc: "Find subdomains in CI config files.", command: "filename:.github/workflows subdomain", example: "filename:.github/workflows subdomain" },
+          { title: ".env files with subdomain", desc: "Search for .env files containing subdomains.", command: "filename:.env subdomain", example: "filename:.env subdomain" },
+          { title: "Search code for internal hostnames", desc: "Find internal subdomains in source code.", command: "internal.example.com repo:<org>", example: "internal.example.com" },
+          { title: "commit history subdomain", desc: "Search commit messages for subdomains.", command: "subdomain type:commits", example: "subdomain type:commits" },
+          { title: "GitHub dork: path:config", desc: "Search config files for subdomain.", command: "path:config subdomain.example.com", example: "path:config api.example.com" },
+          { title: "Search for AWS / cloud URLs", desc: "Find S3 buckets or cloud subdomains.", command: "s3.amazonaws.com/<bucket>", example: "s3.amazonaws.com/example-backup" },
+          { title: "GitLab / Bitbucket (GH mirror)", desc: "Search across git platforms (use GH search).", command: "site:gitlab.com subdomain", example: "site:gitlab.com example.com" },
+          { title: "Search for docker-compose", desc: "Find subdomains in docker-compose files.", command: "filename:docker-compose.yml subdomain", example: "filename:docker-compose.yml subdomain" },
+          { title: "Search for nginx configs", desc: "Nginx config may reveal subdomains.", command: "filename:nginx.conf subdomain", example: "filename:nginx.conf subdomain" }
+        ]
+      },
+      {
+        name: "Cloud Enumeration",
+        items: [
+          { title: "S3 bucket enumeration", desc: "Check for open S3 buckets with subdomain.", command: "aws s3 ls s3://<bucket> (or via curl)", example: "curl -s http://<bucket>.s3.amazonaws.com" },
+          { title: "Azure Blob storage", desc: "Enumerate Azure storage accounts.", command: "curl -s https://<account>.blob.core.windows.net", example: "curl -s https://devstorage.blob.core.windows.net" },
+          { title: "GCP buckets (storage)", desc: "Check Google Cloud Storage buckets.", command: "curl -s https://storage.googleapis.com/<bucket>", example: "curl -s https://example-backup.storage.googleapis.com" },
+          { title: "DigitalOcean Spaces", desc: "Check DO Spaces for subdomain.", command: "curl -s https://<bucket>.<region>.digitaloceanspaces.com", example: "curl -s https://media.nyc3.digitaloceanspaces.com" },
+          { title: "Cloudfront / CDN enumeration", desc: "Find Cloudfront distributions.", command: "dig <random>.cloudfront.net", example: "dig xyz.cloudfront.net" },
+          { title: "Firebase hosting", desc: "Check Firebase subdomains.", command: "curl -s https://<project>.firebaseapp.com", example: "curl -s https://example-app.firebaseapp.com" },
+          { title: "Heroku apps", desc: "Enumerate Heroku subdomains.", command: "curl -s https://<app>.herokuapp.com", example: "curl -s https://myapp.herokuapp.com" },
+          { title: "Netlify sites", desc: "Check Netlify subdomains.", command: "curl -s https://<site>.netlify.app", example: "curl -s https://example-site.netlify.app" },
+          { title: "Vercel deployments", desc: "Find Vercel subdomains.", command: "curl -s https://<project>.vercel.app", example: "curl -s https://myapp.vercel.app" },
+          { title: "GitHub Pages", desc: "Check GitHub Pages subdomains.", command: "curl -s https://<org>.github.io", example: "curl -s https://example.github.io" }
+        ]
+      }
+    ];
+
+    // flatten for progress
+    const allItems = categories.flatMap(cat => cat.items);
+    const totalItems = allItems.length; // 40
+
+    // render
+    const container = document.getElementById('checklistContainer');
+    function render() {
+      let html = '';
+      categories.forEach(cat => {
+        html += `<div class="category"><h2>${cat.name}</h2>`;
+        cat.items.forEach((item, idx) => {
+          const uniqueId = `${cat.name.replace(/\s+/g,'_')}_${idx}`;
+          // check from localStorage
+          const checked = localStorage.getItem('check_'+uniqueId) === 'true';
+          html += `
+            <div class="checklist-item" data-category="${cat.name}" data-idx="${idx}">
+              <div class="item-check">
+                <input type="checkbox" id="${uniqueId}" ${checked ? 'checked' : ''}>
+              </div>
+              <div class="item-content">
+                <div class="item-title">${item.title}</div>
+                <div class="item-desc">${item.desc}</div>
+                <span class="item-command">${item.command}</span>
+                <span class="item-example">${item.example}</span>
+              </div>
+            </div>
+          `;
+        });
+        html += `</div>`;
+      });
+      container.innerHTML = html;
+
+      // attach event listeners
+      document.querySelectorAll('.checklist-item input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', function(e) {
+          const id = this.id;
+          localStorage.setItem('check_'+id, this.checked ? 'true' : 'false');
+          updateProgress();
+        });
+      });
+      updateProgress();
+    }
+
+    // progress update
+    function updateProgress() {
+      const checkboxes = document.querySelectorAll('.checklist-item input[type="checkbox"]');
+      let checkedCount = 0;
+      checkboxes.forEach(cb => { if (cb.checked) checkedCount++; });
+      const pct = totalItems > 0 ? (checkedCount / totalItems) * 100 : 0;
+      document.getElementById('progressFill').style.width = Math.round(pct) + '%';
+      document.getElementById('progressStats').textContent = `${checkedCount} / ${totalItems}`;
+    }
+
+    // export markdown
+    function exportMarkdown() {
+      let md = `# Subdomain Enumeration Checklist — Manual Recon Guide\n\n`;
+      md += `> Generated from BugBountyReality interactive checklist\n\n`;
+      md += `## Progress: ${document.querySelectorAll('.checklist-item input[type="checkbox"]:checked').length} / ${totalItems}\n\n`;
+
+      categories.forEach(cat => {
+        md += `## ${cat.name}\n\n`;
+        cat.items.forEach((item, idx) => {
+          const uniqueId = `${cat.name.replace(/\s+/g,'_')}_${idx}`;
+          const checked = localStorage.getItem('check_'+uniqueId) === 'true';
+          const status = checked ? '[x]' : '[ ]';
+          md += `- ${status} **${item.title}**\n`;
+          md += `  - *Description:* ${item.desc}\n`;
+          md += `  - *Command:* \`${item.command}\`\n`;
+          md += `  - *Example:* \`${item.example}\`\n\n`;
+        });
+      });
+      md += `---\nChecklist exported from bugbountyreality.com\n`;
+      const blob = new Blob([md], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'subdomain_enumeration_checklist.md';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // initial render
+    render();
+
+    // export button
+    document.getElementById('exportMarkdownBtn').addEventListener('click', exportMarkdown);
+
+  })();
+</script>
+<div style="margin:20px auto;max-width:728px;text-align:center">
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2241192243363112" data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+</body>
+</html>
