@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CVSS 3.1 Calculator — Free Severity Score | BugBountyReality</title>
+    <meta name="description" content="Calculate CVSS 3.1 vulnerability scores with all vector components (AV, AC, PR, UI, S, C, I, A). Free severity calculator for security.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://bugbountyreality.com/tools/cvss-calculator/">
+
+    <meta property="og:title" content="CVSS 3.1 Calculator — Free Severity Score | BugBountyReality">
+    <meta property="og:description" content="CVSS 3.1 score calculator with all attack vector components. Free vulnerability severity assessment tool.">
+    <meta property="og:url" content="https://bugbountyreality.com/tools/cvss-calculator/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="BugBountyReality">
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "CVSS 3.1 Calculator",
+        "url": "https://bugbountyreality.com/tools/cvss-calculator/",
+        "applicationCategory": "SecurityApplication",
+        "operatingSystem": "Web",
+        "description": "Calculate CVSS 3.1 vulnerability severity scores with all vector components."
+    }
+    </script>
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2241192243363112" crossorigin="anonymous"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #0a0a0a;
+            color: #e8e8e8;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+
+        .subtitle {
+            color: #a0a0a0;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .tool-section {
+            background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .vector-group {
+            margin-bottom: 28px;
+        }
+
+        .vector-label {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #3b82f6;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .vector-name {
+            font-weight: 700;
+        }
+
+        .vector-description {
+            font-size: 0.85rem;
+            color: #a0a0a0;
+            margin-bottom: 10px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .metric-btn {
+            background-color: #1a1a1a;
+            color: #a0a0a0;
+            border: 1px solid #3a3a3a;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .metric-btn:hover {
+            border-color: #3b82f6;
+            color: #e8e8e8;
+        }
+
+        .metric-btn.active {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .results-box {
+            background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .results-box.show {
+            display: block;
+        }
+
+        .score-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .score-card {
+            background-color: #0f0f0f;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .score-card.critical {
+            border-left-color: #ef4444;
+        }
+
+        .score-card.high {
+            border-left-color: #f59e0b;
+        }
+
+        .score-card.medium {
+            border-left-color: #eab308;
+        }
+
+        .score-card.low {
+            border-left-color: #10b981;
+        }
+
+        .score-number {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #3b82f6;
+            margin-bottom: 6px;
+        }
+
+        .score-card.critical .score-number {
+            color: #ef4444;
+        }
+
+        .score-card.high .score-number {
+            color: #f59e0b;
+        }
+
+        .score-card.medium .score-number {
+            color: #eab308;
+        }
+
+        .score-card.low .score-number {
+            color: #10b981;
+        }
+
+        .score-label {
+            color: #a0a0a0;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+        }
+
+        .severity-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .badge-critical {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .badge-high {
+            background-color: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .badge-medium {
+            background-color: rgba(234, 179, 8, 0.2);
+            color: #eab308;
+        }
+
+        .badge-low {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .vector-string {
+            background-color: #0f0f0f;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #2a2a2a;
+            font-family: "Monaco", "Courier New", monospace;
+            font-size: 0.9rem;
+            color: #3b82f6;
+            word-break: break-all;
+            margin-bottom: 16px;
+        }
+
+        .copy-btn {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+
+        .copy-btn:hover {
+            background-color: #059669;
+        }
+
+        .info-box {
+            background-color: #1a1a1a;
+            border-left: 3px solid #f59e0b;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            color: #cbd5e1;
+            font-size: 0.95rem;
+        }
+
+        .info-box strong {
+            color: #f59e0b;
+        }
+
+        .vector-help {
+            background-color: #0f172a;
+            border: 1px solid #1e293b;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #94a3af;
+            margin-top: 8px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #2a2a2a;
+            color: #7a7a7a;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .partner-box {
+            margin: 30px auto;
+            max-width: 728px;
+            text-align: center;
+            padding: 18px 24px;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            border: 1px solid #334155;
+            border-radius: 10px;
+        }
+
+        .partner-text {
+            margin: 0 0 6px;
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .partner-link {
+            color: #38bdf8;
+            font-weight: 600;
+            font-size: 1.05rem;
+            text-decoration: none;
+        }
+
+        .partner-link:hover {
+            text-decoration: underline;
+        }
+
+        .partner-desc {
+            margin: 6px 0 0;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .score-display {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                gap: 6px;
+            }
+
+            .metric-btn {
+                min-width: 80px;
+                padding: 8px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CVSS 3.1 Calculator</h1>
+            <p class="subtitle">Calculate vulnerability severity scores with CVSS 3.1 standard</p>
+        </header>
+
+        <div class="tool-section">
+            <div class="info-box">
+                <strong>How it works:</strong> Select values for each attack vector component (AV, AC, PR, UI, S, C, I, A). The calculator automatically computes the CVSS 3.1 base score and provides the vector string.
+            </div>
+
+            <div class="vector-group">
+                <div class="vector-label">
+                    <span class="vector-name">Attack Vector (AV)</span>
+                </div>
+                <div class="vector-description">How the vulnerability can be exploited</div>
+                <div class="button-group">
+                    <button class="metric-btn active" data-metric="AV" data-value="N" data-score="8.8">Network (N)</button>
+                    <button class="metric-btn" data-metric="AV" data-value="A" data-score="8.8">Adjacent (A)</button>
+                    <button class="metric-btn" data-metric="AV" data-value="L" data-score="8.8">Local (L)</button>
+                    <button class="metric-btn" data-metric="AV" data-value="P" data-score="8.8">Physical (P)</button>
+                </div>
+                <div class="vector-help">N=Remote, A=Local network, L=Local system, P=Physical access required</div>
+            </div>
+
+            <div class="vector-group">
+                <div class="vector-label">
+                    <span class="vector-name">Attack Complexity (AC)</span>
+                </div>
+                <div class="vector-description">Conditions needed to exploit the vulnerability</div>
+                <div class="button-group">
+                    <button class="metric-btn active" data-metric="AC" data-value="L" data-score="8.8">Low (L)</button>
+                    <button class="metric-btn" data-metric="AC" data-value="H" data-score="8.8">High (H)</button>
+                </div>
+                <div class="vector-help">L=No special conditions, H=Specific conditions or race conditions required</div>
+            </div>
+
+            <div class="vector-group">
+                <div class="vector-label">
+                    <span class="vector-name">Privileges Required (PR)</span>
+                </div>
+                <div class="vector-description">Authentication or privileges needed before exploit</div>
+                <div class="button-group">
+                    <button class="metric-btn active" data-metric="PR" data-value="N" data-score="8.8">None (N)</button>
+                    <button class="metric-btn" data-metric="PR" data-value="L" data-score="8.8">Low (L)</button>
+                    <button class="metric-btn" data-metric="PR" data-value="H" data-score="8.8">High (H)</button>
+                </div>
+                <div class="vector-help">N=No auth required, L=Low-privilege account, H=Administrator/root</div>
+            </div>
+
+            <div class="vector-group">
+                <div class="vector-label">
+                    <span class="vector-name">User Interaction (UI)</span>
+                </div>
+                <div class="vector-description">User action required for successful exploitation</div>
+                <div class="button-group">
+                    <button class="metric-btn active" data-metric="UI" data-value="N" data-score="8.8">None (N)</button>
+                    <button class="metric-btn" data-metric="UI" data-value="R" data-score="8.8">Required (R)</button>
+                </div>
+                <div class="vector-help">N=No user action, R=User must click link, install software, etc.</div>
+            </div>
+
+            <div class="vector-group">
+                <div class="vector-label">
+                    <span class="vector-name">Scope (S)</span>
+                </div>
+                <div class="vector-description">Impact outside the vulnerable component</div>
+                <div class="button-group">
+                    <button class="metric-btn active" data-metric="S" data-value="U" data-score="8.8">Unchanged (U)</button>
+                    <button class="metric-btn" data-metric="S" data-value="C" data-score="8.8">Changed (C)</button>
+                </div>
+                <div class="vector-help">U=Only the vulnerable component, C=Other components or systems affected</div>
+            </div>
+
+            <div class="vector-group">
+                <div class="vector-label">
+                    <span class="vector-name">Confidentiality (C)</span>
+                </div>
+                <div class="vector-description">Impact on information disclosure</div>
+                <div class="button-group">
+                    <button class="metric-btn active" data-metric="C" data-value="H" data-score="8.8">High (H)</button>
+                    <button class="metric-btn" data-metric="C" data-value="L" data-score="8.8">Low (L)</button>
+                    <button class="metric-btn" data-metric="C" data-value="N" data-score="8.8">None (N)</button>
+                </div>
+                <div class="vector-help">H=All data exposed, L=Some data exposed, N=No data loss</div>
+            </div>
+
+            <div class="vector-group">
+                <div class="vector-label">
+                    <span class="vector-name">Integrity (I)</span>
+                </div>
+                <div class="vector-description">Impact on data modification</div>
+                <div class="button-group">
+                    <button class="metric-btn active" data-metric="I" data-value="H" data-score="8.8">High (H)</button>
+                    <button class="metric-btn" data-metric="I" data-value="L" data-score="8.8">Low (L)</button>
+                    <button class="metric-btn" data-metric="I" data-value="N" data-score="8.8">None (N)</button>
+                </div>
+                <div class="vector-help">H=Complete data modification, L=Some data altered, N=No integrity impact</div>
+            </div>
+
+            <div class="vector-group">
+                <div class="vector-label">
+                    <span class="vector-name">Availability (A)</span>
+                </div>
+                <div class="vector-description">Impact on service availability</div>
+                <div class="button-group">
+                    <button class="metric-btn active" data-metric="A" data-value="H" data-score="8.8">High (H)</button>
+                    <button class="metric-btn" data-metric="A" data-value="L" data-score="8.8">Low (L)</button>
+                    <button class="metric-btn" data-metric="A" data-value="N" data-score="8.8">None (N)</button>
+                </div>
+                <div class="vector-help">H=Complete service outage, L=Partial availability loss, N=No availability impact</div>
+            </div>
+        </div>
+
+        <div class="results-box" id="resultsBox">
+            <div class="score-display">
+                <div class="score-card" id="scoreCard">
+                    <div class="score-label">CVSS 3.1 Base Score</div>
+                    <div class="score-number" id="scoreNumber">0.0</div>
+                    <span class="severity-badge" id="severityBadge">NONE</span>
+                </div>
+                <div class="score-card">
+                    <div class="score-label">Vector String</div>
+                    <div class="vector-string" id="vectorString">CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H</div>
+                </div>
+            </div>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('vectorString').textContent)">Copy Vector String</button>
+        </div>
+
+        <div class="partner-box">
+            <p class="partner-text">Recommended by our team</p>
+            <a href="https://www.belikenative.com?ref=satellite" target="_blank" rel="noopener" class="partner-link">BeLikeNative.com</a>
+            <p class="partner-desc">The #1 AI writing tool for freelancers — perfect grammar in any language, instantly.</p>
+        </div>
+
+        <div style="margin: 20px auto; max-width: 728px; text-align: center;">
+            <ins class="adsbygoogle" style="display: block" data-ad-client="ca-pub-2241192243363112" data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({})</script>
+        </div>
+
+        <footer>
+            <p>&copy; 2026 BugBountyReality. All rights reserved. | <a href="https://bugbountyreality.com/tools/">Back to Tools</a></p>
+        </footer>
+    </div>
+
+    <script>
+        const metrics = {
+            AV: { N: 0.85, A: 0.62, L: 0.55, P: 0.20 },
+            AC: { L: 0.77, H: 0.44 },
+            PR: { N: 0.85, L: 0.62, H: 0.27 },
+            UI: { N: 0.85, R: 0.62 },
+            S: { U: 1.0, C: 1.0 },
+            C: { H: 0.56, L: 0.22, N: 0.0 },
+            I: { H: 0.56, L: 0.22, N: 0.0 },
+            A: { H: 0.56, L: 0.22, N: 0.0 }
+        };
+
+        let selectedMetrics = {
+            AV: 'N',
+            AC: 'L',
+            PR: 'N',
+            UI: 'N',
+            S: 'U',
+            C: 'H',
+            I: 'H',
+            A: 'H'
+        };
+
+        function calculateCVSS() {
+            const av = metrics.AV[selectedMetrics.AV];
+            const ac = metrics.AC[selectedMetrics.AC];
+            const pr = metrics.PR[selectedMetrics.PR];
+            const ui = metrics.UI[selectedMetrics.UI];
+            const s = metrics.S[selectedMetrics.S];
+            const c = metrics.C[selectedMetrics.C];
+            const i = metrics.I[selectedMetrics.I];
+            const a = metrics.A[selectedMetrics.A];
+
+            let impactScore = 1 - ((1 - c) * (1 - i) * (1 - a));
+            let exploitabilityScore = 8.15 * av * ac * pr * ui;
+
+            let score;
+            if (selectedMetrics.S === 'U') {
+                score = Math.min(exploitabilityScore + impactScore, 10);
+            } else {
+                score = Math.min((exploitabilityScore + impactScore) * s, 10);
+            }
+
+            score = Math.round(score * 10) / 10;
+
+            let severity;
+            if (score === 0) severity = 'None';
+            else if (score < 4) severity = 'Low';
+            else if (score < 7) severity = 'Medium';
+            else if (score < 9) severity = 'High';
+            else severity = 'Critical';
+
+            return { score, severity };
+        }
+
+        function updateDisplay() {
+            const { score, severity } = calculateCVSS();
+            document.getElementById('scoreNumber').textContent = score.toFixed(1);
+
+            const vectorParts = [
+                'CVSS:3.1',
+                `AV:${selectedMetrics.AV}`,
+                `AC:${selectedMetrics.AC}`,
+                `PR:${selectedMetrics.PR}`,
+                `UI:${selectedMetrics.UI}`,
+                `S:${selectedMetrics.S}`,
+                `C:${selectedMetrics.C}`,
+                `I:${selectedMetrics.I}`,
+                `A:${selectedMetrics.A}`
+            ];
+            document.getElementById('vectorString').textContent = vectorParts.join('/');
+
+            const badge = document.getElementById('severityBadge');
+            badge.textContent = severity.toUpperCase();
+            badge.className = `severity-badge badge-${severity.toLowerCase()}`;
+
+            const card = document.getElementById('scoreCard');
+            card.className = `score-card ${severity.toLowerCase()}`;
+
+            document.getElementById('resultsBox').classList.add('show');
+        }
+
+        document.querySelectorAll('.metric-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const metric = this.dataset.metric;
+                const value = this.dataset.value;
+
+                document.querySelectorAll(`[data-metric="${metric}"]`).forEach(b => {
+                    b.classList.remove('active');
+                });
+
+                this.classList.add('active');
+                selectedMetrics[metric] = value;
+
+                updateDisplay();
+            });
+        });
+
+        updateDisplay();
+    </script>
+</body>
+</html>

@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSS Payload Encoder — Free Online | BugBountyReality</title>
+    <meta name="description" content="Encode/decode XSS payloads for different contexts (HTML, URL, JS, Base64, Hex). Free security tool for penetration testing.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://bugbountyreality.com/tools/xss-encoder/">
+
+    <meta property="og:title" content="XSS Payload Encoder — Free Online | BugBountyReality">
+    <meta property="og:description" content="Encode XSS payloads in HTML, URL, JavaScript, Base64, and hex formats. Free penetration testing tool.">
+    <meta property="og:url" content="https://bugbountyreality.com/tools/xss-encoder/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="BugBountyReality">
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "XSS Payload Encoder",
+        "url": "https://bugbountyreality.com/tools/xss-encoder/",
+        "applicationCategory": "SecurityApplication",
+        "operatingSystem": "Web",
+        "description": "Encode and decode XSS payloads for multiple contexts."
+    }
+    </script>
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2241192243363112" crossorigin="anonymous"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #0a0a0a;
+            color: #e8e8e8;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+
+        .subtitle {
+            color: #a0a0a0;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .tool-section {
+            background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #c8c8c8;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: #1a1a1a;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            color: #e8e8e8;
+            font-size: 1rem;
+            font-family: "Monaco", "Courier New", monospace;
+            transition: border-color 0.3s;
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        button:hover {
+            background-color: #2563eb;
+        }
+
+        button:active {
+            background-color: #1d4ed8;
+        }
+
+        .button-group.full button {
+            flex: 1;
+            min-width: 100%;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #2a2a2a;
+            padding-bottom: 12px;
+        }
+
+        .tab-btn {
+            background-color: transparent;
+            color: #a0a0a0;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 2px solid transparent;
+            width: auto;
+            min-width: auto;
+            flex: 0;
+        }
+
+        .tab-btn:hover {
+            color: #e8e8e8;
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .tab-btn.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+            background-color: transparent;
+        }
+
+        .encoding-options {
+            background-color: #1a1a1a;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #2a2a2a;
+        }
+
+        .option-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .option-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #c8c8c8;
+            font-size: 0.95rem;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #3b82f6;
+        }
+
+        .output-group {
+            margin-bottom: 16px;
+        }
+
+        .output-group label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .copy-btn {
+            background-color: #10b981;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            width: auto;
+            min-width: auto;
+        }
+
+        .copy-btn:hover {
+            background-color: #059669;
+        }
+
+        .output-text {
+            background-color: #0f0f0f;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #2a2a2a;
+            color: #94a3af;
+            font-family: "Monaco", "Courier New", monospace;
+            font-size: 0.95rem;
+            min-height: 100px;
+            word-break: break-all;
+            white-space: pre-wrap;
+            line-height: 1.5;
+            overflow: auto;
+            max-height: 300px;
+        }
+
+        .info-box {
+            background-color: #1a1a1a;
+            border-left: 3px solid #f59e0b;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            color: #cbd5e1;
+            font-size: 0.95rem;
+        }
+
+        .info-box strong {
+            color: #f59e0b;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #2a2a2a;
+            color: #7a7a7a;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .partner-box {
+            margin: 30px auto;
+            max-width: 728px;
+            text-align: center;
+            padding: 18px 24px;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            border: 1px solid #334155;
+            border-radius: 10px;
+        }
+
+        .partner-text {
+            margin: 0 0 6px;
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .partner-link {
+            color: #38bdf8;
+            font-weight: 600;
+            font-size: 1.05rem;
+            text-decoration: none;
+        }
+
+        .partner-link:hover {
+            text-decoration: underline;
+        }
+
+        .partner-desc {
+            margin: 6px 0 0;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>XSS Payload Encoder</h1>
+            <p class="subtitle">Encode and decode XSS payloads for multiple contexts</p>
+        </header>
+
+        <div class="tool-section">
+            <div class="info-box">
+                <strong>How it works:</strong> Enter your payload and select encoding methods. Choose between encode (add encoding) or decode (remove encoding) for each context type.
+            </div>
+
+            <div class="input-group">
+                <label for="inputPayload">Payload Input</label>
+                <textarea id="inputPayload" placeholder="<img src=x onerror=alert('XSS')>" spellcheck="false"></textarea>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="all">Encode All</button>
+                <button class="tab-btn" data-tab="html">HTML</button>
+                <button class="tab-btn" data-tab="url">URL</button>
+                <button class="tab-btn" data-tab="js">JavaScript</button>
+                <button class="tab-btn" data-tab="base64">Base64</button>
+                <button class="tab-btn" data-tab="hex">Hex</button>
+            </div>
+
+            <div class="encoding-options">
+                <div class="option-group" id="optionsHTML" style="display: grid; grid-template-columns: 1fr;">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="encodeHTML" checked>
+                        <span>Encode HTML Entities</span>
+                    </label>
+                </div>
+                <div class="option-group" id="optionsURL" style="display: none; grid-template-columns: 1fr;">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="encodeURL" checked>
+                        <span>URL Encode (RFC 3986)</span>
+                    </label>
+                </div>
+                <div class="option-group" id="optionsJS" style="display: none; grid-template-columns: 1fr;">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="encodeJS" checked>
+                        <span>JavaScript Escape</span>
+                    </label>
+                </div>
+                <div class="option-group" id="optionsBase64" style="display: none; grid-template-columns: 1fr;">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="encodeBase64" checked>
+                        <span>Base64 Encode</span>
+                    </label>
+                </div>
+                <div class="option-group" id="optionsHex" style="display: none; grid-template-columns: 1fr;">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="encodeHex" checked>
+                        <span>Hex Encode</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="button-group full">
+                <button id="encodeBtn" style="background-color: #3b82f6;">Encode Selected</button>
+                <button id="decodeBtn" style="background-color: #f59e0b;">Decode Selected</button>
+                <button id="clearBtn" style="background-color: #6b7280;">Clear</button>
+            </div>
+
+            <div id="outputs"></div>
+        </div>
+
+        <div class="partner-box">
+            <p class="partner-text">Recommended by our team</p>
+            <a href="https://www.belikenative.com?ref=satellite" target="_blank" rel="noopener" class="partner-link">BeLikeNative.com</a>
+            <p class="partner-desc">The #1 AI writing tool for freelancers — perfect grammar in any language, instantly.</p>
+        </div>
+
+        <div style="margin: 20px auto; max-width: 728px; text-align: center;">
+            <ins class="adsbygoogle" style="display: block" data-ad-client="ca-pub-2241192243363112" data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({})</script>
+        </div>
+
+        <footer>
+            <p>&copy; 2026 BugBountyReality. All rights reserved. | <a href="https://bugbountyreality.com/tools/">Back to Tools</a></p>
+        </footer>
+    </div>
+
+    <script>
+        function htmlEncode(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function htmlDecode(str) {
+            const div = document.createElement('div');
+            div.innerHTML = str;
+            return div.textContent || div.innerText || '';
+        }
+
+        function urlEncode(str) {
+            return encodeURIComponent(str);
+        }
+
+        function urlDecode(str) {
+            try {
+                return decodeURIComponent(str);
+            } catch (e) {
+                return str;
+            }
+        }
+
+        function jsEscape(str) {
+            return str.split('').map(char => {
+                const code = char.charCodeAt(0);
+                if (code > 127) {
+                    return '\\u' + ('0000' + code.toString(16)).slice(-4);
+                }
+                if (char === '"' || char === "'" || char === '\\') {
+                    return '\\' + char;
+                }
+                if (char === '\n') return '\\n';
+                if (char === '\r') return '\\r';
+                if (char === '\t') return '\\t';
+                return char;
+            }).join('');
+        }
+
+        function jsUnescape(str) {
+            return str.replace(/\\u[0-9a-fA-F]{4}|\\x[0-9a-fA-F]{2}|\\(.)/g, (match) => {
+                if (match.startsWith('\\u')) {
+                    return String.fromCharCode(parseInt(match.slice(2), 16));
+                }
+                if (match.startsWith('\\x')) {
+                    return String.fromCharCode(parseInt(match.slice(2), 16));
+                }
+                return match[1];
+            });
+        }
+
+        function base64Encode(str) {
+            try {
+                return btoa(unescape(encodeURIComponent(str)));
+            } catch (e) {
+                return btoa(str);
+            }
+        }
+
+        function base64Decode(str) {
+            try {
+                return decodeURIComponent(escape(atob(str)));
+            } catch (e) {
+                return atob(str);
+            }
+        }
+
+        function hexEncode(str) {
+            let result = '';
+            for (let i = 0; i < str.length; i++) {
+                result += '\\x' + ('0' + str.charCodeAt(i).toString(16)).slice(-2);
+            }
+            return result;
+        }
+
+        function hexDecode(str) {
+            const matches = str.match(/\\x[0-9a-fA-F]{2}|./g);
+            if (!matches) return str;
+            return matches.map(m => {
+                if (m.startsWith('\\x')) {
+                    return String.fromCharCode(parseInt(m.slice(2), 16));
+                }
+                return m;
+            }).join('');
+        }
+
+        function updateOutputs() {
+            const input = document.getElementById('inputPayload').value;
+            const outputs = document.getElementById('outputs');
+            outputs.innerHTML = '';
+
+            const encodings = [
+                { name: 'HTML Entity', id: 'html', encode: htmlEncode, decode: htmlDecode },
+                { name: 'URL Encoded', id: 'url', encode: urlEncode, decode: urlDecode },
+                { name: 'JavaScript Escaped', id: 'js', encode: jsEscape, decode: jsUnescape },
+                { name: 'Base64', id: 'base64', encode: base64Encode, decode: base64Decode },
+                { name: 'Hex Encoded', id: 'hex', encode: hexEncode, decode: hexDecode }
+            ];
+
+            encodings.forEach(enc => {
+                const encoded = enc.encode(input);
+                const container = document.createElement('div');
+                container.className = 'output-group';
+                container.innerHTML = `
+                    <label>
+                        ${enc.name}
+                        <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('output-${enc.id}').textContent)">Copy</button>
+                    </label>
+                    <div class="output-text" id="output-${enc.id}">${encoded}</div>
+                `;
+                outputs.appendChild(container);
+            });
+        }
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const tab = this.dataset.tab;
+                document.querySelectorAll('[id^="options"]').forEach(el => el.style.display = 'none');
+
+                if (tab === 'all') {
+                    document.querySelectorAll('[id^="options"]').forEach(el => el.style.display = 'grid');
+                } else {
+                    const optionId = 'options' + tab.charAt(0).toUpperCase() + tab.slice(1);
+                    const el = document.getElementById(optionId);
+                    if (el) el.style.display = 'grid';
+                }
+            });
+        });
+
+        document.getElementById('inputPayload').addEventListener('input', updateOutputs);
+        document.getElementById('encodeBtn').addEventListener('click', updateOutputs);
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            document.getElementById('inputPayload').value = '';
+            updateOutputs();
+        });
+
+        updateOutputs();
+    </script>
+</body>
+</html>

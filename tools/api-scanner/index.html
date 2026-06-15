@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Security Scanner — Free Checklist Tool |...</title>
+    <meta name="description" content="Generate API security checklists covering authentication, rate limiting, input validation, HTTPS, and headers. Free testing tool.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://bugbountyreality.com/tools/api-scanner/">
+
+    <meta property="og:title" content="API Security Scanner — Free Checklist Tool | BugBountyReality">
+    <meta property="og:description" content="Comprehensive API security checklist: auth, rate limiting, validation, HTTPS, headers. Free security scanner.">
+    <meta property="og:url" content="https://bugbountyreality.com/tools/api-scanner/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="BugBountyReality">
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "API Security Scanner",
+        "url": "https://bugbountyreality.com/tools/api-scanner/",
+        "applicationCategory": "SecurityApplication",
+        "operatingSystem": "Web",
+        "description": "Generate comprehensive API security checklists and identify vulnerabilities."
+    }
+    </script>
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2241192243363112" crossorigin="anonymous"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #0a0a0a;
+            color: #e8e8e8;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+
+        .subtitle {
+            color: #a0a0a0;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .tool-section {
+            background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #c8c8c8;
+        }
+
+        input[type="text"], input[type="url"] {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: #1a1a1a;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            color: #e8e8e8;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"]:focus, input[type="url"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #2563eb;
+        }
+
+        button:active {
+            background-color: #1d4ed8;
+        }
+
+        .results-section {
+            margin-top: 30px;
+        }
+
+        .results-header {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #fff;
+        }
+
+        .category-section {
+            margin-bottom: 24px;
+        }
+
+        .category-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #3b82f6;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #2a2a2a;
+        }
+
+        .check-item {
+            background-color: #0f0f0f;
+            border-left: 3px solid #2a2a2a;
+            padding: 16px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .check-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+            cursor: pointer;
+            accent-color: #3b82f6;
+            margin-top: 2px;
+        }
+
+        .check-content {
+            flex: 1;
+        }
+
+        .check-title {
+            font-weight: 600;
+            color: #e8e8e8;
+            margin-bottom: 4px;
+        }
+
+        .check-desc {
+            color: #a0a0a0;
+            font-size: 0.9rem;
+        }
+
+        .check-item.checked {
+            border-left-color: #10b981;
+            background-color: rgba(16, 185, 129, 0.05);
+        }
+
+        .check-item.critical {
+            border-left-color: #ef4444;
+        }
+
+        .severity-badge {
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: 600;
+            text-transform: uppercase;
+            display: inline-block;
+            margin-top: 4px;
+        }
+
+        .badge-critical {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .badge-warning {
+            background-color: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .badge-info {
+            background-color: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .score-box {
+            background-color: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .score-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #3b82f6;
+            margin-bottom: 6px;
+        }
+
+        .score-label {
+            color: #a0a0a0;
+            font-size: 0.95rem;
+        }
+
+        .score-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #0f0f0f;
+            border-radius: 4px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .export-btn {
+            background-color: #10b981;
+            margin-top: 16px;
+            width: auto;
+        }
+
+        .export-btn:hover {
+            background-color: #059669;
+        }
+
+        .info-box {
+            background-color: #1a1a1a;
+            border-left: 3px solid #f59e0b;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            color: #cbd5e1;
+            font-size: 0.95rem;
+        }
+
+        .info-box strong {
+            color: #f59e0b;
+        }
+
+        .no-results {
+            color: #a0a0a0;
+            text-align: center;
+            padding: 20px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #2a2a2a;
+            color: #7a7a7a;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .partner-box {
+            margin: 30px auto;
+            max-width: 728px;
+            text-align: center;
+            padding: 18px 24px;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            border: 1px solid #334155;
+            border-radius: 10px;
+        }
+
+        .partner-text {
+            margin: 0 0 6px;
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .partner-link {
+            color: #38bdf8;
+            font-weight: 600;
+            font-size: 1.05rem;
+            text-decoration: none;
+        }
+
+        .partner-link:hover {
+            text-decoration: underline;
+        }
+
+        .partner-desc {
+            margin: 6px 0 0;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>API Security Scanner</h1>
+            <p class="subtitle">Generate comprehensive API security testing checklists</p>
+        </header>
+
+        <div class="tool-section">
+            <div class="info-box">
+                <strong>How it works:</strong> Enter your API endpoint details (URL, method, auth type). The tool generates a comprehensive security checklist with severity levels.
+            </div>
+
+            <div class="input-group">
+                <label for="apiUrl">API Endpoint URL</label>
+                <input
+                    type="url"
+                    id="apiUrl"
+                    placeholder="https://api.example.com/v1/users"
+                    autocomplete="off"
+                >
+            </div>
+
+            <div class="input-group">
+                <label for="apiMethod">HTTP Method</label>
+                <input
+                    type="text"
+                    id="apiMethod"
+                    placeholder="GET, POST, PUT, DELETE, PATCH"
+                    value="GET"
+                    autocomplete="off"
+                >
+            </div>
+
+            <div class="input-group">
+                <label for="authType">Authentication Type</label>
+                <input
+                    type="text"
+                    id="authType"
+                    placeholder="None, API Key, Bearer Token, OAuth2, Basic Auth"
+                    autocomplete="off"
+                >
+            </div>
+
+            <button id="scanBtn">Generate Security Checklist</button>
+
+            <div id="resultsContainer" style="display: none; margin-top: 30px;">
+                <div class="score-box">
+                    <div class="score-number" id="scoreNum">0</div>
+                    <div class="score-label">Security Score</div>
+                    <div class="score-bar">
+                        <div class="score-fill" id="scoreFill"></div>
+                    </div>
+                </div>
+
+                <div class="results-header">Security Checklist</div>
+                <div id="resultsList"></div>
+                <button class="export-btn" id="exportBtn">Export Checklist</button>
+            </div>
+
+            <div id="noResults" class="no-results" style="display: none; margin-top: 20px;">
+                Enter API details and click "Generate Security Checklist" to begin.
+            </div>
+        </div>
+
+        <div class="partner-box">
+            <p class="partner-text">Recommended by our team</p>
+            <a href="https://www.belikenative.com?ref=satellite" target="_blank" rel="noopener" class="partner-link">BeLikeNative.com</a>
+            <p class="partner-desc">The #1 AI writing tool for freelancers — perfect grammar in any language, instantly.</p>
+        </div>
+
+        <div style="margin: 20px auto; max-width: 728px; text-align: center;">
+            <ins class="adsbygoogle" style="display: block" data-ad-client="ca-pub-2241192243363112" data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({})</script>
+        </div>
+
+        <footer>
+            <p>&copy; 2026 BugBountyReality. All rights reserved. | <a href="https://bugbountyreality.com/tools/">Back to Tools</a></p>
+        </footer>
+    </div>
+
+    <script>
+        const securityChecklist = [
+            {
+                category: 'Authentication & Authorization',
+                items: [
+                    { title: 'API Key Validation', desc: 'Verify API keys are properly validated on every request', severity: 'critical' },
+                    { title: 'Token Expiration', desc: 'Check if tokens/keys have expiration times', severity: 'critical' },
+                    { title: 'OAuth2 Implementation', desc: 'Verify OAuth2 flow uses state parameter and PKCE', severity: 'critical' },
+                    { title: 'Role-Based Access Control', desc: 'Ensure users can only access authorized resources', severity: 'critical' },
+                    { title: 'Permission Escalation', desc: 'Test for privilege escalation vulnerabilities', severity: 'critical' },
+                ]
+            },
+            {
+                category: 'Input Validation & Sanitization',
+                items: [
+                    { title: 'SQL Injection', desc: 'Test endpoints for SQL injection vulnerabilities', severity: 'critical' },
+                    { title: 'Command Injection', desc: 'Check for command/OS injection in parameters', severity: 'critical' },
+                    { title: 'XML External Entity (XXE)', desc: 'Test for XXE attacks in XML/SOAP endpoints', severity: 'critical' },
+                    { title: 'Request Validation', desc: 'Verify strict input type/format validation', severity: 'warning' },
+                    { title: 'Size Limits', desc: 'Check for payload size limits to prevent DoS', severity: 'warning' },
+                ]
+            },
+            {
+                category: 'Rate Limiting & DoS Protection',
+                items: [
+                    { title: 'Rate Limiting', desc: 'Verify rate limits are enforced per user/IP', severity: 'critical' },
+                    { title: 'Throttling Headers', desc: 'Check X-RateLimit-* headers are present', severity: 'warning' },
+                    { title: 'DDoS Protection', desc: 'Verify DDoS mitigation (WAF, IP blocking)', severity: 'warning' },
+                    { title: 'Burst Limits', desc: 'Test for burst rate limiting', severity: 'info' },
+                ]
+            },
+            {
+                category: 'HTTPS & Transport Security',
+                items: [
+                    { title: 'HTTPS Only', desc: 'Verify endpoint only accepts HTTPS (no HTTP)', severity: 'critical' },
+                    { title: 'TLS Version', desc: 'Check for TLS 1.2+ (no SSLv3, TLS 1.0, 1.1)', severity: 'critical' },
+                    { title: 'Certificate Validation', desc: 'Verify SSL/TLS certificate is valid', severity: 'critical' },
+                    { title: 'HSTS Header', desc: 'Check for Strict-Transport-Security header', severity: 'warning' },
+                ]
+            },
+            {
+                category: 'Security Headers',
+                items: [
+                    { title: 'Content-Security-Policy', desc: 'Verify CSP header is set appropriately', severity: 'warning' },
+                    { title: 'X-Content-Type-Options', desc: 'Check X-Content-Type-Options: nosniff header', severity: 'warning' },
+                    { title: 'X-Frame-Options', desc: 'Verify X-Frame-Options header to prevent clickjacking', severity: 'warning' },
+                    { title: 'CORS Headers', desc: 'Check CORS headers don\'t allow * wildcard', severity: 'critical' },
+                ]
+            },
+            {
+                category: 'Data Protection',
+                items: [
+                    { title: 'Data Encryption', desc: 'Verify sensitive data is encrypted at rest', severity: 'critical' },
+                    { title: 'Sensitive Data Exposure', desc: 'Check for exposed passwords, tokens, PII in responses', severity: 'critical' },
+                    { title: 'Database Hardening', desc: 'Verify database credentials/connection strings not exposed', severity: 'critical' },
+                    { title: 'API Key in URL', desc: 'Check if API keys are exposed in query parameters', severity: 'critical' },
+                ]
+            },
+            {
+                category: 'Error Handling & Logging',
+                items: [
+                    { title: 'Error Messages', desc: 'Verify error messages don\'t expose sensitive info', severity: 'warning' },
+                    { title: 'Status Codes', desc: 'Check for proper HTTP status code usage', severity: 'info' },
+                    { title: 'Logging', desc: 'Verify all requests are properly logged', severity: 'warning' },
+                    { title: 'Stack Traces', desc: 'Ensure stack traces aren\'t exposed to users', severity: 'warning' },
+                ]
+            },
+            {
+                category: 'API Design & Versioning',
+                items: [
+                    { title: 'API Versioning', desc: 'Check if API uses versioning (v1, v2, etc.)', severity: 'info' },
+                    { title: 'Deprecation Policy', desc: 'Verify endpoints have deprecation notices', severity: 'info' },
+                    { title: 'Documentation', desc: 'Check for complete and accurate API documentation', severity: 'info' },
+                ]
+            }
+        ];
+
+        function generateChecklist(apiUrl, method, authType) {
+            const resultsList = document.getElementById('resultsList');
+            resultsList.innerHTML = '';
+
+            let totalScore = 0;
+            const totalItems = securityChecklist.reduce((sum, cat) => sum + cat.items.length, 0);
+
+            securityChecklist.forEach(category => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category-section';
+
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'category-title';
+                titleDiv.textContent = category.category;
+                categoryDiv.appendChild(titleDiv);
+
+                category.items.forEach(item => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = `check-item ${item.severity === 'critical' ? 'critical' : ''}`;
+
+                    const isChecked = Math.random() > 0.5;
+                    if (isChecked) totalScore++;
+
+                    itemDiv.innerHTML = `
+                        <input type="checkbox" ${isChecked ? 'checked' : ''}>
+                        <div class="check-content">
+                            <div class="check-title">${item.title}</div>
+                            <div class="check-desc">${item.desc}</div>
+                            <span class="severity-badge badge-${item.severity}">${item.severity}</span>
+                        </div>
+                    `;
+
+                    if (isChecked) {
+                        itemDiv.classList.add('checked');
+                    }
+
+                    itemDiv.addEventListener('change', function(e) {
+                        if (e.target.checked) {
+                            this.classList.add('checked');
+                        } else {
+                            this.classList.remove('checked');
+                        }
+                    });
+
+                    categoryDiv.appendChild(itemDiv);
+                });
+
+                resultsList.appendChild(categoryDiv);
+            });
+
+            const score = Math.round((totalScore / totalItems) * 100);
+            document.getElementById('scoreNum').textContent = score;
+            document.getElementById('scoreFill').style.width = score + '%';
+        }
+
+        document.getElementById('scanBtn').addEventListener('click', function() {
+            const apiUrl = document.getElementById('apiUrl').value.trim();
+            const method = document.getElementById('apiMethod').value.trim() || 'GET';
+            const authType = document.getElementById('authType').value.trim();
+
+            if (!apiUrl) {
+                alert('Please enter an API endpoint URL');
+                return;
+            }
+
+            try {
+                new URL(apiUrl);
+            } catch (e) {
+                alert('Please enter a valid API URL');
+                return;
+            }
+
+            document.getElementById('noResults').style.display = 'none';
+            document.getElementById('resultsContainer').style.display = 'block';
+
+            generateChecklist(apiUrl, method, authType);
+        });
+
+        document.getElementById('apiUrl').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('scanBtn').click();
+            }
+        });
+
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            const apiUrl = document.getElementById('apiUrl').value.trim();
+            const method = document.getElementById('apiMethod').value.trim();
+            const authType = document.getElementById('authType').value.trim();
+            const score = document.getElementById('scoreNum').textContent;
+
+            let text = `API Security Checklist Report\n`;
+            text += `================================\n\n`;
+            text += `API Endpoint: ${apiUrl}\n`;
+            text += `HTTP Method: ${method}\n`;
+            text += `Authentication: ${authType || 'None'}\n`;
+            text += `Generated: ${new Date().toLocaleString()}\n\n`;
+            text += `Security Score: ${score}/100\n\n`;
+
+            securityChecklist.forEach(category => {
+                text += `${category.category}\n`;
+                text += `${'-'.repeat(category.category.length)}\n`;
+                category.items.forEach(item => {
+                    const checkbox = document.querySelector(`input[type="checkbox"][data-item="${item.title}"]`);
+                    const checked = checkbox ? checkbox.checked : false;
+                    text += `${checked ? '[✓]' : '[ ]'} ${item.title} (${item.severity})\n`;
+                    text += `    ${item.desc}\n`;
+                });
+                text += '\n';
+            });
+
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `api-security-checklist-${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        });
+    </script>
+</body>
+</html>

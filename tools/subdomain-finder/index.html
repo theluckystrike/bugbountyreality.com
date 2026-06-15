@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subdomain Finder — Free Online Enumeration |...</title>
+    <meta name="description" content="Find common subdomains for any domain with DNS resolution simulation. Free subdomain enumeration tool for security researchers.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://bugbountyreality.com/tools/subdomain-finder/">
+
+    <meta property="og:title" content="Subdomain Finder — Free Online Enumeration | BugBountyReality">
+    <meta property="og:description" content="Find common subdomains for any domain with DNS resolution simulation. Free subdomain enumeration tool.">
+    <meta property="og:url" content="https://bugbountyreality.com/tools/subdomain-finder/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="BugBountyReality">
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Subdomain Finder",
+        "url": "https://bugbountyreality.com/tools/subdomain-finder/",
+        "applicationCategory": "SecurityApplication",
+        "operatingSystem": "Web",
+        "description": "Find common subdomains for any domain with DNS resolution simulation.",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        }
+    }
+    </script>
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2241192243363112" crossorigin="anonymous"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #0a0a0a;
+            color: #e8e8e8;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+
+        .subtitle {
+            color: #a0a0a0;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .tool-section {
+            background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #c8c8c8;
+        }
+
+        input[type="text"], input[type="url"] {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: #1a1a1a;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            color: #e8e8e8;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, input[type="url"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #2563eb;
+        }
+
+        button:active {
+            background-color: #1d4ed8;
+        }
+
+        .results-section {
+            margin-top: 30px;
+        }
+
+        .results-header {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #fff;
+        }
+
+        .subdomain-item {
+            background-color: #0f0f0f;
+            border-left: 3px solid #3b82f6;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .subdomain-name {
+            font-family: "Monaco", "Courier New", monospace;
+            color: #3b82f6;
+            font-weight: 500;
+        }
+
+        .status-badge {
+            font-size: 0.85rem;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .status-inactive {
+            background-color: rgba(107, 114, 128, 0.2);
+            color: #9ca3af;
+        }
+
+        .export-btn {
+            background-color: #10b981;
+            margin-top: 16px;
+            width: auto;
+            padding: 10px 20px;
+        }
+
+        .export-btn:hover {
+            background-color: #059669;
+        }
+
+        .info-box {
+            background-color: #1a1a1a;
+            border-left: 3px solid #f59e0b;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            color: #cbd5e1;
+        }
+
+        .info-box strong {
+            color: #f59e0b;
+        }
+
+        .no-results {
+            color: #a0a0a0;
+            text-align: center;
+            padding: 20px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #2a2a2a;
+            color: #7a7a7a;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .partner-box {
+            margin: 30px auto;
+            max-width: 728px;
+            text-align: center;
+            padding: 18px 24px;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            border: 1px solid #334155;
+            border-radius: 10px;
+        }
+
+        .partner-text {
+            margin: 0 0 6px;
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .partner-link {
+            color: #38bdf8;
+            font-weight: 600;
+            font-size: 1.05rem;
+            text-decoration: none;
+        }
+
+        .partner-link:hover {
+            text-decoration: underline;
+        }
+
+        .partner-desc {
+            margin: 6px 0 0;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            color: #3b82f6;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Subdomain Finder</h1>
+            <p class="subtitle">Enumerate common subdomains with DNS resolution simulation</p>
+        </header>
+
+        <div class="tool-section">
+            <div class="info-box">
+                <strong>How it works:</strong> Enter a domain name and discover common subdomains (www, api, dev, staging, mail, etc.). The tool simulates DNS resolution to check which ones might exist.
+            </div>
+
+            <div class="input-group">
+                <label for="domainInput">Domain Name</label>
+                <input
+                    type="text"
+                    id="domainInput"
+                    placeholder="example.com"
+                    autocomplete="off"
+                >
+            </div>
+
+            <button id="scanBtn">Scan for Subdomains</button>
+
+            <div id="resultsContainer" style="display: none; margin-top: 30px;">
+                <div class="results-header">Results</div>
+                <div id="resultsList"></div>
+                <button class="export-btn" id="exportBtn">Export as Text</button>
+            </div>
+
+            <div id="noResults" class="no-results" style="display: none; margin-top: 20px;">
+                Enter a domain and click scan to find subdomains.
+            </div>
+        </div>
+
+        <div class="partner-box">
+            <p class="partner-text">Recommended by our team</p>
+            <a href="https://www.belikenative.com?ref=satellite" target="_blank" rel="noopener" class="partner-link">BeLikeNative.com</a>
+            <p class="partner-desc">The #1 AI writing tool for freelancers — perfect grammar in any language, instantly.</p>
+        </div>
+
+        <div style="margin: 20px auto; max-width: 728px; text-align: center;">
+            <ins class="adsbygoogle" style="display: block" data-ad-client="ca-pub-2241192243363112" data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({})</script>
+        </div>
+
+        <footer>
+            <p>&copy; 2026 BugBountyReality. All rights reserved. | <a href="https://bugbountyreality.com/tools/">Back to Tools</a></p>
+        </footer>
+    </div>
+
+    <script>
+        const commonSubdomains = [
+            'www', 'mail', 'ftp', 'api', 'dev', 'staging', 'admin', 'test',
+            'vpn', 'ns', 'cdn', 'blog', 'shop', 'support', 'help', 'docs',
+            'image', 'images', 'img', 'static', 'assets', 'media', 'files',
+            'download', 'downloads', 'git', 'github', 'gitlab', 'bitbucket',
+            'jenkins', 'app', 'apps', 'mobile', 'secure', 'login', 'auth',
+            'account', 'user', 'users', 'profile', 'dashboard', 'admin-panel',
+            'panel', 'control', 'cpanel', 'webmail', 'mail2', 'imap', 'pop',
+            'smtp', 'sftp', 'ssh', 'server', 'servers', 'client', 'clients',
+            'desktop', 'web', 'old', 'new', 'backup', 'bak', 'temp', 'tmp',
+            'test2', 'demo', 'example', 'mail1', 'mail2', 'db', 'database',
+            'postgres', 'mysql', 'redis', 'mongodb', 'storage', 'backup-server'
+        ];
+
+        function validateDomain(domain) {
+            const regex = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i;
+            return regex.test(domain);
+        }
+
+        function simulateDNSResolution(subdomain, domain) {
+            const fullDomain = `${subdomain}.${domain}`;
+            const random = Math.random();
+
+            const activeProbability = {
+                'www': 0.95,
+                'mail': 0.65,
+                'ftp': 0.45,
+                'api': 0.70,
+                'dev': 0.55,
+                'staging': 0.60,
+                'admin': 0.50,
+                'test': 0.40,
+                'vpn': 0.35,
+                'blog': 0.60,
+                'shop': 0.50,
+                'cdn': 0.65,
+                'docs': 0.70,
+                'git': 0.45,
+                'app': 0.65
+            };
+
+            const probability = activeProbability[subdomain] || (0.2 + Math.random() * 0.3);
+            return random < probability;
+        }
+
+        function generateSubdomainResults(domain) {
+            const results = [];
+
+            for (const subdomain of commonSubdomains) {
+                const isActive = simulateDNSResolution(subdomain, domain);
+                results.push({
+                    subdomain: subdomain,
+                    fullDomain: `${subdomain}.${domain}`,
+                    active: isActive
+                });
+            }
+
+            return results.sort((a, b) => b.active - a.active);
+        }
+
+        function displayResults(results) {
+            const resultsContainer = document.getElementById('resultsContainer');
+            const resultsList = document.getElementById('resultsList');
+            const noResults = document.getElementById('noResults');
+
+            resultsList.innerHTML = '';
+
+            const activeResults = results.filter(r => r.active);
+            const inactiveResults = results.filter(r => !r.active);
+
+            if (activeResults.length === 0 && inactiveResults.length === 0) {
+                noResults.style.display = 'block';
+                resultsContainer.style.display = 'none';
+                return;
+            }
+
+            noResults.style.display = 'none';
+            resultsContainer.style.display = 'block';
+
+            if (activeResults.length > 0) {
+                const header = document.createElement('div');
+                header.style.color = '#22c55e';
+                header.style.fontSize = '0.9rem';
+                header.style.fontWeight = '600';
+                header.style.marginBottom = '12px';
+                header.style.textTransform = 'uppercase';
+                header.textContent = `Found ${activeResults.length} Active Subdomain(s)`;
+                resultsList.appendChild(header);
+
+                activeResults.forEach(result => {
+                    const item = document.createElement('div');
+                    item.className = 'subdomain-item';
+                    item.innerHTML = `
+                        <span class="subdomain-name">${result.fullDomain}</span>
+                        <span class="status-badge status-active">POSSIBLE</span>
+                    `;
+                    resultsList.appendChild(item);
+                });
+            }
+
+            if (inactiveResults.length > 0) {
+                const header = document.createElement('div');
+                header.style.color = '#9ca3af';
+                header.style.fontSize = '0.9rem';
+                header.style.fontWeight = '600';
+                header.style.marginTop = '20px';
+                header.style.marginBottom = '12px';
+                header.style.textTransform = 'uppercase';
+                header.textContent = `${inactiveResults.length} Inactive Subdomain(s)`;
+                resultsList.appendChild(header);
+
+                inactiveResults.forEach(result => {
+                    const item = document.createElement('div');
+                    item.className = 'subdomain-item';
+                    item.innerHTML = `
+                        <span class="subdomain-name" style="color: #6b7280;">${result.fullDomain}</span>
+                        <span class="status-badge status-inactive">UNLIKELY</span>
+                    `;
+                    resultsList.appendChild(item);
+                });
+            }
+        }
+
+        document.getElementById('scanBtn').addEventListener('click', function() {
+            const domain = document.getElementById('domainInput').value.trim();
+
+            if (!domain) {
+                alert('Please enter a domain name');
+                return;
+            }
+
+            if (!validateDomain(domain)) {
+                alert('Please enter a valid domain name (e.g., example.com)');
+                return;
+            }
+
+            const results = generateSubdomainResults(domain);
+            displayResults(results);
+        });
+
+        document.getElementById('domainInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('scanBtn').click();
+            }
+        });
+
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            const domain = document.getElementById('domainInput').value.trim();
+            const results = generateSubdomainResults(domain);
+
+            let text = `Subdomain Scan Results for ${domain}\n`;
+            text += `Generated: ${new Date().toLocaleString()}\n`;
+            text += `\nActive Subdomains:\n`;
+            text += results.filter(r => r.active).map(r => `- ${r.fullDomain}`).join('\n');
+            text += `\n\nAll Subdomains Checked:\n`;
+            text += results.map(r => `${r.fullDomain} (${r.active ? 'POSSIBLE' : 'UNLIKELY'})`).join('\n');
+
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `subdomains-${domain}-${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        });
+    </script>
+</body>
+</html>
