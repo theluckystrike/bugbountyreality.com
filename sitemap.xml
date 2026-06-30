@@ -103,4 +103,9 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+<url><loc>https://bugbountyreality.com/tools/disclosure-timeline-generator</loc><lastmod>2026-06-30</lastmod></url>
+<url><loc>https://bugbountyreality.com/tools/hash-type-analyzer</loc><lastmod>2026-06-30</lastmod></url>
+<url><loc>https://bugbountyreality.com/tools/nmap-command-generator</loc><lastmod>2026-06-30</lastmod></url>
+<url><loc>https://bugbountyreality.com/tools/password-entropy-calculator</loc><lastmod>2026-06-30</lastmod></url>
+<url><loc>https://bugbountyreality.com/tools/reverse-shell-generator</loc><lastmod>2026-06-30</lastmod></url>
 </urlset>

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hash Type Analyzer | Identify Hash Algorithms</title>
+<meta name="description" content="Paste any hash to identify its likely algorithm by length and format: MD5, SHA-1, SHA-256, bcrypt and more. Instant, runs in your browser.">
+<link rel="canonical" href="https://bugbountyreality.com/tools/hash-type-analyzer">
+<meta property="og:title" content="Hash Type Analyzer | Identify Hash Algorithms">
+<meta property="og:description" content="Paste any hash to identify its likely algorithm by length and format: MD5, SHA-1, SHA-256, bcrypt and more. Instant, runs in your browser.">
+<meta property="og:url" content="https://bugbountyreality.com/tools/hash-type-analyzer">
+<meta property="og:type" content="website">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "Hash Type Analyzer",
+      "url": "https://bugbountyreality.com/tools/hash-type-analyzer",
+      "description": "Identify the likely hash algorithm of any hash string by analyzing its length, character set and structural prefix.",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Michael Lip",
+        "url": "https://zovo.one"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bugbountyreality.com/" },
+        { "@type": "ListItem", "position": 2, "name": "Tools", "item": "https://bugbountyreality.com/tools/" },
+        { "@type": "ListItem", "position": 3, "name": "Hash Type Analyzer | Identify Hash Algorithms", "item": "https://bugbountyreality.com/tools/hash-type-analyzer" }
+      ]
+    }
+  ]
+}
+</script>
+<style>
+:root{
+  --bg:#0c0f14;
+  --panel:#141923;
+  --panel2:#1b2230;
+  --border:#2a3344;
+  --text:#e6ebf2;
+  --muted:#94a3b8;
+  --accent:#3ddc97;
+  --accent2:#5aa9ff;
+  --warn:#f4b740;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.6;
+}
+nav{
+  display:flex;
+  gap:1.25rem;
+  align-items:center;
+  padding:1rem 1.25rem;
+  border-bottom:1px solid var(--border);
+  background:#0a0d12;
+  flex-wrap:wrap;
+}
+nav a{color:var(--accent2);text-decoration:none;font-weight:600;font-size:.95rem}
+nav a:hover{text-decoration:underline}
+main{max-width:860px;margin:0 auto;padding:1.5rem 1.25rem 3rem}
+h1{font-size:1.8rem;line-height:1.25;margin:1rem 0 .5rem}
+h2{font-size:1.3rem;margin:2rem 0 .75rem;border-left:3px solid var(--accent);padding-left:.6rem}
+.intro{color:var(--muted);font-size:1.05rem;margin-bottom:1.5rem}
+section#tool{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:1.25rem;
+}
+label{display:block;font-weight:600;margin:0 0 .4rem;font-size:.95rem}
+.hint{font-weight:400;color:var(--muted);font-size:.82rem}
+textarea,input,select{
+  width:100%;
+  background:var(--panel2);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:9px;
+  padding:.7rem .8rem;
+  font-size:1rem;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+textarea{resize:vertical;min-height:74px}
+.row{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem}
+.row > div{flex:1 1 180px}
+.out{
+  margin-top:1.25rem;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:1rem;
+}
+.facts{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem}
+.fact{
+  background:#0f141d;
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:.5rem .7rem;
+  font-size:.82rem;
+}
+.fact b{display:block;color:var(--accent);font-size:1.05rem;font-family:ui-monospace,monospace}
+.match{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:.75rem;
+  padding:.6rem .8rem;
+  border:1px solid var(--border);
+  border-radius:8px;
+  margin-bottom:.5rem;
+  background:#0f141d;
+}
+.match .name{font-weight:700}
+.match .meta{color:var(--muted);font-size:.82rem}
+.bar{flex:1 1 90px;height:8px;background:#222b3a;border-radius:5px;overflow:hidden;min-width:70px;max-width:160px}
+.bar > span{display:block;height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent))}
+.conf{font-family:ui-monospace,monospace;font-size:.85rem;min-width:42px;text-align:right}
+.none{color:var(--warn);font-style:italic}
+.prose p{margin:.75rem 0}
+.prose code{background:var(--panel2);padding:.1rem .35rem;border-radius:4px;font-size:.9rem}
+.related a{
+  display:inline-block;
+  margin:.35rem .5rem .35rem 0;
+  padding:.5rem .85rem;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--accent2);
+  text-decoration:none;
+  font-weight:600;
+  font-size:.92rem;
+}
+.related a:hover{border-color:var(--accent2)}
+footer{
+  border-top:1px solid var(--border);
+  padding:1.5rem 1.25rem;
+  text-align:center;
+  color:var(--muted);
+  font-size:.9rem;
+}
+footer a{color:var(--accent2);text-decoration:none;margin:0 .5rem}
+@media (max-width:480px){h1{font-size:1.5rem}main{padding:1rem}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/">bugbountyreality.com</a>
+  <a href="/tools/">All Tools</a>
+</nav>
+<main>
+  <h1>Identify An Unknown Hash By Length And Format</h1>
+  <p class="intro">Paste a hash string from a leaked database, a config file, or a pentest dump and this tool ranks the most likely algorithms by length, character set, and structural prefix &mdash; entirely in your browser, nothing is sent anywhere.</p>
+
+  <section id="tool">
+    <label for="hashIn">Hash to analyze
+      <span class="hint">paste a single hash &mdash; whitespace is trimmed automatically</span>
+    </label>
+    <textarea id="hashIn" spellcheck="false">5f4dcc3b5aa765d61d8327deb882cf99</textarea>
+
+    <div class="row">
+      <div>
+        <label for="strict">Confidence mode</label>
+        <select id="strict">
+          <option value="loose" selected>Loose (show plausible)</option>
+          <option value="strict">Strict (exact length only)</option>
+        </select>
+      </div>
+      <div>
+        <label for="maxOut">Max results</label>
+        <input id="maxOut" type="number" min="1" max="12" value="6">
+      </div>
+    </div>
+
+    <div class="out" id="out" aria-live="polite"></div>
+  </section>
+
+  <section class="prose">
+    <h2>How the analyzer scores a hash</h2>
+    <p>There is no byte inside a raw digest that records which algorithm produced it, so identification is always probabilistic. This tool combines three signals into a confidence score for each candidate algorithm.</p>
+    <p><b>1. Length match.</b> After stripping whitespace, the tool counts characters. Most unsalted hashes are fixed width: MD5 and NTLM are 32 hex chars, SHA-1 is 40, SHA-224 is 56, SHA-256 is 64, SHA-384 is 96, and SHA-512 is 128. An exact length match scores the full base weight; in loose mode a length within &plusmn;0 still required but the alphabet test relaxes.</p>
+    <p><b>2. Character set.</b> The tool classifies the string as hexadecimal (<code>[0-9a-f]</code>), Base64-ish (<code>[A-Za-z0-9+/=]</code>), or structured (contains <code>$</code> or <code>:</code>). A hex-only string rules out Base64 schemes like bcrypt, and vice versa.</p>
+    <p><b>3. Structural prefix.</b> Modern password hashes are self-describing using Modular Crypt Format. Prefixes such as <code>$2a$</code>, <code>$2b$</code>, <code>$2y$</code> mean bcrypt, <code>$argon2id$</code> means Argon2, <code>$6$</code> is SHA-512-crypt, <code>$1$</code> is MD5-crypt, and <code>$y$</code> is yescrypt. A recognised prefix forces a near-certain match regardless of length.</p>
+    <p>The final score is computed as <code>score = lengthHit ? base : 0</code>, then multiplied by an alphabet factor (1.0 for a matching charset, 0.55 for a mismatch in loose mode, 0 in strict mode), and overridden to 0.99 when a known crypt prefix is detected. Candidates are sorted descending and the top N are shown as a percentage. Because many algorithms share a width &mdash; MD5, MD4, MD2, NTLM and double-MD5 are all 32 hex chars &mdash; the tool deliberately lists collisions rather than guessing one, which is the honest answer a real triage step needs.</p>
+  </section>
+
+  <section class="related">
+    <h2>Related Tools</h2>
+    <a href="/tools/api-scanner">API Scanner</a>
+    <a href="/tools/cvss-score-calculator">CVSS Score Calculator</a>
+  </section>
+</main>
+
+<footer>
+  <div>
+    <a href="/">Home</a>
+    <a href="/tools/">All Tools</a>
+  </div>
+  <p>&copy; 2026 bugbountyreality.com &mdash; runs entirely in your browser.</p>
+</footer>
+
+<script>
+(function(){
+  // Candidate table: name, exact length (hex chars), expected charset, base weight, note
+  var DB = [
+    {n:"MD5",            len:32, set:"hex",  w:0.9, note:"128-bit, very common"},
+    {n:"NTLM",           len:32, set:"hex",  w:0.7, note:"Windows MD4 of UTF-16 password"},
+    {n:"MD4",            len:32, set:"hex",  w:0.4, note:"legacy 128-bit"},
+    {n:"Double MD5",     len:32, set:"hex",  w:0.35,note:"md5(md5($p))"},
+    {n:"LM",             len:32, set:"hex",  w:0.25,note:"two 16-char halves"},
+    {n:"SHA-1",          len:40, set:"hex",  w:0.9, note:"160-bit"},
+    {n:"RIPEMD-160",     len:40, set:"hex",  w:0.45,note:"160-bit"},
+    {n:"MySQL 4.1+",     len:40, set:"hex",  w:0.5, note:"often shown with leading *"},
+    {n:"SHA-224",        len:56, set:"hex",  w:0.7, note:"truncated SHA-2"},
+    {n:"SHA3-224",       len:56, set:"hex",  w:0.4, note:"Keccak family"},
+    {n:"SHA-256",        len:64, set:"hex",  w:0.9, note:"256-bit, very common"},
+    {n:"SHA3-256",       len:64, set:"hex",  w:0.45,note:"Keccak family"},
+    {n:"BLAKE2s-256",    len:64, set:"hex",  w:0.35,note:"256-bit"},
+    {n:"SHA-384",        len:96, set:"hex",  w:0.8, note:"truncated SHA-512"},
+    {n:"SHA3-384",       len:96, set:"hex",  w:0.4, note:"Keccak family"},
+    {n:"SHA-512",        len:128,set:"hex",  w:0.9, note:"512-bit"},
+    {n:"SHA3-512",       len:128,set:"hex",  w:0.45,note:"Keccak family"},
+    {n:"BLAKE2b-512",    len:128,set:"hex",  w:0.4, note:"512-bit"},
+    {n:"Whirlpool",      len:128,set:"hex",  w:0.35,note:"512-bit"},
+    {n:"CRC32",          len:8,  set:"hex",  w:0.6, note:"checksum, not a password hash"},
+    {n:"MySQL 3.x",      len:16, set:"hex",  w:0.5, note:"legacy 64-bit"}
+  ];
+  // Self-describing Modular Crypt Format prefixes
+  var PREFIX = [
+    {re:/^\$2[abxy]?\$/,   n:"bcrypt"},
+    {re:/^\$argon2(id|i|d)\$/, n:"Argon2"},
+    {re:/^\$6\$/,          n:"SHA-512 crypt (sha512crypt)"},
+    {re:/^\$5\$/,          n:"SHA-256 crypt (sha256crypt)"},
+    {re:/^\$1\$/,          n:"MD5 crypt (md5crypt)"},
+    {re:/^\$y\$/,          n:"yescrypt"},
+    {re:/^\$7\$/,          n:"scrypt"},
+    {re:/^\{SSHA\}/i,      n:"Salted SHA-1 (LDAP SSHA)"},
+    {re:/^\{SHA\}/i,       n:"SHA-1 (LDAP, Base64)"},
+    {re:/^pbkdf2[-_]/i,    n:"PBKDF2"},
+    {re:/^\$pbkdf2-/i,     n:"PBKDF2"},
+    {re:/^\*[0-9A-F]{40}$/i, n:"MySQL 4.1+ (with * prefix)"}
+  ];
+
+  var HEX = /^[0-9a-fA-F]+$/;
+  var B64 = /^[A-Za-z0-9+\/=]+$/;
+
+  var inEl   = document.getElementById('hashIn');
+  var strict = document.getElementById('strict');
+  var maxEl  = document.getElementById('maxOut');
+  var out    = document.getElementById('out');
+
+  function classify(s){
+    if(/[\$:]/.test(s)) return "structured";
+    if(HEX.test(s))     return "hex";
+    if(B64.test(s))     return "b64";
+    return "other";
+  }
+
+  function analyze(){
+    var raw = inEl.value.replace(/\s+/g,'');
+    var max = Math.max(1, Math.min(12, parseInt(maxEl.value,10) || 6));
+    var isStrict = strict.value === "strict";
+
+    if(!raw){
+      out.innerHTML = '<p class="none">Paste a hash above to begin.</p>';
+      return;
+    }
+
+    var set = classify(raw);
+    var html = '<div class="facts">';
+    html += '<div class="fact">length<b>'+raw.length+'</b></div>';
+    html += '<div class="fact">charset<b>'+set+'</b></div>';
+    html += '<div class="fact">entropy/char<b>'+entropy(raw).toFixed(2)+'</b></div>';
+    html += '</div>';
+
+    // 1. structural prefix override
+    for(var p=0;p<PREFIX.length;p++){
+      if(PREFIX[p].re.test(raw)){
+        html += '<div class="match"><span class="name">'+PREFIX[p].n+'</span>'+
+                '<div class="bar"><span style="width:99%"></span></div>'+
+                '<span class="conf">99%</span></div>';
+        html += '<p class="hint">Identified by self-describing Modular Crypt prefix &mdash; length and charset rules skipped.</p>';
+        out.innerHTML = html;
+        return;
+      }
+    }
+
+    // 2 + 3. length + charset scoring
+    var results = [];
+    for(var i=0;i<DB.length;i++){
+      var c = DB[i];
+      if(c.len !== raw.length) continue;
+      var alpha = 1.0;
+      if(c.set === "hex" && set !== "hex"){
+        if(isStrict) continue;
+        alpha = 0.55;
+      }
+      results.push({ name:c.n, note:c.note, score:c.w * alpha });
+    }
+
+    results.sort(function(a,b){ return b.score - a.score; });
+
+    if(results.length === 0){
+      html += '<p class="none">No standard algorithm matches a '+raw.length+'-character '+set+' string. It may be salted, truncated, encrypted, or an uncommon format.</p>';
+      out.innerHTML = html;
+      return;
+    }
+
+    // normalise to a readable confidence: top result anchors the scale
+    var top = results[0].score;
+    var shown = results.slice(0, max);
+    for(var j=0;j<shown.length;j++){
+      var r = shown[j];
+      var pct = Math.round((r.score / top) * 100);
+      html += '<div class="match">'+
+                '<span class="name">'+r.name+'</span>'+
+                '<span class="meta">'+r.note+'</span>'+
+                '<div class="bar"><span style="width:'+pct+'%"></span></div>'+
+                '<span class="conf">'+pct+'%</span>'+
+              '</div>';
+    }
+    if(results.length > shown.length){
+      html += '<p class="hint">'+(results.length - shown.length)+' more candidate(s) share this length &mdash; raise max results to see them.</p>';
+    }
+    out.innerHTML = html;
+  }
+
+  // Shannon entropy per character (sanity signal for "is this random hex?")
+  function entropy(s){
+    var f = {}, i;
+    for(i=0;i<s.length;i++){ f[s[i]] = (f[s[i]]||0)+1; }
+    var h = 0;
+    for(var k in f){ var px = f[k]/s.length; h -= px * Math.log2(px); }
+    return h;
+  }
+
+  inEl.addEventListener('input', analyze);
+  strict.addEventListener('change', analyze);
+  maxEl.addEventListener('input', analyze);
+  analyze();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nmap Command Generator | Build Custom Scan Flags</title>
+<meta name="description" content="Build the exact Nmap command for any scan. Choose targets, ports, timing and NSE scripts to get copy-ready flags. Runs in your browser, no install.">
+<link rel="canonical" href="https://bugbountyreality.com/tools/nmap-command-generator">
+<meta property="og:title" content="Nmap Command Generator | Build Custom Scan Flags">
+<meta property="og:description" content="Build the exact Nmap command for any scan. Choose targets, ports, timing and NSE scripts to get copy-ready flags. Runs in your browser, no install.">
+<meta property="og:url" content="https://bugbountyreality.com/tools/nmap-command-generator">
+<meta property="og:type" content="website">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "Nmap Command Generator",
+      "url": "https://bugbountyreality.com/tools/nmap-command-generator",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Any",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "author": { "@type": "Person", "name": "Michael Lip", "url": "https://zovo.one" }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bugbountyreality.com/" },
+        { "@type": "ListItem", "position": 2, "name": "Tools", "item": "https://bugbountyreality.com/tools/" },
+        { "@type": "ListItem", "position": 3, "name": "Nmap Command Generator | Build Custom Scan Flags", "item": "https://bugbountyreality.com/tools/nmap-command-generator" }
+      ]
+    }
+  ]
+}
+</script>
+<style>
+:root{
+  --bg:#0b0f14;--panel:#131a23;--panel2:#0f151c;--ink:#e6edf3;--mut:#8b98a8;
+  --acc:#3ddc97;--acc2:#5aa9ff;--line:#243140;--warn:#ffb454;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  line-height:1.55;font-size:16px;
+}
+a{color:var(--acc2);text-decoration:none}
+a:hover{text-decoration:underline}
+nav,footer{display:flex;gap:18px;flex-wrap:wrap;align-items:center;
+  padding:14px 20px;background:var(--panel2);border-bottom:1px solid var(--line)}
+footer{border-top:1px solid var(--line);border-bottom:none;margin-top:40px;color:var(--mut)}
+.wrap{max-width:880px;margin:0 auto;padding:24px 20px 0}
+h1{font-size:1.7rem;line-height:1.2;margin:18px 0 8px}
+h2{font-size:1.25rem;margin:34px 0 10px;border-left:3px solid var(--acc);padding-left:10px}
+.intro{color:var(--mut);max-width:720px}
+section#tool{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:20px;margin:22px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+label{display:block;font-size:.82rem;font-weight:600;color:var(--mut);
+  text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px}
+input[type=text],select{width:100%;padding:10px 12px;background:var(--panel2);
+  color:var(--ink);border:1px solid var(--line);border-radius:8px;font-size:.95rem}
+input[type=text]:focus,select:focus{outline:none;border-color:var(--acc)}
+.field{margin-bottom:14px}
+.checks{display:flex;flex-wrap:wrap;gap:10px}
+.chk{display:flex;align-items:center;gap:7px;background:var(--panel2);
+  border:1px solid var(--line);border-radius:8px;padding:8px 11px;font-size:.88rem;cursor:pointer}
+.chk input{accent-color:var(--acc)}
+.out{margin-top:20px;background:#05080b;border:1px solid var(--line);border-radius:10px;padding:16px}
+.out code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color:var(--acc);font-size:1rem;word-break:break-all;display:block}
+.btn{margin-top:12px;background:var(--acc);color:#04110b;border:none;border-radius:8px;
+  padding:10px 16px;font-weight:700;cursor:pointer;font-size:.9rem}
+.btn:active{transform:translateY(1px)}
+.meta{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;font-size:.85rem;color:var(--mut)}
+.meta b{color:var(--ink)}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.75rem;font-weight:700}
+.b-stealth{background:#1d2c3a;color:var(--acc2)}
+.b-loud{background:#3a2a1d;color:var(--warn)}
+.b-mid{background:#1d3a2c;color:var(--acc)}
+.prose{color:#cdd7e1}
+.prose code{background:var(--panel2);padding:1px 6px;border-radius:5px;color:var(--acc)}
+.rel{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
+.rel a{background:var(--panel);border:1px solid var(--line);padding:10px 14px;border-radius:9px}
+small{color:var(--mut)}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/">bugbountyreality.com</a>
+  <a href="/tools/">All Tools</a>
+</nav>
+
+<div class="wrap">
+<h1>Build a Custom Nmap Scan Command in Seconds</h1>
+<p class="intro">Pick your target, port range, scan type, timing and NSE scripts. This generator assembles the precise, copy-ready Nmap command line for recon during authorized bug bounty and pentest work.</p>
+
+<section id="tool">
+  <div class="grid">
+    <div class="field">
+      <label for="target">Target (host, CIDR or list)</label>
+      <input id="target" type="text" value="scanme.nmap.org" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="scantype">Scan Type</label>
+      <select id="scantype">
+        <option value="-sS">TCP SYN / half-open (-sS)</option>
+        <option value="-sT">TCP Connect (-sT)</option>
+        <option value="-sU">UDP scan (-sU)</option>
+        <option value="-sA">TCP ACK / firewall map (-sA)</option>
+        <option value="-sn">Ping sweep, no ports (-sn)</option>
+        <option value="-sF">FIN stealth (-sF)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="ports">Ports</label>
+      <input id="ports" type="text" value="1-1000" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="timing">Timing Template</label>
+      <select id="timing">
+        <option value="0">T0 Paranoid (IDS evasion)</option>
+        <option value="1">T1 Sneaky</option>
+        <option value="2">T2 Polite</option>
+        <option value="3" selected>T3 Normal (default)</option>
+        <option value="4">T4 Aggressive</option>
+        <option value="5">T5 Insane (fast LAN)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Detection &amp; Output Options</label>
+    <div class="checks">
+      <label class="chk"><input type="checkbox" id="o-sv" checked> Service/version (-sV)</label>
+      <label class="chk"><input type="checkbox" id="o-o"> OS detect (-O)</label>
+      <label class="chk"><input type="checkbox" id="o-a"> Aggressive (-A)</label>
+      <label class="chk"><input type="checkbox" id="o-pn"> Skip host disc (-Pn)</label>
+      <label class="chk"><input type="checkbox" id="o-n"> No DNS (-n)</label>
+      <label class="chk"><input type="checkbox" id="o-v" checked> Verbose (-v)</label>
+      <label class="chk"><input type="checkbox" id="o-oa"> Save all formats (-oA)</label>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="nse">NSE Script Category</label>
+    <select id="nse">
+      <option value="">None</option>
+      <option value="default">default</option>
+      <option value="safe">safe</option>
+      <option value="vuln">vuln (vulnerability checks)</option>
+      <option value="auth">auth</option>
+      <option value="discovery">discovery</option>
+      <option value="http-enum,http-title,http-headers">http enum bundle</option>
+    </select>
+  </div>
+
+  <div class="out">
+    <small>Generated command</small>
+    <code id="cmd">nmap …</code>
+    <button class="btn" id="copy" type="button">Copy command</button>
+    <div class="meta">
+      <span>Stealth: <b id="m-stealth">—</b></span>
+      <span>Est. noise: <b id="m-noise">—</b></span>
+      <span>Privilege: <b id="m-priv">—</b></span>
+      <span id="m-badge"></span>
+    </div>
+  </div>
+</section>
+
+<h2>How this generator builds your command</h2>
+<p class="prose">Every flag is assembled in canonical Nmap order: <code>nmap [scan type] [host disc] [-pPORTS] [-T#] [detection] [--script] [-oA] TARGET</code>. The tool also computes a rough <b>noise score</b> so you can judge how detectable a scan is before you run it on a live program scope.</p>
+<p class="prose">The noise estimate uses a simple additive model. Each timing template contributes points equal to its number (T0=0 … T5=5), because faster timing fires probes in tighter bursts that trip rate-based IDS rules. Loud scan types add weight: <code>-sT</code> (full connect, logged by the app) adds 3, <code>-sV</code> adds 2 for its banner probes, <code>-A</code> adds 4, and <code>-O</code> adds 1. Stealth types like <code>-sS</code>, <code>-sF</code> and <code>-sA</code> add 0 because they never complete the TCP handshake. The script then maps the total to a band: <code>0–3 = Stealthy</code>, <code>4–7 = Moderate</code>, <code>8+ = Loud</code>. The formula is <code>noise = T + typeWeight + sum(optionWeights)</code>.</p>
+<p class="prose">It also flags the <b>privilege requirement</b>. Raw-packet scans (<code>-sS</code>, <code>-sU</code>, <code>-sF</code>, <code>-sA</code>, <code>-O</code>) need root or CAP_NET_RAW, while <code>-sT</code> connect scans run as any user because they use the normal sockets API. Knowing this up front saves the classic "you requested a scan type which requires root privileges" error mid-engagement. Port count is parsed from your range to remind you that wide UDP sweeps are slow: a full <code>-sU -p1-65535</code> against one host can take hours under polite timing, so the tool nudges you toward targeted ports. Use the result only against hosts you are explicitly authorized to test under a bug bounty scope or written engagement.</p>
+
+<h2>Related Tools</h2>
+<div class="rel">
+  <a href="/tools/api-scanner">API Scanner</a>
+  <a href="/tools/cors-checker">CORS Checker</a>
+  <a href="/tools/cvss-score-calculator">CVSS Score Calculator</a>
+</div>
+
+</div>
+
+<footer>
+  <a href="/">Home</a>
+  <a href="/tools/">All Tools</a>
+  <span>© 2026 bugbountyreality.com</span>
+</footer>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var typeWeight={'-sS':0,'-sT':3,'-sU':1,'-sA':0,'-sn':0,'-sF':0};
+  var rawTypes={'-sS':1,'-sU':1,'-sF':1,'-sA':1};
+
+  function portCount(s){
+    var total=0;
+    (s||'').split(',').forEach(function(p){
+      p=p.trim(); if(!p) return;
+      var m=p.match(/^(\d+)-(\d+)$/);
+      if(m){total+=(Math.abs(+m[2]-+m[1])+1);}
+      else if(/^\d+$/.test(p)){total+=1;}
+    });
+    return total;
+  }
+
+  function build(){
+    var target=($('target').value||'').trim()||'TARGET';
+    var st=$('scantype').value;
+    var ports=($('ports').value||'').trim();
+    var t=$('timing').value;
+    var nse=$('nse').value;
+
+    var parts=['nmap'];
+    parts.push(st);
+    if($('o-pn').checked) parts.push('-Pn');
+    if($('o-n').checked) parts.push('-n');
+    if(ports && st!=='-sn') parts.push('-p'+ports);
+    parts.push('-T'+t);
+    if($('o-sv').checked) parts.push('-sV');
+    if($('o-o').checked) parts.push('-O');
+    if($('o-a').checked) parts.push('-A');
+    if($('o-v').checked) parts.push('-v');
+    if(nse) parts.push('--script '+nse);
+    if($('o-oa').checked) parts.push('-oA scan_'+target.replace(/[^a-z0-9]/gi,'_'));
+    parts.push(target);
+    $('cmd').textContent=parts.join(' ');
+
+    // noise score
+    var noise=parseInt(t,10)+(typeWeight[st]||0);
+    if($('o-sv').checked) noise+=2;
+    if($('o-o').checked) noise+=1;
+    if($('o-a').checked) noise+=4;
+    if(nse==='vuln') noise+=3; else if(nse) noise+=1;
+
+    var band,cls;
+    if(noise<=3){band='Stealthy';cls='b-stealth';}
+    else if(noise<=7){band='Moderate';cls='b-mid';}
+    else {band='Loud';cls='b-loud';}
+    $('m-stealth').textContent=band;
+    $('m-noise').textContent=noise+' pts';
+
+    var needsRoot=rawTypes[st]||$('o-o').checked||$('o-a').checked;
+    $('m-priv').textContent=needsRoot?'root / sudo':'any user';
+
+    var pc=portCount(ports);
+    var extra='';
+    if(st==='-sU' && pc>1000) extra=' — wide UDP, expect long runtime';
+    $('m-badge').innerHTML='<span class="badge '+cls+'">'+band+(extra?'':'')+'</span>'+
+      (extra?' <small>'+extra+'</small>':'');
+  }
+
+  function copy(){
+    var txt=$('cmd').textContent;
+    var ta=document.createElement('textarea');
+    ta.value=txt;document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');}catch(e){}
+    document.body.removeChild(ta);
+    var b=$('copy');var o=b.textContent;b.textContent='Copied!';
+    setTimeout(function(){b.textContent=o;},1200);
+  }
+
+  ['target','scantype','ports','timing','nse','o-sv','o-o','o-a','o-pn','o-n','o-v','o-oa']
+    .forEach(function(id){
+      var el=$(id);
+      el.addEventListener('input',build);
+      el.addEventListener('change',build);
+    });
+  $('copy').addEventListener('click',copy);
+  build();
+})();
+</script>
+</body>
+</html>

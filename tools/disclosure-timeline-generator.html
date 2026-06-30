@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Disclosure Timeline Generator | Set Deadline Dates</title>
+<meta name="description" content="Generate a responsible disclosure timeline from your report date and policy window. Get vendor deadline and public-disclosure dates instantly.">
+<link rel="canonical" href="https://bugbountyreality.com/tools/disclosure-timeline-generator">
+<meta property="og:title" content="Disclosure Timeline Generator | Set Deadline Dates">
+<meta property="og:description" content="Generate a responsible disclosure timeline from your report date and policy window. Get vendor deadline and public-disclosure dates instantly.">
+<meta property="og:url" content="https://bugbountyreality.com/tools/disclosure-timeline-generator">
+<meta property="og:type" content="website">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "Disclosure Timeline Generator | Set Deadline Dates",
+      "url": "https://bugbountyreality.com/tools/disclosure-timeline-generator",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Any",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "author": { "@type": "Person", "name": "Michael Lip", "url": "https://zovo.one" }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bugbountyreality.com/" },
+        { "@type": "ListItem", "position": 2, "name": "Tools", "item": "https://bugbountyreality.com/tools/" },
+        { "@type": "ListItem", "position": 3, "name": "Disclosure Timeline Generator | Set Deadline Dates", "item": "https://bugbountyreality.com/tools/disclosure-timeline-generator" }
+      ]
+    }
+  ]
+}
+</script>
+<style>
+  :root {
+    --bg: #0b0f14;
+    --panel: #131a23;
+    --panel2: #1a2430;
+    --ink: #e6edf3;
+    --muted: #8b9aab;
+    --accent: #4cc9f0;
+    --accent2: #f72585;
+    --good: #2ec27e;
+    --warn: #f5a524;
+    --line: #243140;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  nav, footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+  }
+  footer { border-top: 1px solid var(--line); border-bottom: none; color: var(--muted); align-items: center; }
+  nav a, footer a { color: var(--accent); text-decoration: none; font-weight: 600; font-size: .95rem; }
+  nav a:hover, footer a:hover { text-decoration: underline; }
+  main { max-width: 860px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+  h1 { font-size: 1.8rem; line-height: 1.2; margin: .5rem 0 .75rem; }
+  h2 { font-size: 1.3rem; margin: 2rem 0 .75rem; border-left: 3px solid var(--accent2); padding-left: .6rem; }
+  .intro { color: var(--muted); font-size: 1.05rem; }
+  section#tool {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 1.25rem;
+    margin-top: 1.25rem;
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+  label { display: block; font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: .35rem; font-weight: 700; }
+  input, select {
+    width: 100%;
+    padding: .65rem .7rem;
+    background: var(--panel2);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    color: var(--ink);
+    font-size: 1rem;
+    font-family: inherit;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--accent); }
+  .hint { font-size: .78rem; color: var(--muted); margin-top: .3rem; }
+  .out {
+    margin-top: 1.25rem;
+    background: var(--panel2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1rem;
+  }
+  .timeline { list-style: none; margin: 0; padding: 0; }
+  .timeline li {
+    display: flex;
+    gap: .8rem;
+    padding: .7rem 0;
+    border-bottom: 1px dashed var(--line);
+    align-items: baseline;
+  }
+  .timeline li:last-child { border-bottom: none; }
+  .dot { flex: 0 0 auto; width: 11px; height: 11px; border-radius: 50%; background: var(--accent); margin-top: .4rem; }
+  .dot.warn { background: var(--warn); }
+  .dot.fire { background: var(--accent2); }
+  .dot.good { background: var(--good); }
+  .ev-date { font-weight: 700; min-width: 130px; font-variant-numeric: tabular-nums; }
+  .ev-label { color: var(--ink); }
+  .ev-sub { color: var(--muted); font-size: .85rem; display: block; }
+  .stat { display: flex; gap: 1.25rem; flex-wrap: wrap; margin-bottom: .9rem; }
+  .stat div { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: .55rem .85rem; }
+  .stat b { display: block; font-size: 1.4rem; color: var(--accent); }
+  .stat span { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  pre {
+    background: #070b10;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: .9rem;
+    overflow-x: auto;
+    font-size: .85rem;
+    color: #cbd5e1;
+    white-space: pre-wrap;
+  }
+  .related a {
+    display: inline-block;
+    margin: .25rem .5rem .25rem 0;
+    padding: .55rem .9rem;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: .92rem;
+  }
+  .related a:hover { border-color: var(--accent); }
+  code { background: var(--panel2); padding: .1rem .35rem; border-radius: 5px; font-size: .9em; }
+  p { margin: .75rem 0; }
+</style>
+</head>
+<body>
+<nav>
+  <a href="/">bugbountyreality.com</a>
+  <a href="/tools/">All Tools</a>
+</nav>
+<main>
+  <h1>Plan a Responsible Disclosure Timeline</h1>
+  <p class="intro">Enter the date you reported a vulnerability and your disclosure policy window. This tool maps every milestone — vendor acknowledgment, patch deadline, and the public-disclosure date — so you never miss a coordinated release.</p>
+
+  <section id="tool">
+    <div class="grid">
+      <div>
+        <label for="reportDate">Report date</label>
+        <input type="date" id="reportDate">
+        <div class="hint">Day you sent the vendor your report.</div>
+      </div>
+      <div>
+        <label for="window">Disclosure window (days)</label>
+        <input type="number" id="window" min="1" max="365" step="1" value="90">
+        <div class="hint">Days vendor has before public disclosure.</div>
+      </div>
+      <div>
+        <label for="ackDays">Acknowledgment SLA (days)</label>
+        <input type="number" id="ackDays" min="0" max="90" step="1" value="3">
+        <div class="hint">Expected first response.</div>
+      </div>
+      <div>
+        <label for="graceDays">Patch-late grace (days)</label>
+        <input type="number" id="graceDays" min="0" max="60" step="1" value="14">
+        <div class="hint">Extension if a fix is in progress.</div>
+      </div>
+      <div>
+        <label for="policy">Policy preset</label>
+        <select id="policy">
+          <option value="custom">Custom</option>
+          <option value="90">Project Zero / CERT (90)</option>
+          <option value="45">CERT/CC default (45)</option>
+          <option value="30">Fast-track (30)</option>
+          <option value="180">Hardware / firmware (180)</option>
+        </select>
+        <div class="hint">Quick-fill common windows.</div>
+      </div>
+      <div>
+        <label for="weekend">Shift deadlines off weekends</label>
+        <select id="weekend">
+          <option value="no">No</option>
+          <option value="yes">Yes — next business day</option>
+        </select>
+        <div class="hint">Move Sat/Sun deadlines to Monday.</div>
+      </div>
+    </div>
+
+    <div class="out" id="out" aria-live="polite"></div>
+    <h2>Copy-ready timeline</h2>
+    <pre id="dump"></pre>
+  </section>
+
+  <h2>How the timeline is calculated</h2>
+  <p>Coordinated vulnerability disclosure runs on a fixed clock that starts the day you notify the vendor. This generator treats your <strong>report date</strong> as day 0 and projects every downstream milestone by simple date arithmetic — no calendar guesswork. Each event is <code>reportDate + offsetDays</code>, converted through the millisecond epoch so leap years and month lengths are exact.</p>
+  <p>The core formula is:</p>
+  <pre>publicDate   = reportDate + windowDays
+ackDeadline  = reportDate + ackDays
+graceDate    = reportDate + windowDays + graceDays
+elapsed%     = clamp( (today - reportDate) / windowDays * 100, 0, 100 )</pre>
+  <p>The window defaults to <strong>90 days</strong> — the de facto industry norm popularized by Google Project Zero and aligned with CERT/CC guidance. Shorter windows (30–45 days) suit web apps where patching is cheap; longer ones (180 days) fit firmware and embedded systems where supply-chain rollout is slow. The <strong>grace period</strong> models the common policy clause that grants a short extension when a vendor demonstrably has a fix in flight, pushing disclosure to <code>window + grace</code> rather than punishing good-faith remediation.</p>
+  <p>The <strong>information gain</strong> over a plain countdown is the urgency banding: the tool computes the elapsed fraction of your window and labels the case <em>On track</em>, <em>Halfway</em>, <em>Final stretch</em>, or <em>Overdue</em>, plus a live <em>days remaining</em> figure recomputed against today's date. The optional weekend shift moves any deadline that lands on a Saturday or Sunday to the following Monday, because most vendor security teams and CNAs do not process coordinated releases over a weekend. Everything runs locally in your browser — no report data ever leaves the page, which matters when the dates themselves hint at an unpatched, exploitable bug.</p>
+
+  <section class="related">
+    <h2>Related Tools</h2>
+    <a href="/tools/cvss-score-calculator">CVSS Score Calculator</a>
+    <a href="/tools/cors-checker">CORS Checker</a>
+  </section>
+</main>
+<footer>
+  <a href="/">Home</a>
+  <a href="/tools/">All Tools</a>
+  <span>© 2026 bugbountyreality.com</span>
+</footer>
+
+<script>
+(function () {
+  var els = {
+    reportDate: document.getElementById('reportDate'),
+    window: document.getElementById('window'),
+    ackDays: document.getElementById('ackDays'),
+    graceDays: document.getElementById('graceDays'),
+    policy: document.getElementById('policy'),
+    weekend: document.getElementById('weekend'),
+    out: document.getElementById('out'),
+    dump: document.getElementById('dump')
+  };
+
+  var DAY = 86400000;
+
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function iso(d) { return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()); }
+  function pretty(d) {
+    var m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var wd = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    return wd[d.getUTCDay()] + ', ' + m[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear();
+  }
+  function parse(v) {
+    if (!v) return null;
+    var p = v.split('-');
+    return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2]));
+  }
+  function addDays(base, n) { return new Date(base.getTime() + n * DAY); }
+  function clampInt(v, lo, hi, def) {
+    var n = parseInt(v, 10);
+    if (isNaN(n)) n = def;
+    return Math.max(lo, Math.min(hi, n));
+  }
+  function shiftWeekend(d) {
+    var day = d.getUTCDay();
+    if (day === 6) return addDays(d, 2);
+    if (day === 0) return addDays(d, 1);
+    return d;
+  }
+
+  function todayUTC() {
+    var n = new Date();
+    return new Date(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()));
+  }
+
+  function render() {
+    var rd = parse(els.reportDate.value);
+    if (!rd) { els.out.innerHTML = '<p style="color:#f5a524">Pick a report date to begin.</p>'; els.dump.textContent = ''; return; }
+
+    var win = clampInt(els.window.value, 1, 365, 90);
+    var ack = clampInt(els.ackDays.value, 0, 90, 3);
+    var grace = clampInt(els.graceDays.value, 0, 60, 14);
+    var shift = els.weekend.value === 'yes';
+
+    var ackDate = addDays(rd, ack);
+    var halfDate = addDays(rd, Math.round(win / 2));
+    var notifyDate = addDays(rd, Math.max(0, win - 7));
+    var pubDate = addDays(rd, win);
+    var graceDate = addDays(rd, win + grace);
+
+    if (shift) {
+      ackDate = shiftWeekend(ackDate);
+      pubDate = shiftWeekend(pubDate);
+      graceDate = shiftWeekend(graceDate);
+    }
+
+    var today = todayUTC();
+    var elapsedDays = Math.floor((today.getTime() - rd.getTime()) / DAY);
+    var remaining = Math.ceil((pubDate.getTime() - today.getTime()) / DAY);
+    var pct = Math.max(0, Math.min(100, Math.round(elapsedDays / win * 100)));
+
+    var band, bandClass;
+    if (remaining < 0) { band = 'Overdue — disclose now'; bandClass = 'fire'; }
+    else if (pct >= 80) { band = 'Final stretch'; bandClass = 'warn'; }
+    else if (pct >= 45) { band = 'Halfway'; bandClass = 'warn'; }
+    else { band = 'On track'; bandClass = 'good'; }
+
+    var events = [
+      { d: rd, cls: 'good', label: 'Report sent (Day 0)', sub: 'Disclosure clock starts.' },
+      { d: ackDate, cls: '', label: 'Acknowledgment due', sub: 'Day ' + ack + ' — expect vendor first response.' },
+      { d: halfDate, cls: '', label: 'Mid-window check-in', sub: 'Day ' + Math.round(win / 2) + ' — request a status update.' },
+      { d: notifyDate, cls: 'warn', label: 'Pre-disclosure notice', sub: 'Day ' + Math.max(0, win - 7) + ' — final 7-day warning to vendor.' },
+      { d: pubDate, cls: 'fire', label: 'Public disclosure', sub: 'Day ' + win + ' — default policy deadline.' },
+      { d: graceDate, cls: 'warn', label: 'Hard deadline (with grace)', sub: 'Day ' + (win + grace) + ' — max if a fix is in progress.' }
+    ];
+
+    var rem = remaining >= 0 ? (remaining + ' days left') : (Math.abs(remaining) + ' days over');
+
+    var html = '<div class="stat">' +
+      '<div><b>' + pct + '%</b><span>Window elapsed</span></div>' +
+      '<div><b>' + rem + '</b><span>To disclosure</span></div>' +
+      '<div><b>' + win + 'd</b><span>Policy window</span></div>' +
+      '<div><b>' + band + '</b><span>Status</span></div>' +
+      '</div><ul class="timeline">';
+
+    for (var i = 0; i < events.length; i++) {
+      var e = events[i];
+      html += '<li><span class="dot ' + e.cls + '"></span>' +
+        '<span class="ev-date">' + pretty(e.d) + '</span>' +
+        '<span class="ev-label">' + e.label + '<span class="ev-sub">' + e.sub + '</span></span></li>';
+    }
+    html += '</ul>';
+    els.out.innerHTML = html;
+
+    var lines = [
+      'Responsible Disclosure Timeline',
+      'Window: ' + win + ' days | Grace: ' + grace + ' days',
+      '',
+      iso(rd) + '  Report sent (Day 0)',
+      iso(ackDate) + '  Acknowledgment due (Day ' + ack + ')',
+      iso(halfDate) + '  Mid-window check-in',
+      iso(notifyDate) + '  Pre-disclosure notice (T-7)',
+      iso(pubDate) + '  PUBLIC DISCLOSURE (Day ' + win + ')',
+      iso(graceDate) + '  Hard deadline w/ grace (Day ' + (win + grace) + ')'
+    ];
+    els.dump.textContent = lines.join('\n');
+  }
+
+  els.policy.addEventListener('change', function () {
+    if (els.policy.value !== 'custom') { els.window.value = els.policy.value; }
+    render();
+  });
+
+  ['reportDate', 'window', 'ackDays', 'graceDays', 'weekend'].forEach(function (k) {
+    els[k].addEventListener('input', render);
+    els[k].addEventListener('change', render);
+  });
+
+  // Default: report date = today
+  var t = todayUTC();
+  els.reportDate.value = iso(t);
+  render();
+})();
+</script>
+</body>
+</html>
