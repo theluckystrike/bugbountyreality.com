@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPF Record Analyzer &amp; Spoofability Check</title>
+<meta name="description" content="Paste an SPF TXT record to parse every mechanism, count DNS lookups against the RFC 7208 limit of 10, and get a spoofability verdict in your browser.">
+<link rel="canonical" href="https://bugbountyreality.com/tools/spf-record-analyzer">
+<meta property="og:title" content="SPF Record Analyzer &amp; Spoofability Check">
+<meta property="og:description" content="Paste an SPF TXT record to parse every mechanism, count DNS lookups against the RFC 7208 limit of 10, and get a spoofability verdict in your browser.">
+<meta property="og:url" content="https://bugbountyreality.com/tools/spf-record-analyzer">
+<meta property="og:type" content="website">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "SPF Record Analyzer & Spoofability Check",
+      "url": "https://bugbountyreality.com/tools/spf-record-analyzer",
+      "description": "Parse an SPF TXT record per RFC 7208, count DNS-lookup-causing mechanisms against the hard limit of 10, and flag spoofability risks such as +all, a missing all, deprecated ptr and multiple SPF records.",
+      "applicationCategory": "SecurityApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Michael Lip",
+        "url": "https://zovo.one"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bugbountyreality.com/" },
+        { "@type": "ListItem", "position": 2, "name": "Tools", "item": "https://bugbountyreality.com/tools/" },
+        { "@type": "ListItem", "position": 3, "name": "SPF Record Analyzer & Spoofability Check", "item": "https://bugbountyreality.com/tools/spf-record-analyzer" }
+      ]
+    }
+  ]
+}
+</script>
+<style>
+:root{
+  --bg:#0c0f14;
+  --panel:#141923;
+  --panel2:#1b2230;
+  --border:#2a3344;
+  --text:#e6ebf2;
+  --muted:#94a3b8;
+  --accent:#3ddc97;
+  --accent2:#5aa9ff;
+  --warn:#f4b740;
+  --bad:#ff5d6c;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.6;
+}
+nav{
+  display:flex;
+  gap:1.25rem;
+  align-items:center;
+  padding:1rem 1.25rem;
+  border-bottom:1px solid var(--border);
+  background:#0a0d12;
+  flex-wrap:wrap;
+}
+nav a{color:var(--accent2);text-decoration:none;font-weight:600;font-size:.95rem}
+nav a:hover{text-decoration:underline}
+main{max-width:900px;margin:0 auto;padding:1.5rem 1.25rem 3rem}
+h1{font-size:1.8rem;line-height:1.25;margin:1rem 0 .5rem}
+h2{font-size:1.3rem;margin:2rem 0 .75rem;border-left:3px solid var(--accent);padding-left:.6rem}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+.intro{color:var(--muted);font-size:1.05rem;margin-bottom:1.5rem}
+section#tool{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:1.25rem;
+}
+label{display:block;font-weight:600;margin:0 0 .4rem;font-size:.95rem}
+.hint{font-weight:400;color:var(--muted);font-size:.82rem}
+textarea,input,select{
+  width:100%;
+  background:var(--panel2);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:9px;
+  padding:.7rem .8rem;
+  font-size:.98rem;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+textarea{resize:vertical;min-height:96px}
+textarea:focus,input:focus,select:focus{outline:none;border-color:var(--accent)}
+.row{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem}
+.row > div{flex:1 1 220px}
+.samples{margin-top:.9rem;display:flex;gap:.4rem;flex-wrap:wrap}
+.samples button{
+  width:auto;
+  cursor:pointer;
+  background:#0f141d;
+  color:var(--accent2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:.4rem .7rem;
+  font-size:.82rem;
+  font-weight:600;
+  font-family:inherit;
+}
+.samples button:hover{border-color:var(--accent2)}
+.verdict{
+  margin-top:1.25rem;
+  border-radius:11px;
+  padding:.9rem 1rem;
+  border:1px solid var(--border);
+  background:#0f141d;
+  display:flex;
+  align-items:baseline;
+  gap:.8rem;
+  flex-wrap:wrap;
+}
+.verdict .tag{
+  font-weight:800;
+  font-size:1.15rem;
+  letter-spacing:.06em;
+  font-family:ui-monospace,monospace;
+}
+.verdict .sub{color:var(--muted);font-size:.9rem}
+.v-pass{border-color:var(--accent)}
+.v-pass .tag{color:var(--accent)}
+.v-warn{border-color:var(--warn)}
+.v-warn .tag{color:var(--warn)}
+.v-fail{border-color:var(--bad)}
+.v-fail .tag{color:var(--bad)}
+.facts{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:1rem}
+.fact{
+  background:#0f141d;
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:.55rem .75rem;
+  font-size:.78rem;
+  color:var(--muted);
+  flex:1 1 150px;
+}
+.fact b{display:block;color:var(--text);font-size:1.15rem;font-family:ui-monospace,monospace;margin-top:.15rem}
+.fact b.ok{color:var(--accent)}
+.fact b.warn{color:var(--warn)}
+.fact b.bad{color:var(--bad)}
+.meter{height:9px;background:#222b3a;border-radius:6px;overflow:hidden;margin-top:1rem;border:1px solid var(--border)}
+.meter > i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s,background .25s}
+.findings{margin-top:1.1rem;padding:0;list-style:none}
+.findings li{
+  border:1px solid var(--border);
+  border-left-width:3px;
+  border-radius:8px;
+  background:#0f141d;
+  padding:.55rem .8rem;
+  margin-bottom:.5rem;
+  font-size:.92rem;
+}
+.findings li.f-fail{border-left-color:var(--bad)}
+.findings li.f-warn{border-left-color:var(--warn)}
+.findings li.f-info{border-left-color:var(--accent2)}
+.findings li.f-ok{border-left-color:var(--accent)}
+.findings .lv{
+  font-family:ui-monospace,monospace;
+  font-size:.72rem;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  margin-right:.5rem;
+}
+.f-fail .lv{color:var(--bad)}
+.f-warn .lv{color:var(--warn)}
+.f-info .lv{color:var(--accent2)}
+.f-ok .lv{color:var(--accent)}
+.findings .ref{color:var(--muted);font-size:.8rem;display:block;margin-top:.15rem}
+.tblwrap{overflow-x:auto;margin-top:1.1rem}
+table{border-collapse:collapse;width:100%;font-size:.86rem;min-width:560px}
+th,td{border:1px solid var(--border);padding:.45rem .6rem;text-align:left;vertical-align:top}
+th{background:#0f141d;color:var(--muted);font-size:.76rem;text-transform:uppercase;letter-spacing:.05em}
+td.mono{font-family:ui-monospace,monospace;color:var(--accent)}
+td.bad{color:var(--bad)}
+.prose p{margin:.75rem 0}
+.prose li{margin:.3rem 0}
+.prose code{background:var(--panel2);padding:.1rem .35rem;border-radius:4px;font-size:.9rem;font-family:ui-monospace,monospace}
+.formula{
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-left:3px solid var(--accent);
+  border-radius:8px;
+  padding:.8rem 1rem;
+  font-family:ui-monospace,Menlo,monospace;
+  font-size:.9rem;
+  overflow-x:auto;
+}
+.related a{
+  display:inline-block;
+  margin:.35rem .5rem .35rem 0;
+  padding:.5rem .85rem;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--accent2);
+  text-decoration:none;
+  font-weight:600;
+  font-size:.92rem;
+}
+.related a:hover{border-color:var(--accent2)}
+footer{
+  border-top:1px solid var(--border);
+  padding:1.5rem 1.25rem;
+  text-align:center;
+  color:var(--muted);
+  font-size:.9rem;
+}
+footer a{color:var(--accent2);text-decoration:none;margin:0 .5rem}
+footer a:hover{text-decoration:underline}
+@media (max-width:480px){h1{font-size:1.45rem}main{padding:1rem}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/">bugbountyreality.com</a>
+  <a href="/tools/">All Tools</a>
+</nav>
+<main>
+  <h1>SPF Record Analyzer And Spoofability Check</h1>
+  <p class="intro">Paste a domain's SPF TXT record. This tool parses every term the way an RFC 7208 evaluator does, counts the mechanisms that trigger DNS lookups against the hard limit of ten, and tells you whether the policy actually stops anyone from spoofing the domain. Everything runs locally, nothing is sent anywhere.</p>
+
+  <section id="tool">
+    <label for="rec">SPF TXT record
+      <span class="hint">paste one record per line; surrounding quotes and multi-string splits are handled</span>
+    </label>
+    <textarea id="rec" spellcheck="false" autocomplete="off">v=spf1 include:_spf.google.com include:spf.protection.outlook.com include:mail.zendesk.com include:sendgrid.net a mx ip4:203.0.113.0/24 ~all</textarea>
+
+    <div class="row">
+      <div>
+        <label for="dom">Domain (optional)
+          <span class="hint">only used to label the report</span>
+        </label>
+        <input id="dom" type="text" value="example.com" autocomplete="off" spellcheck="false">
+      </div>
+    </div>
+
+    <div class="samples">
+      <button type="button" data-s="v=spf1 include:_spf.google.com -all">Minimal, hard fail</button>
+      <button type="button" data-s="v=spf1 +all">Wide open</button>
+      <button type="button" data-s="v=spf1 mx a ptr include:_spf.google.com include:spf.protection.outlook.com include:sendgrid.net include:servers.mcsv.net include:mailgun.org include:_spf.salesforce.com include:spf.mandrillapp.com exists:%{i}._spf.example.com ~all">Over the lookup limit</button>
+      <button type="button" data-s="v=spf1 a mx include:_spf.example.net">No all mechanism</button>
+      <button type="button" data-s="v=spf1 ip4:0.0.0.0/0 ip6:::/0 -all">Everything allowed by IP</button>
+    </div>
+
+    <div id="out" aria-live="polite"></div>
+  </section>
+
+  <section class="prose">
+    <h2>How the analysis works</h2>
+    <p>SPF (Sender Policy Framework, standardised in <strong>RFC 7208</strong>) is a single DNS TXT record that lists which hosts are allowed to send mail using your domain in the SMTP <code>MAIL FROM</code> envelope. A receiving server fetches that record, walks the terms left to right, and returns the result of the first mechanism that matches the connecting IP. Everything this page reports is derived from four mechanical rules in that specification.</p>
+
+    <h3>1. The record must be selected correctly</h3>
+    <p>A valid record starts with the version token <code>v=spf1</code> followed by a space or the end of the string. If a domain publishes <em>more than one</em> TXT record beginning with <code>v=spf1</code>, RFC 7208 section 4.5 requires the evaluator to return <code>permerror</code> — the policy is not "merged", it simply stops working. That is why the tool treats two pasted records as a hard failure rather than a warning. Separately, a single TXT record is transmitted as one or more character-strings of at most <strong>255 bytes</strong> each (RFC 1035), which are concatenated with no separator on retrieval. Records longer than 255 characters are legal but must be published as a split string, and a badly split record silently loses or gains characters.</p>
+
+    <h3>2. The ten DNS lookup limit</h3>
+    <p>This is the single most common cause of a broken SPF policy. Section 4.6.4 puts a hard cap on how much work one evaluation may cost:</p>
+    <div class="formula">lookups = count(a) + count(mx) + count(include) + count(exists) + count(ptr) + count(redirect)
+must satisfy:  lookups &le; 10   otherwise the result is permerror</div>
+    <p>Only those six terms count. <code>ip4</code>, <code>ip6</code> and <code>all</code> resolve nothing and are free, and the <code>exp</code> modifier is explicitly excluded from the limit. Crucially the count is <em>recursive</em>: every <code>include</code> spends one lookup for itself and then the entire nested record's own lookups are added to the same budget. This page can only count the terms you paste, so the number shown is the <strong>floor</strong> of the real cost — a record showing 6 direct lookups can still blow the limit once four large providers are expanded. Two related sub-limits also apply: an <code>mx</code> mechanism must not resolve more than 10 address records, and no more than 2 DNS queries in the whole evaluation may be "void" (returning NXDOMAIN or an empty answer).</p>
+
+    <h3>3. Qualifiers decide what happens on a match</h3>
+    <p>Each mechanism carries an optional qualifier, defaulting to <code>+</code>:</p>
+    <ul>
+      <li><code>+</code> Pass — the sender is authorised.</li>
+      <li><code>-</code> Fail — explicitly not authorised. Receivers may reject outright.</li>
+      <li><code>~</code> SoftFail — not authorised, but accept and mark. Usually means spam folder, not rejection.</li>
+      <li><code>?</code> Neutral — the domain asserts nothing. Treated the same as having no SPF record at all.</li>
+    </ul>
+    <p>The final <code>all</code> mechanism matches every IP that got that far, so its qualifier is the whole point of the policy. <code>-all</code> is the only variant that actually asserts "nobody else may send as me". If a record ends without <code>all</code> and without a <code>redirect</code>, section 4.7 says the evaluation returns <code>neutral</code> — a fail-open default that gives an attacker exactly the same freedom as <code>+all</code>. Anything written after <code>all</code> is unreachable and silently ignored, and a <code>redirect</code> modifier is ignored entirely whenever an <code>all</code> mechanism is present (section 6.1).</p>
+
+    <h3>4. Spoofability weighting</h3>
+    <p>The resistance score starts at 100 and subtracts fixed penalties, so you can reproduce it by hand: <code>+all</code> or an <code>ip4:0.0.0.0/0</code> style catch-all removes 100; a missing <code>all</code> removes 60; <code>?all</code> removes 55; a syntax <code>permerror</code> or exceeding the lookup limit removes 50; <code>~all</code> removes 25; a lookup count of 9 or 10 removes 10 as headroom warning; each broad IPv4 range shorter than <code>/16</code> removes 10 up to a cap of 20; and a <code>ptr</code> mechanism removes 10. The result is clamped to the range 0 to 100. The verdict itself is not the score: it is <strong>fail</strong> if any finding is fail-level, <strong>warn</strong> if any is warn-level, otherwise <strong>pass</strong>.</p>
+    <p>One honesty note for bug bounty work. A weak SPF record on its own is very often <em>not</em> a payable finding — most programs consider it informational unless you can demonstrate deliverable spoofed mail. What makes it reportable is the combination: SPF that fails open <em>and</em> a missing or <code>p=none</code> DMARC policy, because DMARC is what receivers actually enforce on the visible From header. Check the <code>_dmarc</code> TXT record before you write anything up, and include a real delivered test message in the report.</p>
+  </section>
+
+  <section class="related">
+    <h2>Related Tools</h2>
+    <a href="/tools/dns-lookup-tool">DNS Lookup Tool</a>
+    <a href="/tools/http-security-headers-checker-test-any-url">Security Headers Checker</a>
+    <a href="/tools/cvss-score-calculator">CVSS Score Calculator</a>
+  </section>
+</main>
+
+<footer>
+  <div>
+    <a href="/">Home</a>
+    <a href="/tools/">All Tools</a>
+    <a href="/blog/">Blog</a>
+  </div>
+  <p>&copy; 2026 bugbountyreality.com &mdash; runs entirely in your browser.</p>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  var recEl = document.getElementById('rec');
+  var domEl = document.getElementById('dom');
+  var out   = document.getElementById('out');
+
+  // Terms that cost one DNS lookup each (RFC 7208 section 4.6.4)
+  var LOOKUP_TERMS = {a:1, mx:1, include:1, exists:1, ptr:1};
+  var LOOKUP_LIMIT = 10;
+  var MAX_STRING   = 255; // RFC 1035 character-string limit
+
+  var MECHS = ['all','include','a','mx','ptr','ip4','ip6','exists'];
+  var MODS  = ['redirect','exp'];
+
+  var QUAL = {
+    '+': 'Pass',
+    '-': 'Fail',
+    '~': 'SoftFail',
+    '?': 'Neutral'
+  };
+
+  function esc(s){
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  function fmtInt(n){
+    if(!isFinite(n)) return 'infinite';
+    if(n >= 1e15){
+      var e = Math.floor(Math.log10(n));
+      return (n/Math.pow(10,e)).toFixed(2)+' x 10^'+e;
+    }
+    return Math.round(n).toLocaleString('en-US');
+  }
+
+  // ---- validators -------------------------------------------------------
+  function parseIP4(v){
+    var m = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})(?:\/(\d{1,2}))?$/.exec(v);
+    if(!m) return null;
+    for(var i=1;i<=4;i++){
+      var oct = m[i];
+      if(oct.length > 1 && oct.charAt(0) === '0') return null; // no leading zeros
+      var n = parseInt(oct,10);
+      if(!(n >= 0 && n <= 255)) return null;
+    }
+    var pl = (m[5] === undefined) ? 32 : parseInt(m[5],10);
+    if(m[5] !== undefined && m[5].length > 1 && m[5].charAt(0) === '0') return null;
+    if(!(pl >= 0 && pl <= 32)) return null;
+    return { prefix: pl, addrs: Math.pow(2, 32 - pl) };
+  }
+
+  function parseIP6(v){
+    var slash = v.lastIndexOf('/');
+    var addr = v, pl = 128;
+    if(slash > -1){
+      var raw = v.slice(slash+1);
+      addr = v.slice(0, slash);
+      if(!/^\d{1,3}$/.test(raw)) return null;
+      pl = parseInt(raw,10);
+      if(!(pl >= 0 && pl <= 128)) return null;
+    }
+    if(addr === '') return null;
+    // structural check: hex groups separated by colons, at most one "::"
+    if(!/^[0-9A-Fa-f:.]+$/.test(addr)) return null;
+    var dbl = addr.split('::').length - 1;
+    if(dbl > 1) return null;
+    var groups = addr.replace('::', ':').split(':').filter(function(g){ return g !== ''; });
+    for(var i=0;i<groups.length;i++){
+      if(/^\d{1,3}(\.\d{1,3}){3}$/.test(groups[i])) continue; // embedded IPv4
+      if(!/^[0-9A-Fa-f]{1,4}$/.test(groups[i])) return null;
+    }
+    if(dbl === 0 && groups.length !== 8) return null;
+    if(dbl === 1 && groups.length > 7) return null;
+    return { prefix: pl, addrs: Math.pow(2, 128 - pl) };
+  }
+
+  function validDomainSpec(v){
+    if(!v) return false;
+    if(v.length > 255) return false;
+    // macros are legal in a domain-spec, so accept % expansions verbatim
+    if(v.indexOf('%') > -1) return /^[\x21-\x7e]+$/.test(v);
+    return /^(?=.{1,253}$)([A-Za-z0-9_](?:[A-Za-z0-9_-]{0,61}[A-Za-z0-9_])?\.)+[A-Za-z]{2,63}\.?$/.test(v);
+  }
+
+  // ---- input normalisation ---------------------------------------------
+  // A TXT record may arrive as several quoted strings that concatenate.
+  function normaliseLine(line){
+    var t = line.trim();
+    if(t === '') return { text:'', strings:[] };
+    var quoted = t.match(/"[^"]*"/g);
+    if(quoted && quoted.join('').length >= t.replace(/\s+/g,'').length - 2){
+      var parts = quoted.map(function(q){ return q.slice(1,-1); });
+      return { text: parts.join(''), strings: parts };
+    }
+    t = t.replace(/^"|"$/g,'');
+    return { text: t, strings: [t] };
+  }
+
+  // ---- the analyser -----------------------------------------------------
+  function analyse(){
+    var raw = recEl.value;
+    var domain = domEl.value.trim();
+
+    if(!raw || raw.trim() === ''){
+      out.innerHTML = '<div class="verdict"><span class="tag">NO INPUT</span>' +
+        '<span class="sub">Paste an SPF TXT record above to analyse it.</span></div>';
+      return;
+    }
+
+    var lines = raw.split(/\r?\n/).map(normaliseLine)
+                   .filter(function(o){ return o.text !== ''; });
+
+    var findings = [];
+    function add(level, msg, ref){ findings.push({ level:level, msg:msg, ref:ref||'' }); }
+
+    var spfLines = lines.filter(function(o){ return /^v=spf1(\s|$)/i.test(o.text); });
+
+    if(spfLines.length === 0){
+      add('fail', 'This is not an SPF record. A policy must begin with the exact version token "v=spf1" followed by a space or the end of the string.', 'RFC 7208 section 4.5');
+      render('FAIL', 0, findings, [], null, domain, lines);
+      return;
+    }
+    if(spfLines.length > 1){
+      add('fail', 'Found ' + spfLines.length + ' records starting with v=spf1. A domain publishing more than one SPF record produces permerror for every evaluation. SPF records are never merged.', 'RFC 7208 section 4.5');
+    }
+
+    var chosen = spfLines[0];
+    var record = chosen.text;
+
+    // 255-byte character-string check
+    var longest = 0;
+    for(var s=0; s<chosen.strings.length; s++){
+      if(chosen.strings[s].length > longest) longest = chosen.strings[s].length;
+    }
+    if(longest > MAX_STRING){
+      add('fail', 'A single TXT character-string is ' + longest + ' bytes. The DNS limit is ' + MAX_STRING + ' bytes per string, so this record must be published as multiple quoted strings that concatenate without a separator.', 'RFC 1035 / RFC 7208 section 3.3');
+    } else if(record.length > MAX_STRING){
+      add('info', 'Record is ' + record.length + ' characters and is correctly split across ' + chosen.strings.length + ' character-strings. Verify the split does not fall inside a term.', 'RFC 7208 section 3.3');
+    }
+
+    // tokenise
+    var tokens = record.split(/\s+/).filter(function(t){ return t !== ''; });
+    tokens.shift(); // drop v=spf1
+
+    var terms = [];
+    var lookups = 0;
+    var ip4Total = 0, ip6Total = 0;
+    var broadRanges = 0;
+    var seenAll = -1;
+    var modCount = {};
+    var counts = {};
+    var syntaxError = false;
+    var catchAllIP = false;
+
+    for(var i=0;i<tokens.length;i++){
+      var tok = tokens[i];
+      var qual = '+', body = tok, isMod = false;
+      var name = '', value = '', cost = 0, note = '', bad = false;
+
+      var eq = tok.indexOf('=');
+      var colon = tok.indexOf(':');
+      if(eq > 0 && (colon === -1 || eq < colon) && !/^[+\-~?]/.test(tok)){
+        isMod = true;
+        name = tok.slice(0, eq).toLowerCase();
+        value = tok.slice(eq+1);
+      } else {
+        if(QUAL[tok.charAt(0)]){ qual = tok.charAt(0); body = tok.slice(1); }
+        var c = body.indexOf(':');
+        var sl = body.indexOf('/');
+        var cut = body.length;
+        if(c > -1) cut = c;
+        else if(sl > -1) cut = sl;
+        name = body.slice(0, cut).toLowerCase();
+        value = (c > -1) ? body.slice(c+1) : (sl > -1 ? body.slice(sl) : '');
+      }
+
+      if(isMod){
+        modCount[name] = (modCount[name] || 0) + 1;
+        if(name === 'redirect'){
+          cost = 1;
+          if(!validDomainSpec(value)){ bad = true; note = 'invalid domain-spec'; }
+          else note = 'evaluates ' + value + ' instead, costs 1 lookup';
+        } else if(name === 'exp'){
+          note = 'explanation string, not counted against the lookup limit';
+        } else {
+          note = 'unknown modifier, ignored by evaluators';
+          add('info', 'Unknown modifier "' + esc(name) + '=" is ignored rather than fatal, but it is dead weight in the record.', 'RFC 7208 section 6');
+        }
+      } else if(MECHS.indexOf(name) === -1){
+        bad = true;
+        note = 'unknown mechanism';
+        syntaxError = true;
+        add('fail', 'Unknown mechanism "' + esc(tok) + '". An unrecognised mechanism makes the whole record a permerror, so the policy stops being enforced.', 'RFC 7208 section 4.6.1');
+      } else {
+        counts[name] = (counts[name] || 0) + 1;
+        if(LOOKUP_TERMS[name]) cost = 1;
+
+        if(name === 'all'){
+          if(value !== ''){ bad = true; note = 'the all mechanism takes no argument'; syntaxError = true; }
+          else note = 'matches every remaining sender, result = ' + QUAL[qual];
+          if(seenAll === -1) seenAll = i;
+        } else if(name === 'ip4'){
+          var p4 = parseIP4(value);
+          if(!p4){ bad = true; note = 'invalid IPv4 address or prefix'; syntaxError = true; }
+          else {
+            ip4Total += p4.addrs;
+            note = fmtInt(p4.addrs) + ' address' + (p4.addrs === 1 ? '' : 'es') + ' authorised';
+            if(p4.prefix === 0) catchAllIP = true;
+            else if(p4.prefix < 16) broadRanges++;
+          }
+        } else if(name === 'ip6'){
+          var p6 = parseIP6(value);
+          if(!p6){ bad = true; note = 'invalid IPv6 address or prefix'; syntaxError = true; }
+          else {
+            ip6Total += p6.addrs;
+            note = '/' + p6.prefix + ' block, ' + fmtInt(p6.addrs) + ' addresses';
+            if(p6.prefix === 0) catchAllIP = true;
+          }
+        } else if(name === 'include' || name === 'exists'){
+          if(value === ''){
+            bad = true; syntaxError = true;
+            note = name + ' requires a domain-spec argument';
+          } else if(!validDomainSpec(value)){
+            bad = true; syntaxError = true;
+            note = 'invalid domain-spec "' + value + '"';
+          } else {
+            note = name === 'include'
+              ? 'recursive check, its own lookups add to this budget'
+              : 'macro-expanded A query';
+          }
+        } else if(name === 'a' || name === 'mx'){
+          note = (value === '' ? 'uses the current domain' : 'uses ' + value) + ', costs 1 lookup';
+        } else if(name === 'ptr'){
+          note = 'reverse DNS check, deprecated';
+        }
+
+        if(seenAll > -1 && i > seenAll){
+          note += ' (unreachable, never evaluated)';
+        }
+      }
+
+      if(bad) syntaxError = true;
+      lookups += cost;
+      terms.push({ idx:i+1, raw:tok, qual:qual, name:name, value:value, cost:cost, note:note, bad:bad, isMod:isMod });
+    }
+
+    // ---- rule checks ----
+    if(syntaxError){
+      add('fail', 'The record contains at least one malformed term. Any syntax error makes the entire evaluation return permerror, which most receivers treat as no SPF protection at all.', 'RFC 7208 section 4.6');
+    }
+
+    for(var mk in modCount){
+      if(modCount[mk] > 1 && MODS.indexOf(mk) > -1){
+        syntaxError = true;
+        add('fail', 'The "' + esc(mk) + '" modifier appears ' + modCount[mk] + ' times. A modifier may appear at most once, otherwise the record is a permerror.', 'RFC 7208 section 6');
+      }
+    }
+
+    if(lookups > LOOKUP_LIMIT){
+      add('fail', 'This record needs at least ' + lookups + ' DNS lookups, over the hard limit of ' + LOOKUP_LIMIT + '. Evaluation aborts with permerror, so legitimate mail loses SPF pass and the domain gains no anti-spoofing protection.', 'RFC 7208 section 4.6.4');
+    } else if(lookups >= 9){
+      add('warn', 'At ' + lookups + ' of ' + LOOKUP_LIMIT + ' direct lookups there is almost no headroom. Any provider that adds an include inside their own record will push you over the limit without warning.', 'RFC 7208 section 4.6.4');
+    } else if(counts['include'] || counts['a'] || counts['mx'] || counts['exists']){
+      add('info', 'Direct lookup cost is ' + lookups + ' of ' + LOOKUP_LIMIT + '. This is a floor, not the real total: each include expands recursively and its nested lookups spend the same budget.', 'RFC 7208 section 4.6.4');
+    }
+
+    // all mechanism analysis
+    var allTerm = null;
+    for(var t2=0;t2<terms.length;t2++){
+      if(terms[t2].name === 'all' && !terms[t2].isMod){ allTerm = terms[t2]; break; }
+    }
+    var hasRedirect = (modCount['redirect'] || 0) > 0;
+
+    if(!allTerm && !hasRedirect){
+      add('fail', 'No "all" mechanism and no redirect modifier. When nothing matches, the evaluation returns neutral, which receivers treat exactly like having no SPF record. The domain is fully spoofable.', 'RFC 7208 section 4.7');
+    } else if(allTerm){
+      if(allTerm.qual === '+'){
+        add('fail', 'The record ends in "' + esc(allTerm.raw) + '", which authorises every host on the internet to send as this domain. This is the worst possible SPF configuration.', 'RFC 7208 section 5.1');
+      } else if(allTerm.qual === '?'){
+        add('fail', '"?all" returns neutral for unlisted senders, an explicit statement that the domain asserts nothing. It provides no more protection than having no record.', 'RFC 7208 section 4.6.2');
+      } else if(allTerm.qual === '~'){
+        add('warn', '"~all" is a softfail: unauthorised mail is accepted and merely marked, typically landing in spam rather than being rejected. Move to "-all" once you are confident the sender list is complete.', 'RFC 7208 section 4.6.2');
+      } else {
+        add('ok', '"-all" is present. Unlisted senders get an explicit fail, which is the only variant that actively asserts nobody else may send as this domain.', 'RFC 7208 section 4.6.2');
+      }
+      if(allTerm.idx < terms.length){
+        add('warn', (terms.length - allTerm.idx) + ' term(s) appear after "all" and can never be reached. Mechanisms are evaluated left to right and "all" always matches.', 'RFC 7208 section 5.1');
+      }
+      if(hasRedirect){
+        add('warn', 'A redirect modifier is present alongside an "all" mechanism. The redirect is ignored entirely, so whatever policy it points at never applies.', 'RFC 7208 section 6.1');
+      }
+    }
+
+    if(counts['ptr']){
+      add('warn', 'The "ptr" mechanism is deprecated. RFC 7208 discourages publishing it: it is slow, unreliable when reverse DNS is broken, and it loads the .arpa name servers. Most modern evaluators still count it against the lookup limit.', 'RFC 7208 section 5.5');
+    }
+    if(catchAllIP){
+      add('fail', 'An ip4 or ip6 mechanism uses a /0 prefix, authorising the entire address space. This is equivalent to "+all" no matter what qualifier the final all mechanism carries.', 'RFC 7208 section 5.6');
+    } else if(broadRanges > 0){
+      add('warn', broadRanges + ' IPv4 range(s) are shorter than /16, authorising 65,536 or more hosts each. Broad ranges are a common way for shared hosting neighbours to spoof a domain legitimately.', 'RFC 7208 section 5.6');
+    }
+    if(counts['mx']){
+      add('info', 'An "mx" mechanism is present. Beyond the ten lookup budget it has its own sub-limit: resolving the MX set must not require more than 10 address record queries, or the result is permerror.', 'RFC 7208 section 4.6.4');
+    }
+    if(ip4Total > 0){
+      add('info', 'Explicit IPv4 mechanisms authorise ' + fmtInt(ip4Total) + ' addresses, about ' + (ip4Total / 4294967296 * 100).toFixed(6) + ' percent of the IPv4 space. Includes add more on top of this.', '');
+    }
+    add('info', 'SPF alone does not protect the visible From header. Check the _dmarc TXT record: without DMARC at p=quarantine or p=reject, even a perfect "-all" record does not stop display-name spoofing.', 'RFC 7489');
+
+    // ---- score ----
+    var score = 100;
+    if(allTerm && allTerm.qual === '+') score -= 100;
+    if(catchAllIP) score -= 100;
+    if(!allTerm && !hasRedirect) score -= 60;
+    if(allTerm && allTerm.qual === '?') score -= 55;
+    if(syntaxError || spfLines.length > 1) score -= 50;
+    if(lookups > LOOKUP_LIMIT) score -= 50;
+    if(allTerm && allTerm.qual === '~') score -= 25;
+    if(lookups >= 9 && lookups <= LOOKUP_LIMIT) score -= 10;
+    score -= Math.min(20, broadRanges * 10);
+    if(counts['ptr']) score -= 10;
+    if(score < 0) score = 0;
+    if(score > 100) score = 100;
+
+    var verdict = 'PASS';
+    for(var f=0; f<findings.length; f++){
+      if(findings[f].level === 'fail'){ verdict = 'FAIL'; break; }
+      if(findings[f].level === 'warn') verdict = 'WARN';
+    }
+
+    render(verdict, score, findings, terms, {
+      lookups: lookups,
+      length: record.length,
+      termCount: terms.length,
+      ip4Total: ip4Total,
+      ip6Total: ip6Total,
+      records: spfLines.length
+    }, domain, lines);
+  }
+
+  var ORDER = { fail:0, warn:1, ok:2, info:3 };
+
+  function render(verdict, score, findings, terms, stats, domain, lines){
+    var cls = verdict === 'PASS' ? 'v-pass' : (verdict === 'WARN' ? 'v-warn' : 'v-fail');
+    var sub = {
+      'PASS': 'No spoofability or syntax problems detected in the pasted record.',
+      'WARN': 'The record parses, but it leaves usable spoofing headroom or is close to a limit.',
+      'FAIL': 'This record either does not enforce anything or breaks during evaluation.'
+    }[verdict] || '';
+
+    var html = '<div class="verdict ' + cls + '">' +
+      '<span class="tag">' + verdict + '</span>' +
+      '<span class="sub">' + (domain ? esc(domain) + ' &mdash; ' : '') + sub + '</span></div>';
+
+    if(stats){
+      var lk = stats.lookups;
+      var lkCls = lk > 10 ? 'bad' : (lk >= 9 ? 'warn' : 'ok');
+      html += '<div class="facts">';
+      html += '<div class="fact">DNS lookups used<b class="' + lkCls + '">' + lk + ' / 10</b></div>';
+      html += '<div class="fact">Terms parsed<b>' + stats.termCount + '</b></div>';
+      html += '<div class="fact">Record length<b class="' + (stats.length > 255 ? 'warn' : '') + '">' + stats.length + ' ch</b></div>';
+      html += '<div class="fact">IPv4 hosts allowed<b>' + fmtInt(stats.ip4Total) + '</b></div>';
+      html += '<div class="fact">Spoof resistance<b class="' + (score >= 85 ? 'ok' : score >= 50 ? 'warn' : 'bad') + '">' + score + ' / 100</b></div>';
+      html += '</div>';
+      html += '<div class="meter"><i style="width:' + Math.max(2, score) + '%;background:' +
+              (score >= 85 ? 'var(--accent)' : score >= 50 ? 'var(--warn)' : 'var(--bad)') + '"></i></div>';
+    }
+
+    var sorted = findings.slice().sort(function(a,b){
+      return (ORDER[a.level] === undefined ? 9 : ORDER[a.level]) - (ORDER[b.level] === undefined ? 9 : ORDER[b.level]);
+    });
+
+    html += '<ul class="findings">';
+    for(var i=0;i<sorted.length;i++){
+      var f = sorted[i];
+      html += '<li class="f-' + f.level + '"><span class="lv">' + f.level + '</span>' + f.msg +
+              (f.ref ? '<span class="ref">' + esc(f.ref) + '</span>' : '') + '</li>';
+    }
+    html += '</ul>';
+
+    if(terms && terms.length){
+      html += '<div class="tblwrap"><table><thead><tr>' +
+              '<th>#</th><th>Term</th><th>Type</th><th>Qualifier</th><th>Lookups</th><th>Effect</th>' +
+              '</tr></thead><tbody>';
+      for(var t=0;t<terms.length;t++){
+        var m = terms[t];
+        html += '<tr>' +
+          '<td>' + m.idx + '</td>' +
+          '<td class="mono' + (m.bad ? ' bad' : '') + '">' + esc(m.raw) + '</td>' +
+          '<td>' + (m.isMod ? 'modifier' : 'mechanism') + '</td>' +
+          '<td>' + (m.isMod ? '&mdash;' : m.qual + ' ' + QUAL[m.qual]) + '</td>' +
+          '<td>' + m.cost + '</td>' +
+          '<td>' + esc(m.note) + '</td>' +
+          '</tr>';
+      }
+      html += '</tbody></table></div>';
+    }
+
+    out.innerHTML = html;
+  }
+
+  recEl.addEventListener('input', analyse);
+  domEl.addEventListener('input', analyse);
+
+  var btns = document.querySelectorAll('.samples button');
+  for(var b=0;b<btns.length;b++){
+    btns[b].addEventListener('click', function(){
+      recEl.value = this.getAttribute('data-s');
+      analyse();
+    });
+  }
+
+  analyse();
+})();
+</script>
+</body>
+</html>

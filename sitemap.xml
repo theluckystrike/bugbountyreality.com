@@ -108,4 +108,8 @@
 <url><loc>https://bugbountyreality.com/tools/nmap-command-generator</loc><lastmod>2026-06-30</lastmod></url>
 <url><loc>https://bugbountyreality.com/tools/password-entropy-calculator</loc><lastmod>2026-06-30</lastmod></url>
 <url><loc>https://bugbountyreality.com/tools/reverse-shell-generator</loc><lastmod>2026-06-30</lastmod></url>
+  <url><loc>https://bugbountyreality.com/tools/cidr-to-ip-range-calculator.html</loc></url>
+  <url><loc>https://bugbountyreality.com/tools/recon-dork-generator.html</loc></url>
+  <url><loc>https://bugbountyreality.com/tools/spf-record-analyzer.html</loc></url>
+  <url><loc>https://bugbountyreality.com/tools/ssrf-ip-obfuscation-generator.html</loc></url>
 </urlset>

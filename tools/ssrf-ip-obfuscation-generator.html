@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SSRF IP Obfuscation Generator | Filter Bypass</title>
+<meta name="description" content="Pack any IPv4 into a 32-bit integer and generate every equivalent decimal, octal, hex, dotless and IPv6-mapped form that SSRF URL filters miss.">
+<link rel="canonical" href="https://bugbountyreality.com/tools/ssrf-ip-obfuscation-generator">
+<meta property="og:title" content="SSRF IP Obfuscation Generator | Filter Bypass">
+<meta property="og:description" content="Pack any IPv4 into a 32-bit integer and generate every equivalent decimal, octal, hex, dotless and IPv6-mapped form that SSRF URL filters miss.">
+<meta property="og:url" content="https://bugbountyreality.com/tools/ssrf-ip-obfuscation-generator">
+<meta property="og:type" content="website">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "SSRF IP Obfuscation Generator",
+      "url": "https://bugbountyreality.com/tools/ssrf-ip-obfuscation-generator",
+      "description": "Pack a target IPv4 into a single 32-bit integer and emit every mathematically equivalent representation (decimal, octal, hex, dotless, class-form and IPv4-mapped IPv6) that SSRF and URL allow/deny filters commonly fail to normalise.",
+      "applicationCategory": "SecurityApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Michael Lip",
+        "url": "https://zovo.one"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bugbountyreality.com/" },
+        { "@type": "ListItem", "position": 2, "name": "Tools", "item": "https://bugbountyreality.com/tools/" },
+        { "@type": "ListItem", "position": 3, "name": "SSRF IP Obfuscation Generator", "item": "https://bugbountyreality.com/tools/ssrf-ip-obfuscation-generator" }
+      ]
+    }
+  ]
+}
+</script>
+<style>
+:root{
+  --bg:#0c0f14;
+  --panel:#141923;
+  --panel2:#1b2230;
+  --border:#2a3344;
+  --text:#e6ebf2;
+  --muted:#94a3b8;
+  --accent:#3ddc97;
+  --accent2:#5aa9ff;
+  --warn:#f4b740;
+  --danger:#f4776a;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.6;
+}
+nav{
+  display:flex;
+  gap:1.25rem;
+  align-items:center;
+  padding:1rem 1.25rem;
+  border-bottom:1px solid var(--border);
+  background:#0a0d12;
+  flex-wrap:wrap;
+}
+nav a{color:var(--accent2);text-decoration:none;font-weight:600;font-size:.95rem}
+nav a:hover{text-decoration:underline}
+main{max-width:880px;margin:0 auto;padding:1.5rem 1.25rem 3rem}
+h1{font-size:1.8rem;line-height:1.25;margin:1rem 0 .5rem}
+h2{font-size:1.3rem;margin:2rem 0 .75rem;border-left:3px solid var(--accent);padding-left:.6rem}
+.intro{color:var(--muted);font-size:1.05rem;margin-bottom:1.5rem}
+section#tool{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:1.25rem;
+}
+label{display:block;font-weight:600;margin:0 0 .4rem;font-size:.95rem}
+.hint{font-weight:400;color:var(--muted);font-size:.82rem}
+input[type=text],select{
+  width:100%;
+  background:var(--panel2);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:9px;
+  padding:.7rem .8rem;
+  font-size:1rem;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+.row{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem}
+.row > div{flex:1 1 180px}
+.chips{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem}
+.chip{
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:30px;
+  color:var(--accent2);
+  padding:.3rem .8rem;
+  font-size:.8rem;
+  font-family:ui-monospace,monospace;
+  cursor:pointer;
+}
+.chip:hover{border-color:var(--accent2)}
+.out{
+  margin-top:1.25rem;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:1rem;
+}
+.facts{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem}
+.fact{
+  background:#0f141d;
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:.5rem .7rem;
+  font-size:.82rem;
+}
+.fact b{display:block;color:var(--accent);font-size:1.05rem;font-family:ui-monospace,monospace;word-break:break-all}
+.badge{
+  display:inline-block;
+  padding:.3rem .7rem;
+  border-radius:8px;
+  font-size:.82rem;
+  font-weight:700;
+  border:1px solid var(--border);
+}
+.badge.lo{background:#12261d;color:var(--accent);border-color:#1e4433}
+.badge.link{background:#2a2411;color:var(--warn);border-color:#4a3d16}
+.badge.priv{background:#12203a;color:var(--accent2);border-color:#1e3a63}
+.badge.pub{background:#2a1614;color:var(--danger);border-color:#4a2420}
+.rep{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:.75rem;
+  padding:.6rem .8rem;
+  border:1px solid var(--border);
+  border-radius:8px;
+  margin-bottom:.5rem;
+  background:#0f141d;
+  flex-wrap:wrap;
+}
+.rep .rep-main{flex:1 1 260px;min-width:0}
+.rep .val{
+  font-family:ui-monospace,monospace;
+  font-size:.95rem;
+  color:var(--text);
+  word-break:break-all;
+}
+.rep .lbl{color:var(--accent2);font-weight:700;font-size:.82rem;display:block;margin-bottom:.15rem}
+.rep .meta{color:var(--muted);font-size:.78rem;display:block;margin-top:.2rem}
+.rep.diff{border-color:#4a3d16}
+.rep.diff .val{color:var(--warn)}
+.copy{
+  background:var(--panel2);
+  border:1px solid var(--border);
+  color:var(--accent2);
+  border-radius:8px;
+  padding:.35rem .7rem;
+  font-size:.8rem;
+  font-weight:600;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.copy:hover{border-color:var(--accent2)}
+.err{color:var(--danger);font-style:italic}
+.prose p{margin:.75rem 0}
+.prose code{background:var(--panel2);padding:.1rem .35rem;border-radius:4px;font-size:.9rem;font-family:ui-monospace,monospace}
+.warnbox{
+  background:#2a2411;
+  border:1px solid #4a3d16;
+  border-radius:8px;
+  padding:.7rem .9rem;
+  color:#f6d98a;
+  font-size:.88rem;
+  margin-top:1rem;
+}
+.related a{
+  display:inline-block;
+  margin:.35rem .5rem .35rem 0;
+  padding:.5rem .85rem;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--accent2);
+  text-decoration:none;
+  font-weight:600;
+  font-size:.92rem;
+}
+.related a:hover{border-color:var(--accent2)}
+footer{
+  border-top:1px solid var(--border);
+  padding:1.5rem 1.25rem;
+  text-align:center;
+  color:var(--muted);
+  font-size:.9rem;
+}
+footer a{color:var(--accent2);text-decoration:none;margin:0 .5rem}
+@media (max-width:480px){h1{font-size:1.5rem}main{padding:1rem}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/">bugbountyreality.com</a>
+  <a href="/tools/">All Tools</a>
+</nav>
+<main>
+  <h1>Turn One Internal IP Into Every Form A Filter Misses</h1>
+  <p class="intro">Naive SSRF and URL allow/deny lists compare the raw string <code>127.0.0.1</code> and stop there. The operating system resolver does not: it packs the four octets into a single 32-bit number first, so a dozen other spellings resolve to the exact same host. Paste a target below to see them, computed live in your browser &mdash; nothing is sent anywhere.</p>
+
+  <section id="tool">
+    <label for="ipIn">Target IPv4 address
+      <span class="hint">loopback, link-local or internal host &mdash; e.g. 127.0.0.1 or 169.254.169.254</span>
+    </label>
+    <input id="ipIn" type="text" spellcheck="false" autocomplete="off" value="127.0.0.1">
+    <div class="chips" id="chips"></div>
+    <div class="out" id="out" aria-live="polite"></div>
+  </section>
+
+  <section class="prose">
+    <h2>How the packing works</h2>
+    <p>An IPv4 address is not four numbers &mdash; it is one 32-bit unsigned integer, written in dotted-quad form only for humans. Given octets <code>a.b.c.d</code> the integer is:</p>
+    <p><code>N = a&times;16777216 + b&times;65536 + c&times;256 + d</code>&nbsp; (that is <code>a&times;2^24 + b&times;2^16 + c&times;2^8 + d</code>).</p>
+    <p>For <code>127.0.0.1</code> that is <code>127&times;16777216 + 1 = 2130706433</code>. Because <code>2130706433</code>, <code>0x7f000001</code> and <code>017700000001</code> are the same number, the classic <code>inet_aton()</code> resolver (used by <code>curl</code>, <code>ping</code>, PHP, and many HTTP libraries) accepts all of them as the same host. This tool reverses the packing to emit each equivalent spelling.</p>
+    <p><b>The class-based short forms.</b> <code>inet_aton()</code> also accepts fewer than four parts and stretches the last one to fill the remaining bytes: <code>a.b.c</code> reads the final part as 16 bits, <code>a.b</code> reads it as 24 bits, and a lone <code>a</code> is the full 32 bits. So <code>127.0.0.1</code> is also <code>127.0.1</code>, <code>127.1</code> and <code>2130706433</code>.</p>
+    <p><b>The octal trap.</b> A leading <code>0</code> makes <code>inet_aton()</code> read an octet as octal, while browsers and the WHATWG URL parser may read the same token as decimal or reject it. That disagreement is the whole point: a filter that parses one way and a fetch client that parses the other lets the request through. Zero-padded forms are flagged below where the two interpretations diverge.</p>
+    <p><b>IPv4-mapped IPv6.</b> The address also lives inside IPv6 as <code>::ffff:a.b.c.d</code>, equal to <code>::ffff:HHHH:HHHH</code> where the two 16-bit groups are the high and low halves of <code>N</code>. Filters that only understand IPv4 text never see it.</p>
+    <div class="warnbox">For authorised testing only. Send obfuscated internal addresses only against targets whose program scope explicitly permits SSRF research.</div>
+  </section>
+
+  <section class="related">
+    <h2>Related Tools</h2>
+    <a href="/tools/cors-checker">CORS Checker</a>
+    <a href="/tools/api-scanner">API Scanner</a>
+    <a href="/tools/csp-header-generator">CSP Header Generator</a>
+  </section>
+</main>
+
+<footer>
+  <div>
+    <a href="/">Home</a>
+    <a href="/tools/">All Tools</a>
+  </div>
+  <p>&copy; 2026 bugbountyreality.com &mdash; runs entirely in your browser.</p>
+</footer>
+
+<script>
+(function(){
+  var ipIn = document.getElementById('ipIn');
+  var out  = document.getElementById('out');
+  var chipsEl = document.getElementById('chips');
+
+  var SAMPLES = ['127.0.0.1','169.254.169.254','0.0.0.0','10.0.0.1','192.168.1.1','172.16.0.1'];
+
+  // Build sample chips
+  SAMPLES.forEach(function(s){
+    var c = document.createElement('span');
+    c.className = 'chip';
+    c.textContent = s;
+    c.addEventListener('click', function(){ ipIn.value = s; render(); });
+    chipsEl.appendChild(c);
+  });
+
+  // Parse a strict dotted-quad IPv4 into a 32-bit unsigned integer, or null.
+  function parseIPv4(str){
+    var s = (str || '').trim();
+    if(!s) return null;
+    var parts = s.split('.');
+    if(parts.length !== 4) return null;
+    var octs = [];
+    for(var i=0;i<4;i++){
+      var p = parts[i];
+      if(!/^[0-9]+$/.test(p)) return null;       // digits only
+      if(p.length > 1 && p[0] === '0') { /* allow leading zero input but treat as decimal */ }
+      var v = parseInt(p, 10);
+      if(isNaN(v) || v < 0 || v > 255) return null;
+      octs.push(v);
+    }
+    return octs;
+  }
+
+  // pack octets -> 32-bit unsigned. Use multiplication to stay in safe integer range.
+  function pack(o){
+    return (o[0] * 16777216) + (o[1] * 65536) + (o[2] * 256) + o[3];
+  }
+
+  function hx(x){ return x.toString(16); }
+  function hx2(x){ return ('0' + x.toString(16)).slice(-2); }
+  function hx4(x){ return ('000' + x.toString(16)).slice(-4); }
+  function oct(x){ return x === 0 ? '00' : '0' + x.toString(8); }        // per-octet octal
+  function pad3(x){ return ('00' + x).slice(-3); }
+
+  function classify(N, o){
+    // returns {cls, css, note}
+    if(o[0] === 127) return {cls:'loopback', css:'lo', note:'127.0.0.0/8 loopback &mdash; the host itself'};
+    if(o[0] === 169 && o[1] === 254){
+      var meta = (o[2] === 169 && o[3] === 254) ? ' &mdash; AWS/GCP/Azure cloud metadata endpoint' : '';
+      return {cls:'link-local', css:'link', note:'169.254.0.0/16 link-local' + meta};
+    }
+    if(o[0] === 10) return {cls:'private', css:'priv', note:'10.0.0.0/8 private (RFC 1918)'};
+    if(o[0] === 172 && o[1] >= 16 && o[1] <= 31) return {cls:'private', css:'priv', note:'172.16.0.0/12 private (RFC 1918)'};
+    if(o[0] === 192 && o[1] === 168) return {cls:'private', css:'priv', note:'192.168.0.0/16 private (RFC 1918)'};
+    if(N === 0) return {cls:'wildcard', css:'lo', note:'0.0.0.0 &mdash; on many stacks routes to localhost'};
+    return {cls:'public / other', css:'pub', note:'not a standard internal range'};
+  }
+
+  function esc(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function reps(N, o){
+    var high = Math.floor(N / 65536) & 0xffff; // top 16 bits
+    var low  = N & 0xffff;                      // bottom 16 bits
+    var list = [];
+
+    list.push({lbl:'Dotted decimal (canonical)', val:o.join('.'),
+      meta:'Universal &mdash; every parser accepts this baseline.'});
+
+    list.push({lbl:'Dotless decimal (integer)', val:String(N),
+      meta:'inet_aton, curl, PHP, Python socket &mdash; the raw 32-bit value.'});
+
+    list.push({lbl:'Dotless hexadecimal', val:'0x' + hx(N),
+      meta:'inet_aton, curl. A single 0x number is the whole address.'});
+
+    list.push({lbl:'Dotless octal', val:'0' + N.toString(8),
+      meta:'inet_aton, curl. Leading 0 marks the number octal.'});
+
+    list.push({lbl:'Dotted hexadecimal (per octet)',
+      val:'0x'+hx2(o[0])+'.0x'+hx2(o[1])+'.0x'+hx2(o[2])+'.0x'+hx2(o[3]),
+      meta:'inet_aton. Each octet written in base 16.'});
+
+    list.push({lbl:'Dotted octal (per octet)',
+      val:oct(o[0])+'.'+oct(o[1])+'.'+oct(o[2])+'.'+oct(o[3]),
+      meta:'inet_aton reads each leading-0 octet as octal.'});
+
+    list.push({lbl:'Mixed hex / decimal / octal',
+      val:'0x'+hx2(o[0])+'.'+o[1]+'.'+oct(o[2])+'.0x'+hx2(o[3]),
+      meta:'inet_aton mixes bases freely inside one address.'});
+
+    // 3-part class form: a.b.(c<<8|d)  -> last part is 16 bits
+    list.push({lbl:'3-part class form (a.b.n)', val:o[0]+'.'+o[1]+'.'+((o[2]*256)+o[3]),
+      meta:'inet_aton stretches the last part to the low 16 bits.'});
+
+    // 2-part class form: a.(b<<16|c<<8|d) -> last part is 24 bits
+    list.push({lbl:'2-part class form (a.n)', val:o[0]+'.'+((o[1]*65536)+(o[2]*256)+o[3]),
+      meta:'inet_aton stretches the last part to the low 24 bits.'});
+
+    // IPv4-mapped IPv6, dotted tail
+    list.push({lbl:'IPv4-mapped IPv6 (dotted)', val:'[::ffff:'+o.join('.')+']',
+      meta:'getaddrinfo / dual-stack sockets. Invisible to IPv4-only filters.'});
+
+    // IPv4-mapped IPv6, hex groups
+    list.push({lbl:'IPv4-mapped IPv6 (hex)', val:'[::ffff:'+hx4(high)+':'+hx4(low)+']',
+      meta:'Same mapping, both 16-bit halves in hex.'});
+
+    // IPv4-compatible / short IPv6 embedding
+    list.push({lbl:'IPv6 embedded (compat)', val:'[::'+hx4(high)+':'+hx4(low)+']',
+      meta:'Deprecated ::a.b.c.d embedding; still resolved by some stacks.'});
+
+    // Zero-padded decimal -- parser DIFFERENTIAL, flag it
+    var zp = pad3(o[0])+'.'+pad3(o[1])+'.'+pad3(o[2])+'.'+pad3(o[3]);
+    // Does the octal reading of the padded octets still equal the target?
+    // inet_aton reads a leading-0 token as octal; if any octet contains 8/9 it errors,
+    // otherwise its octal value differs whenever the octet is > 7.
+    var octalSafe = o.every(function(v){ return v <= 7; });
+    list.push({lbl:'Zero-padded decimal octets', val:zp, diff:true,
+      meta: octalSafe
+        ? 'Browsers read as decimal (equal); inet_aton reads octal but octets &le;7 so it stays equal here.'
+        : 'PARSER SPLIT: browsers read decimal = target, but inet_aton reads leading 0 as octal &rarr; a different host. Classic bypass wedge.'});
+
+    return list;
+  }
+
+  function render(){
+    var raw = ipIn.value;
+    var o = parseIPv4(raw);
+    if(!o){
+      out.innerHTML = '<p class="err">Enter a valid dotted-quad IPv4 address, e.g. 127.0.0.1 (four numbers 0&ndash;255).</p>';
+      return;
+    }
+    var N = pack(o);
+    var info = classify(N, o);
+
+    var html = '';
+    html += '<div style="margin-bottom:1rem"><span class="badge '+info.css+'">'+info.cls+'</span> '
+          + '<span class="hint" style="margin-left:.5rem">'+info.note+'</span></div>';
+
+    html += '<div class="facts">';
+    html += '<div class="fact">32-bit integer<b>'+N+'</b></div>';
+    html += '<div class="fact">hex<b>0x'+hx(N)+'</b></div>';
+    html += '<div class="fact">binary<b>'+('00000000000000000000000000000000'+N.toString(2)).slice(-32)+'</b></div>';
+    html += '</div>';
+
+    var list = reps(N, o);
+    for(var i=0;i<list.length;i++){
+      var r = list[i];
+      html += '<div class="rep'+(r.diff?' diff':'')+'">'
+            +   '<div class="rep-main">'
+            +     '<span class="lbl">'+r.lbl+'</span>'
+            +     '<span class="val">'+esc(r.val)+'</span>'
+            +     '<span class="meta">'+r.meta+'</span>'
+            +   '</div>'
+            +   '<button class="copy" data-v="'+esc(r.val)+'">Copy</button>'
+            + '</div>';
+    }
+    out.innerHTML = html;
+
+    // wire copy buttons
+    var btns = out.querySelectorAll('.copy');
+    for(var b=0;b<btns.length;b++){
+      btns[b].addEventListener('click', function(){
+        var v = this.getAttribute('data-v');
+        var self = this;
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(v).then(function(){
+            self.textContent = 'Copied'; setTimeout(function(){ self.textContent = 'Copy'; }, 1200);
+          }, function(){ self.textContent = 'Copy'; });
+        }
+      });
+    }
+  }
+
+  ipIn.addEventListener('input', render);
+  render();
+})();
+</script>
+</body>
+</html>

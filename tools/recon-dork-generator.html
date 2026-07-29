@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recon Dork Generator: Google, GitHub, Shodan</title>
+<meta name="description" content="Generate ready-to-click Google, Bing, GitHub and Shodan recon dorks for any domain. Escaped, URL-encoded and grouped by objective, in your browser.">
+<link rel="canonical" href="https://bugbountyreality.com/tools/recon-dork-generator">
+<meta property="og:title" content="Recon Dork Generator: Google, GitHub, Shodan">
+<meta property="og:description" content="Generate ready-to-click Google, Bing, GitHub and Shodan recon dorks for any domain. Escaped, URL-encoded and grouped by objective, in your browser.">
+<meta property="og:url" content="https://bugbountyreality.com/tools/recon-dork-generator">
+<meta property="og:type" content="website">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "Recon Dork Generator: Google, GitHub, Shodan",
+      "url": "https://bugbountyreality.com/tools/recon-dork-generator",
+      "applicationCategory": "SecurityApplication",
+      "operatingSystem": "Any",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "author": { "@type": "Person", "name": "Michael Lip", "url": "https://zovo.one" }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bugbountyreality.com/" },
+        { "@type": "ListItem", "position": 2, "name": "Tools", "item": "https://bugbountyreality.com/tools/" },
+        { "@type": "ListItem", "position": 3, "name": "Recon Dork Generator: Google, GitHub, Shodan", "item": "https://bugbountyreality.com/tools/recon-dork-generator" }
+      ]
+    }
+  ]
+}
+</script>
+<style>
+:root{
+  --bg:#0b0f14;--panel:#131a23;--panel2:#0f151c;--ink:#e6edf3;--mut:#8b98a8;
+  --acc:#3ddc97;--acc2:#5aa9ff;--line:#243140;--warn:#ffb454;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  line-height:1.55;font-size:16px;
+}
+a{color:var(--acc2);text-decoration:none}
+a:hover{text-decoration:underline}
+nav,footer{display:flex;gap:18px;flex-wrap:wrap;align-items:center;
+  padding:14px 20px;background:var(--panel2);border-bottom:1px solid var(--line)}
+footer{border-top:1px solid var(--line);border-bottom:none;margin-top:40px;color:var(--mut)}
+.wrap{max-width:880px;margin:0 auto;padding:24px 20px 0}
+h1{font-size:1.7rem;line-height:1.2;margin:18px 0 8px}
+h2{font-size:1.25rem;margin:34px 0 10px;border-left:3px solid var(--acc);padding-left:10px}
+h3{font-size:1rem;margin:20px 0 8px;color:var(--acc2)}
+.intro{color:var(--mut);max-width:720px}
+section#tool{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:20px;margin:22px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+label{display:block;font-size:.82rem;font-weight:600;color:var(--mut);
+  text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px}
+input[type=text]{width:100%;padding:10px 12px;background:var(--panel2);
+  color:var(--ink);border:1px solid var(--line);border-radius:8px;font-size:.95rem}
+input[type=text]:focus{outline:none;border-color:var(--acc)}
+.field{margin-bottom:14px}
+.hint{font-size:.76rem;color:var(--mut);margin-top:5px}
+.stat{display:flex;gap:14px;flex-wrap:wrap;margin:4px 0 8px}
+.stat div{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 13px}
+.stat b{display:block;font-size:1.35rem;color:var(--acc)}
+.stat span{font-size:.72rem;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+.grp{margin-top:18px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.grp>.ghead{background:var(--panel2);padding:10px 14px;font-weight:700;font-size:.92rem;
+  display:flex;justify-content:space-between;align-items:center}
+.grp>.ghead small{color:var(--mut);font-weight:600}
+.item{padding:12px 14px;border-top:1px solid var(--line)}
+.item .top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.eng{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700}
+.e-google{background:#1d2c3a;color:var(--acc2)}
+.e-bing{background:#1d3a2c;color:var(--acc)}
+.e-github{background:#2a2340;color:#b79cff}
+.e-shodan{background:#3a2a1d;color:var(--warn)}
+.item code{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color:#cbd5e1;font-size:.85rem;background:#05080b;border:1px solid var(--line);
+  border-radius:7px;padding:9px 11px;word-break:break-all;white-space:pre-wrap}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{background:var(--acc);color:#04110b;border:none;border-radius:7px;
+  padding:6px 12px;font-weight:700;cursor:pointer;font-size:.8rem}
+.btn.sec{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
+.btn:active{transform:translateY(1px)}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.prose{color:#cdd7e1}
+.prose code{background:var(--panel2);padding:1px 6px;border-radius:5px;color:var(--acc)}
+.rel{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
+.rel a{background:var(--panel);border:1px solid var(--line);padding:10px 14px;border-radius:9px}
+small{color:var(--mut)}
+.note{background:#2a1d1d;border:1px solid #4a2a2a;color:#ffb4b4;border-radius:8px;
+  padding:10px 12px;font-size:.85rem;margin-top:14px}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/">bugbountyreality.com</a>
+  <a href="/tools/">All Tools</a>
+</nav>
+
+<div class="wrap">
+<h1>Recon Dork Generator for Google, GitHub and Shodan</h1>
+<p class="intro">Enter a target domain and, optionally, the organization name and extra keywords. This tool composes correctly-escaped, URL-encoded search queries across Google, Bing, GitHub code search and Shodan, grouped by recon objective, with ready-to-click links and copyable raw strings.</p>
+
+<section id="tool">
+  <div class="grid">
+    <div class="field">
+      <label for="domain">Target domain</label>
+      <input id="domain" type="text" value="example.com" autocomplete="off" spellcheck="false">
+      <div class="hint">Root or apex domain. Protocol and path are stripped automatically.</div>
+    </div>
+    <div class="field">
+      <label for="org">Organization name (optional)</label>
+      <input id="org" type="text" value="" autocomplete="off" spellcheck="false" placeholder="Example Inc">
+      <div class="hint">Used for GitHub org: and Shodan org:/title filters.</div>
+    </div>
+  </div>
+  <div class="field">
+    <label for="keywords">Extra keywords (optional, comma or space separated)</label>
+    <input id="keywords" type="text" value="" autocomplete="off" spellcheck="false" placeholder="staging, backup, jenkins">
+    <div class="hint">Appended to a keyword-targeted dork in each engine.</div>
+  </div>
+
+  <div class="stat" id="stats" aria-live="polite"></div>
+
+  <div class="toolbar">
+    <button class="btn" id="copyall" type="button">Copy all raw dorks</button>
+    <button class="btn sec" id="opentop" type="button">Open top 5 in tabs</button>
+  </div>
+
+  <div class="note">Use only against assets you are explicitly authorized to test. Passive search-engine recon is legal, but acting on found data can cross into unauthorized access.</div>
+
+  <div id="out"></div>
+</section>
+
+<h2>How the dorks are built</h2>
+<p class="prose">Every query is assembled from real search-engine operators, then run through <code>encodeURIComponent()</code> so spaces, quotes, colons and pipes survive as a valid URL. Each engine uses its own endpoint: Google <code>google.com/search?q=</code>, Bing <code>bing.com/search?q=</code>, GitHub code search <code>github.com/search?q=&amp;type=code</code>, and Shodan <code>shodan.io/search?query=</code>. Multi-word values such as an org name or a keyword are wrapped in double quotes before encoding so the operator binds to the whole phrase, not just the first token.</p>
+<p class="prose">Google and Bing dorks combine <code>site:</code>, <code>inurl:</code>, <code>intitle:</code> and <code>filetype:</code>/<code>ext:</code> to surface exposed configs (<code>.env</code>, <code>.yml</code>, <code>.ini</code>), database and log dumps (<code>.sql</code>, <code>.bak</code>, <code>.log</code>), login panels, open directory listings (<code>intitle:"index of"</code>), exposed VCS folders (<code>.git</code>, <code>.svn</code>), and cloud buckets on <code>s3.amazonaws.com</code> and <code>storage.googleapis.com</code>. Subdomain discovery uses <code>site:*.domain -www</code> to list indexed hosts beyond the apex. GitHub dorks pair the literal domain string or <code>org:</code> with high-signal secret markers: <code>filename:.env</code>, <code>AWS_SECRET</code>, <code>api_key</code>, <code>password</code>, and <code>extension:pem</code>. Shodan filters pivot on infrastructure metadata: <code>hostname:</code>, <code>ssl.cert.subject.cn:</code>, <code>http.title:</code> and <code>org:</code>.</p>
+<p class="prose">The counters are plain arithmetic. The tool tallies how many valid queries it produced (<code>total</code>), splits that by engine, and computes an <b>input coverage</b> score as <code>coverage = round(fieldsProvided / 3 * 100)</code>, where the three fields are domain, org and keywords. Org- and keyword-gated dorks are only emitted when their input is non-empty, so filling more fields unlocks more queries and raises both the total and the coverage percentage. An empty or malformed domain field falls back to a neutral placeholder so the page never throws.</p>
+
+<h2>Related Tools</h2>
+<div class="rel">
+  <a href="/tools/subdomain-finder">Subdomain Finder</a>
+  <a href="/tools/dns-lookup-tool">DNS Lookup Tool</a>
+  <a href="/tools/nmap-command-generator">Nmap Command Generator</a>
+</div>
+
+</div>
+
+<footer>
+  <a href="/">Home</a>
+  <a href="/tools/">All Tools</a>
+  <span>© 2026 bugbountyreality.com</span>
+</footer>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+
+  var ENDPOINTS={
+    google:function(q){return 'https://www.google.com/search?q='+encodeURIComponent(q);},
+    bing:function(q){return 'https://www.bing.com/search?q='+encodeURIComponent(q);},
+    github:function(q){return 'https://github.com/search?q='+encodeURIComponent(q)+'&type=code';},
+    shodan:function(q){return 'https://www.shodan.io/search?query='+encodeURIComponent(q);}
+  };
+
+  // Sanitize a domain: strip protocol, path, query, port, leading www, whitespace.
+  function cleanDomain(raw){
+    var d=(raw||'').trim().toLowerCase();
+    d=d.replace(/^[a-z][a-z0-9+.-]*:\/\//,''); // protocol
+    d=d.split('/')[0].split('?')[0].split('#')[0]; // path/query/frag
+    d=d.split('@').pop(); // strip userinfo
+    d=d.split(':')[0]; // port
+    d=d.replace(/^www\./,'');
+    d=d.replace(/[^a-z0-9.-]/g,''); // keep only valid host chars
+    d=d.replace(/\.+/g,'.').replace(/^\.|\.$/g,'');
+    return d;
+  }
+
+  // Quote a value if it contains whitespace or is empty-safe; escape embedded quotes.
+  function q(v){
+    v=(v||'').trim();
+    if(!v) return '';
+    if(/\s/.test(v)) return '"'+v.replace(/"/g,'')+'"';
+    return v;
+  }
+
+  function parseKeywords(raw){
+    return (raw||'').split(/[,\s]+/).map(function(s){return s.trim();})
+      .filter(function(s){return s.length>0;});
+  }
+
+  function build(){
+    var domain=cleanDomain($('domain').value)||'example.com';
+    var orgRaw=($('org').value||'').trim();
+    var kws=parseKeywords($('keywords').value);
+    var kwPhrase=kws.join(' ');
+
+    var groups=[];
+
+    // ---- Google / Bing objective groups ----
+    var gb=[
+      { obj:'Exposed config & secret files',
+        raws:[
+          'site:'+domain+' (ext:env | ext:yml | ext:yaml | ext:ini | ext:conf | ext:cfg)',
+          'site:'+domain+' (ext:json | ext:xml) (password | secret | token)'
+        ] },
+      { obj:'Database, backup & log dumps',
+        raws:[
+          'site:'+domain+' (ext:sql | ext:db | ext:bak | ext:backup | ext:old)',
+          'site:'+domain+' (ext:log | ext:txt) (error | debug | password)'
+        ] },
+      { obj:'Login & admin panels',
+        raws:[
+          'site:'+domain+' (inurl:login | inurl:signin | inurl:admin | inurl:dashboard)',
+          'site:'+domain+' (intitle:"login" | intitle:"admin" | intitle:"sign in")'
+        ] },
+      { obj:'Open directory listings',
+        raws:[ 'site:'+domain+' intitle:"index of" (backup | config | db | admin)' ] },
+      { obj:'Exposed VCS folders',
+        raws:[ 'site:'+domain+' (inurl:.git | inurl:.svn | inurl:.hg)' ] },
+      { obj:'Cloud storage buckets',
+        raws:[
+          'site:s3.amazonaws.com '+(orgRaw?q(orgRaw):domain),
+          'site:storage.googleapis.com '+(orgRaw?q(orgRaw):domain)
+        ] },
+      { obj:'Subdomain discovery',
+        raws:[ 'site:*.'+domain+' -www' ] }
+    ];
+
+    // keyword-gated Google/Bing dork
+    if(kwPhrase){
+      gb.push({ obj:'Keyword-targeted pages',
+        raws:[ 'site:'+domain+' ('+kws.map(q).join(' | ')+')' ] });
+    }
+
+    // ---- GitHub code search ----
+    var gh=[
+      { obj:'Secrets in code (by domain)',
+        raws:[
+          q(domain)+' filename:.env',
+          q(domain)+' (AWS_SECRET | AWS_ACCESS_KEY_ID)',
+          q(domain)+' (api_key | apikey | api_secret)',
+          q(domain)+' password',
+          q(domain)+' extension:pem'
+        ] }
+    ];
+    if(orgRaw){
+      gh.push({ obj:'Secrets in org repos',
+        raws:[
+          'org:'+q(orgRaw)+' filename:.env',
+          'org:'+q(orgRaw)+' (secret | token | api_key)'
+        ] });
+    }
+    if(kwPhrase){
+      gh.push({ obj:'Keyword-targeted code',
+        raws:[ q(domain)+' '+kws.map(q).join(' ') ] });
+    }
+
+    // ---- Shodan ----
+    var sh=[
+      { obj:'Host & certificate pivots',
+        raws:[
+          'hostname:'+domain,
+          'ssl.cert.subject.cn:'+domain,
+          'ssl:'+q(orgRaw||domain)
+        ] }
+    ];
+    if(orgRaw){
+      sh.push({ obj:'Organization & title pivots',
+        raws:[
+          'org:'+q(orgRaw),
+          'http.title:'+q(orgRaw)
+        ] });
+    }
+    if(kwPhrase){
+      sh.push({ obj:'Keyword in HTTP body',
+        raws:[ 'hostname:'+domain+' http.html:'+q(kwPhrase) ] });
+    }
+
+    // Assemble a flat, rendered structure. engine -> groups.
+    var engines=[
+      { key:'google', name:'Google', cls:'e-google', groups:gb },
+      { key:'bing', name:'Bing', cls:'e-bing', groups:gb },
+      { key:'github', name:'GitHub', cls:'e-github', groups:gh },
+      { key:'shodan', name:'Shodan', cls:'e-shodan', groups:sh }
+    ];
+
+    // ---- Arithmetic: totals + coverage ----
+    var counts={google:0,bing:0,github:0,shodan:0};
+    var all=[]; // {engine,name,cls,obj,raw,url}
+    engines.forEach(function(e){
+      e.groups.forEach(function(g){
+        g.raws.forEach(function(raw){
+          counts[e.key]++;
+          all.push({key:e.key,name:e.name,cls:e.cls,obj:g.obj,raw:raw,url:ENDPOINTS[e.key](raw)});
+        });
+      });
+    });
+    var total=counts.google+counts.bing+counts.github+counts.shodan;
+
+    var fieldsProvided=1; // domain always effectively present (placeholder fallback)
+    if(($('domain').value||'').trim()!=='') fieldsProvided=1; // explicit domain
+    var provided=0;
+    if(($('domain').value||'').trim()!=='') provided++;
+    if(orgRaw!=='') provided++;
+    if(kwPhrase!=='') provided++;
+    var coverage=Math.round(provided/3*100);
+
+    // stats
+    $('stats').innerHTML=
+      '<div><b>'+total+'</b><span>Total dorks</span></div>'+
+      '<div><b>'+(counts.google+counts.bing)+'</b><span>Google + Bing</span></div>'+
+      '<div><b>'+counts.github+'</b><span>GitHub</span></div>'+
+      '<div><b>'+counts.shodan+'</b><span>Shodan</span></div>'+
+      '<div><b>'+coverage+'%</b><span>Input coverage</span></div>';
+
+    // ---- Render grouped by objective within each engine ----
+    var html='';
+    engines.forEach(function(e){
+      var eqCount=0;
+      e.groups.forEach(function(g){eqCount+=g.raws.length;});
+      html+='<div class="grp"><div class="ghead"><span>'+e.name+'</span><small>'+eqCount+' queries</small></div>';
+      e.groups.forEach(function(g){
+        g.raws.forEach(function(raw){
+          var url=ENDPOINTS[e.key](raw);
+          html+='<div class="item">'+
+            '<div class="top"><span><span class="eng '+e.cls+'">'+e.name+'</span> '+esc(g.obj)+'</span>'+
+            '<span class="acts">'+
+              '<a class="btn" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer nofollow">Open</a>'+
+              '<button class="btn sec copy" type="button" data-raw="'+esc(raw)+'">Copy</button>'+
+            '</span></div>'+
+            '<code>'+esc(raw)+'</code></div>';
+        });
+      });
+      html+='</div>';
+    });
+    $('out').innerHTML=html;
+
+    // expose flat list for bulk actions
+    LAST=all;
+  }
+
+  var LAST=[];
+
+  function esc(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function copyText(txt,btn){
+    var ta=document.createElement('textarea');
+    ta.value=txt;document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');}catch(e){}
+    document.body.removeChild(ta);
+    if(btn){var o=btn.textContent;btn.textContent='Copied';
+      setTimeout(function(){btn.textContent=o;},1100);}
+  }
+
+  // event delegation for per-item copy
+  $('out').addEventListener('click',function(ev){
+    var b=ev.target;
+    if(b&&b.classList&&b.classList.contains('copy')){
+      copyText(b.getAttribute('data-raw'),b);
+    }
+  });
+
+  $('copyall').addEventListener('click',function(){
+    var lines=LAST.map(function(x){return '# '+x.name+' — '+x.obj+'\n'+x.raw;});
+    copyText(lines.join('\n\n'),$('copyall'));
+  });
+
+  $('opentop').addEventListener('click',function(){
+    LAST.slice(0,5).forEach(function(x){
+      window.open(x.url,'_blank','noopener');
+    });
+  });
+
+  ['domain','org','keywords'].forEach(function(id){
+    var el=$(id);
+    el.addEventListener('input',build);
+    el.addEventListener('change',build);
+  });
+  build();
+})();
+</script>
+</body>
+</html>
