@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EPSS and CVSS Triage Prioritizer | BugBountyReality</title>
+<meta name="description" content="Combine CVSS severity, EPSS exploit probability, KEV status and asset exposure into an auditable P1 to P4 patch priority with a remediation window.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://bugbountyreality.com/tools/epss-cvss-triage-prioritizer">
+<meta property="og:title" content="EPSS and CVSS Triage Prioritizer | BugBountyReality">
+<meta property="og:description" content="Combine CVSS severity, EPSS exploit probability, KEV status and asset exposure into an auditable P1 to P4 patch priority with a remediation window.">
+<meta property="og:url" content="https://bugbountyreality.com/tools/epss-cvss-triage-prioritizer">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="BugBountyReality">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "EPSS and CVSS Triage Prioritizer",
+      "url": "https://bugbountyreality.com/tools/epss-cvss-triage-prioritizer",
+      "description": "Combine a CVSS base score, an EPSS exploitation probability, CISA KEV membership, asset exposure and data sensitivity into a P1 to P4 remediation priority using a published decision table. The rule that produced the result is printed so the decision can be audited.",
+      "applicationCategory": "SecurityApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Michael Lip",
+        "url": "https://zovo.one"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bugbountyreality.com/" },
+        { "@type": "ListItem", "position": 2, "name": "Tools", "item": "https://bugbountyreality.com/tools/" },
+        { "@type": "ListItem", "position": 3, "name": "EPSS and CVSS Triage Prioritizer", "item": "https://bugbountyreality.com/tools/epss-cvss-triage-prioritizer" }
+      ]
+    }
+  ]
+}
+</script>
+<style>
+:root{
+  --bg:#0c0f14;
+  --panel:#141923;
+  --panel2:#1b2230;
+  --border:#2a3344;
+  --text:#e6ebf2;
+  --muted:#94a3b8;
+  --accent:#3ddc97;
+  --accent2:#5aa9ff;
+  --warn:#f4b740;
+  --bad:#ff5d6c;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.6;
+}
+nav{
+  display:flex;
+  gap:1.25rem;
+  align-items:center;
+  padding:1rem 1.25rem;
+  border-bottom:1px solid var(--border);
+  background:#0a0d12;
+  flex-wrap:wrap;
+}
+nav a{color:var(--accent2);text-decoration:none;font-weight:600;font-size:.95rem}
+nav a:hover{text-decoration:underline}
+main{max-width:860px;margin:0 auto;padding:1.5rem 1.25rem 3rem}
+.breadcrumb{
+  font-size:.82rem;
+  color:var(--muted);
+  margin:.25rem 0 .5rem;
+}
+.breadcrumb a{color:var(--accent2);text-decoration:none}
+.breadcrumb a:hover{text-decoration:underline}
+.breadcrumb span{color:#5a6678;margin:0 .4rem}
+h1{font-size:1.8rem;line-height:1.25;margin:1rem 0 .5rem}
+h2{font-size:1.3rem;margin:2rem 0 .75rem;border-left:3px solid var(--accent);padding-left:.6rem}
+h3{font-size:1.02rem;margin:1.4rem 0 .5rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.intro{color:var(--muted);font-size:1.05rem;margin-bottom:1.5rem}
+section#tool{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:1.25rem;
+}
+label{display:block;font-weight:600;margin:0 0 .4rem;font-size:.95rem}
+.hint{font-weight:400;color:var(--muted);font-size:.82rem;display:block}
+input[type=number],select{
+  width:100%;
+  background:var(--panel2);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:9px;
+  padding:.7rem .8rem;
+  font-size:1rem;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+input[type=number]:focus,select:focus{outline:none;border-color:var(--accent)}
+input[type=range]{width:100%;margin-top:.55rem;accent-color:var(--accent)}
+.row{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem}
+.row > div{flex:1 1 220px}
+.checkline{
+  display:flex;
+  align-items:flex-start;
+  gap:.6rem;
+  margin-top:1.1rem;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:9px;
+  padding:.75rem .85rem;
+}
+.checkline input{width:18px;height:18px;margin-top:.25rem;accent-color:var(--bad);flex:0 0 auto}
+.checkline label{margin:0}
+.presets{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem}
+.presets button{
+  background:#0f141d;
+  border:1px solid var(--border);
+  color:var(--accent2);
+  border-radius:7px;
+  padding:.35rem .6rem;
+  font-size:.8rem;
+  font-family:ui-monospace,Menlo,monospace;
+  cursor:pointer;
+}
+.presets button:hover{border-color:var(--accent2)}
+.band{
+  margin-top:1.25rem;
+  border:1px solid var(--border);
+  border-left:4px solid var(--accent2);
+  border-radius:10px;
+  background:var(--panel2);
+  padding:1rem 1.1rem;
+}
+.band.p1{border-left-color:var(--bad)}
+.band.p2{border-left-color:var(--warn)}
+.band.p3{border-left-color:var(--accent2)}
+.band.p4{border-left-color:var(--accent)}
+.band .k{color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.05em}
+.band .v{font-size:1.6rem;font-weight:800;margin-top:.15rem}
+.band.p1 .v{color:var(--bad)}
+.band.p2 .v{color:var(--warn)}
+.band.p3 .v{color:var(--accent2)}
+.band.p4 .v{color:var(--accent)}
+.band .win{margin-top:.35rem;font-size:.95rem;color:#cdd6e4}
+.grid{
+  margin-top:1rem;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:.7rem;
+}
+.card{
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:.7rem .85rem;
+}
+.card.full{grid-column:1 / -1}
+.card .k{color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.05em}
+.card .v{
+  font-size:1.12rem;
+  font-weight:700;
+  margin-top:.15rem;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-variant-numeric:tabular-nums;
+  word-break:break-word;
+}
+.card.hi .v{color:var(--accent)}
+.card .sub{color:var(--muted);font-size:.82rem;margin-top:.2rem;font-family:inherit;font-weight:400}
+.trace{
+  margin-top:1rem;
+  background:#0f141d;
+  border:1px solid var(--border);
+  border-radius:9px;
+  padding:.75rem .9rem;
+  font-family:ui-monospace,Menlo,monospace;
+  font-size:.82rem;
+  overflow-x:auto;
+  white-space:pre-wrap;
+  color:#cdd6e4;
+}
+.trace b{color:var(--accent)}
+.note{
+  margin-top:1rem;
+  padding:.7rem .85rem;
+  border:1px solid var(--border);
+  border-left:3px solid var(--warn);
+  border-radius:9px;
+  background:rgba(244,183,64,.07);
+  color:#e6d7b4;
+  font-size:.9rem;
+}
+.limits{
+  margin-top:1.5rem;
+  padding:.9rem 1rem;
+  border:1px solid var(--bad);
+  border-radius:10px;
+  background:rgba(255,93,108,.07);
+  font-size:.92rem;
+  color:#f3d4d8;
+}
+.limits h3{color:var(--bad);margin-top:0}
+.limits ul{margin:.4rem 0 0;padding-left:1.15rem}
+.limits li{margin:.3rem 0}
+.tblwrap{overflow-x:auto;margin-top:.8rem}
+table{border-collapse:collapse;width:100%;font-family:ui-monospace,Menlo,monospace;font-size:.85rem}
+th,td{border:1px solid var(--border);padding:.45rem .6rem;text-align:left;white-space:nowrap}
+th{background:#0f141d;color:var(--muted);font-weight:600;font-size:.76rem;text-transform:uppercase;letter-spacing:.04em}
+td.idx{color:var(--muted)}
+.p1c{color:var(--bad);font-weight:700}
+.p2c{color:var(--warn);font-weight:700}
+.p3c{color:var(--accent2);font-weight:700}
+.p4c{color:var(--accent);font-weight:700}
+.prose p{margin:.75rem 0}
+.prose code{background:var(--panel2);padding:.1rem .35rem;border-radius:4px;font-size:.9rem;font-family:ui-monospace,Menlo,monospace}
+.prose ul{color:#cdd6e4}
+.prose li{margin:.3rem 0}
+.formula{
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-left:3px solid var(--accent);
+  border-radius:8px;
+  padding:.8rem .9rem;
+  font-family:ui-monospace,Menlo,monospace;
+  font-size:.88rem;
+  overflow-x:auto;
+  white-space:pre;
+}
+.related a{
+  display:inline-block;
+  margin:.35rem .5rem .35rem 0;
+  padding:.5rem .85rem;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--accent2);
+  text-decoration:none;
+  font-weight:600;
+  font-size:.92rem;
+}
+.related a:hover{border-color:var(--accent2)}
+footer{
+  border-top:1px solid var(--border);
+  padding:1.5rem 1.25rem;
+  text-align:center;
+  color:var(--muted);
+  font-size:.9rem;
+}
+footer a{color:var(--accent2);text-decoration:none;margin:0 .5rem}
+footer a:hover{text-decoration:underline}
+@media (max-width:560px){
+  h1{font-size:1.5rem}
+  main{padding:1rem}
+  .grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/">bugbountyreality.com</a>
+  <a href="/tools/">All Tools</a>
+</nav>
+<main>
+  <div class="breadcrumb">
+    <a href="https://bugbountyreality.com/">Home</a><span>&rsaquo;</span>
+    <a href="https://bugbountyreality.com/tools/">Tools</a><span>&rsaquo;</span>
+    <span>EPSS and CVSS Triage Prioritizer</span>
+  </div>
+
+  <h1>EPSS And CVSS Triage Prioritizer</h1>
+  <p class="intro">Severity is not priority. This page takes a CVSS base score, an EPSS exploitation probability, CISA KEV membership, asset exposure and data sensitivity, and returns a P1 to P4 remediation band from a fixed decision table. The exact rule that fired is printed under every result, so you can argue with the tool instead of trusting it. Everything runs in your browser with no lookups and no requests.</p>
+
+  <section id="tool">
+    <div class="row">
+      <div>
+        <label for="cvss">CVSS base score <span class="hint">0.0 to 10.0, from the vendor advisory or your own scoring</span></label>
+        <input id="cvss" type="number" min="0" max="10" step="0.1" value="9.8">
+        <input id="cvssRange" type="range" min="0" max="10" step="0.1" value="9.8" aria-label="CVSS base score slider">
+      </div>
+      <div>
+        <label for="epss">EPSS probability, percent <span class="hint">0 to 100. An EPSS score of 0.0042 is entered as 0.42</span></label>
+        <input id="epss" type="number" min="0" max="100" step="0.001" value="0.42">
+        <input id="epssRange" type="range" min="0" max="100" step="0.01" value="0.42" aria-label="EPSS probability slider">
+      </div>
+    </div>
+
+    <div class="presets" id="presets">
+      <button type="button" data-c="9.8" data-e="0.42" data-k="0" data-x="internet" data-s="regulated">Critical CVE, low EPSS</button>
+      <button type="button" data-c="9.8" data-e="94.2" data-k="1" data-x="internet" data-s="regulated">Critical CVE in KEV</button>
+      <button type="button" data-c="5.3" data-e="37.0" data-k="0" data-x="internet" data-s="internal">Medium CVE, high EPSS</button>
+      <button type="button" data-c="7.5" data-e="0.09" data-k="0" data-x="isolated" data-s="none">High CVE, air gapped</button>
+      <button type="button" data-c="8.8" data-e="2.10" data-k="1" data-x="internal" data-s="none">KEV, internal only</button>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="exposure">Asset exposure</label>
+        <select id="exposure">
+          <option value="internet" selected>Internet facing</option>
+          <option value="internal">Internal network only</option>
+          <option value="isolated">Isolated or air gapped</option>
+        </select>
+      </div>
+      <div>
+        <label for="sensitivity">Data sensitivity</label>
+        <select id="sensitivity">
+          <option value="none">No sensitive data</option>
+          <option value="internal">Internal business data</option>
+          <option value="regulated" selected>Regulated data (PII, cardholder, health)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="checkline">
+      <input id="kev" type="checkbox">
+      <label for="kev">Listed in the CISA Known Exploited Vulnerabilities catalogue
+        <span class="hint">Tick only if you have checked the KEV catalogue yourself. This page does not look it up.</span>
+      </label>
+    </div>
+
+    <div id="out" aria-live="polite"></div>
+  </section>
+
+  <div class="limits">
+    <h3>What this tool does not do</h3>
+    <ul>
+      <li>It does not look up any CVE. It performs no network requests of any kind, so it cannot fetch an EPSS score, a KEV entry or a CVSS vector. Every number below comes from what you typed.</li>
+      <li>It does not invent EPSS values. If you do not have the real EPSS score for the CVE, get it from the FIRST EPSS data feed before using this page. A guessed EPSS produces a confidently wrong band.</li>
+      <li>The decision table is a defensible default, not a standard. CVSS, EPSS and KEV are published artefacts; the mapping from those three to P1 through P4, and the remediation windows in days, are this page's own policy. Replace them with your organisation's SLA if you have one.</li>
+      <li>The expected risk figure is an ordering heuristic, not a probability, not a loss estimate and not a calibrated score.</li>
+    </ul>
+  </div>
+
+  <section class="prose">
+    <h2>Why CVSS alone misprioritises</h2>
+    <p>A CVSS base score answers one question: if this vulnerability were exploited, how bad would it be? It is a measure of intrinsic severity under worst reasonable assumptions. It deliberately says nothing about whether anyone is actually exploiting the bug, whether exploit code exists, or whether the affected host is reachable from the internet. Those are separate questions, and they are the ones that decide what you should patch on a Monday morning.</p>
+    <p>The practical consequence is a queue problem. Organisations that treat "CVSS 7.0 and above" as the remediation trigger commit to patching roughly half of everything published, which for a large estate is tens of thousands of items per year. The queue cannot be cleared, so it is worked in an arbitrary order, and the small number of vulnerabilities that are genuinely being exploited sit in the same undifferentiated pile as everything else.</p>
+    <p>The corrective is to add a likelihood signal. EPSS, the Exploit Prediction Scoring System maintained by FIRST, estimates the probability that a vulnerability will be exploited in the wild within the next 30 days. It is a probability between 0 and 1 and it is updated daily. Its distribution is severely skewed: the large majority of published vulnerabilities, including a large majority of those scoring CVSS 9.0 and above, carry an EPSS score below 0.1, which is a less than 10 percent chance of observed exploitation activity in the next 30 days. Severity and likelihood are only weakly related, which is exactly why sorting by severity over-prioritises.</p>
+
+    <h3>Expected risk as an ordering aid</h3>
+    <p>The simplest way to see the mismatch is to multiply the two numbers:</p>
+    <div class="formula">expected risk = CVSS base score &times; EPSS probability      (range 0 to 10)</div>
+    <p>A CVSS 9.8 with an EPSS of 0.0042 scores 0.041. A CVSS 5.3 with an EPSS of 0.37 scores 1.961, roughly 48 times higher, despite being four and a half points less severe. That ratio is the whole argument in one line. The figure is not a probability of loss and it is not calibrated against anything; it is a monotonic ordering aid that stops a merely severe item from outranking an actively exploited one.</p>
+
+    <h3>Why KEV overrides the arithmetic</h3>
+    <p>The CISA Known Exploited Vulnerabilities catalogue is not a prediction. It is a list of vulnerabilities for which there is reliable evidence of exploitation in the wild, added only when that evidence exists and a remediation action is available. United States federal civilian agencies operate under Binding Operational Directive 22-01, which sets mandatory remediation deadlines for catalogue entries. For everyone else it functions as the highest-confidence signal available: the question "will this be exploited" has already been answered.</p>
+    <p>That is why KEV membership is handled as an override in the table below rather than as another input to a score. A predicted probability, however good the model, should never outweigh an observation. If a KEV item is reachable from the internet it is P1, whatever its CVSS says.</p>
+
+    <h2>The decision table</h2>
+    <p>Rules are evaluated top to bottom and the first matching rule wins. The result panel prints the identifier of the rule that fired along with the full arithmetic.</p>
+
+    <h3>Step 1: KEV override rules</h3>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>Rule</th><th>Condition</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td class="idx">R1</td><td>In KEV and internet facing</td><td class="p1c">P1, terminal. CVSS, EPSS and data sensitivity are ignored.</td></tr>
+          <tr><td class="idx">R2</td><td>In KEV and internal only</td><td>Base band P2, then the sensitivity shift in step 3</td></tr>
+          <tr><td class="idx">R3</td><td>In KEV and isolated</td><td>Base band P3, then the sensitivity shift in step 3</td></tr>
+          <tr><td class="idx">R4</td><td>Any KEV item after shifts</td><td>Floored at P3. A KEV item is never assigned P4.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Step 2: severity and likelihood matrix, for items not in KEV</h3>
+    <p>CVSS tiers use the standard qualitative ranges. EPSS tiers are this page's own thresholds at 0.10 and 0.01.</p>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>CVSS tier</th><th>EPSS high, 0.10 and above</th><th>EPSS moderate, 0.01 to 0.10</th><th>EPSS low, below 0.01</th></tr></thead>
+        <tbody>
+          <tr><td class="idx">Critical, 9.0 to 10.0</td><td class="p1c">P1</td><td class="p2c">P2</td><td class="p3c">P3</td></tr>
+          <tr><td class="idx">High, 7.0 to 8.9</td><td class="p1c">P1</td><td class="p2c">P2</td><td class="p3c">P3</td></tr>
+          <tr><td class="idx">Medium, 4.0 to 6.9</td><td class="p2c">P2</td><td class="p3c">P3</td><td class="p4c">P4</td></tr>
+          <tr><td class="idx">Low, 0.1 to 3.9</td><td class="p3c">P3</td><td class="p4c">P4</td><td class="p4c">P4</td></tr>
+          <tr><td class="idx">None, 0.0</td><td class="p4c">P4</td><td class="p4c">P4</td><td class="p4c">P4</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Note the top two rows are identical. Once likelihood is in the model, the difference between a 9.8 and a 7.5 stops carrying decision weight, which is the intended behaviour.</p>
+
+    <h3>Step 3: context shifts</h3>
+    <p>Bands are numbered 1 to 4. A negative shift is more urgent, a positive shift is less urgent.</p>
+    <div class="formula">exposure     internet facing = -1   internal = 0   isolated = +1
+sensitivity  regulated       = -1   internal = 0   none     = +1
+
+modifier = clamp(exposure + sensitivity, -1, +2)      rule M1
+band     = clamp(base + modifier, 1, 4)</div>
+    <p>Rule M1 caps the combined escalation at a single band. Exposure and data sensitivity are context, not evidence of exploitation, and two pieces of context should not be able to promote a low-likelihood item two bands up the queue. De-escalation is not capped in the same way, because an isolated host holding no sensitive data genuinely is a lower priority. For KEV items only the sensitivity shift is applied, since exposure has already been consumed by rules R1 to R3.</p>
+
+    <h3>Step 4: remediation windows</h3>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>Band</th><th>Meaning</th><th>Suggested window</th></tr></thead>
+        <tbody>
+          <tr><td class="p1c">P1</td><td>Fix now</td><td>7 days, out of cycle change if needed</td></tr>
+          <tr><td class="p2c">P2</td><td>Fix this sprint</td><td>30 days</td></tr>
+          <tr><td class="p3c">P3</td><td>Scheduled</td><td>90 days, next maintenance window</td></tr>
+          <tr><td class="p4c">P4</td><td>Accept risk</td><td>No scheduled work, review in 180 days</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>These windows are defaults chosen to be defensible, not deadlines drawn from any regulation. If you are bound by a specific standard or contract, its numbers win over these.</p>
+
+    <h3>Reading the result honestly</h3>
+    <p>Two failure modes are worth naming. First, EPSS moves. A vulnerability at 0.004 today can be at 0.6 next week when exploit code is published, so a P3 decision made once is not a P3 decision forever; re-run anything you deferred when the EPSS feed refreshes. Second, EPSS is a model of observed exploitation activity across the internet, not a statement about your estate. A vulnerability nobody is mass exploiting can still be the one a targeted attacker uses against you, which is why the exposure and sensitivity inputs exist and why P4 means accepted rather than safe.</p>
+  </section>
+
+  <section class="related">
+    <h2>Related Tools</h2>
+    <a href="/tools/cvss-calculator/">CVSS 3.1 Calculator</a>
+    <a href="/tools/vulnerability-report-template-generator--bug-bounty-reality">Vulnerability Report Template</a>
+    <a href="/tools/disclosure-timeline-generator">Disclosure Timeline Generator</a>
+  </section>
+</main>
+
+<footer>
+  <div>
+    <a href="/">Home</a>
+    <a href="/tools/">All Tools</a>
+  </div>
+  <p>&copy; 2026 bugbountyreality.com. Runs entirely in your browser.</p>
+</footer>
+
+<script>
+(function(){
+  var cvssEl  = document.getElementById('cvss');
+  var cvssR   = document.getElementById('cvssRange');
+  var epssEl  = document.getElementById('epss');
+  var epssR   = document.getElementById('epssRange');
+  var kevEl   = document.getElementById('kev');
+  var expEl   = document.getElementById('exposure');
+  var sensEl  = document.getElementById('sensitivity');
+  var out     = document.getElementById('out');
+
+  var BANDS = {
+    1: { name:'P1', title:'Fix now',          days:7,   window:'7 days, out of cycle change if needed' },
+    2: { name:'P2', title:'Fix this sprint',  days:30,  window:'30 days' },
+    3: { name:'P3', title:'Scheduled',        days:90,  window:'90 days, next maintenance window' },
+    4: { name:'P4', title:'Accept risk',      days:0,   window:'No scheduled work, review in 180 days' }
+  };
+
+  /* Severity tier x likelihood tier matrix. Values are band indices 1..4. */
+  var MATRIX = {
+    Critical: { High:1, Moderate:2, Low:3 },
+    High:     { High:1, Moderate:2, Low:3 },
+    Medium:   { High:2, Moderate:3, Low:4 },
+    Low:      { High:3, Moderate:4, Low:4 },
+    None:     { High:4, Moderate:4, Low:4 }
+  };
+
+  var EXPOSURE_SHIFT    = { internet:-1, internal:0, isolated:1 };
+  var SENSITIVITY_SHIFT = { regulated:-1, internal:0, none:1 };
+  var EXPOSURE_LABEL    = { internet:'internet facing', internal:'internal only', isolated:'isolated' };
+  var SENSITIVITY_LABEL = { regulated:'regulated data', internal:'internal data', none:'no sensitive data' };
+
+  function clamp(v, lo, hi){ return v < lo ? lo : (v > hi ? hi : v); }
+
+  /* Signed display: +1, 0, -1. Never renders "+0". */
+  function sgn(n){ return n > 0 ? '+' + n : String(n); }
+
+  function num(el, lo, hi, fallback){
+    var v = parseFloat(el.value);
+    if(!isFinite(v)) return fallback;
+    return clamp(v, lo, hi);
+  }
+
+  function cvssTier(c){
+    if(c >= 9)   return 'Critical';
+    if(c >= 7)   return 'High';
+    if(c >= 4)   return 'Medium';
+    if(c >  0)   return 'Low';
+    return 'None';
+  }
+
+  function epssTier(p){
+    if(p >= 0.10) return 'High';
+    if(p >= 0.01) return 'Moderate';
+    return 'Low';
+  }
+
+  function trimZeros(s){
+    if(s.indexOf('.') === -1) return s;
+    return s.replace(/0+$/,'').replace(/\.$/,'');
+  }
+
+  function fmtPct(p){
+    var v = p * 100;
+    if(v === 0) return '0%';
+    if(v < 0.001) return trimZeros(v.toPrecision(2)) + '%';
+    if(v < 1) return trimZeros(v.toFixed(4)) + '%';
+    return trimZeros(v.toFixed(2)) + '%';
+  }
+
+  function esc(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function decide(cvss, epss, kev, exposure, sensitivity){
+    var ct = cvssTier(cvss);
+    var et = epssTier(epss);
+    var sShift = SENSITIVITY_SHIFT[sensitivity];
+    var xShift = EXPOSURE_SHIFT[exposure];
+    var trace = [];
+    var base, band, rule, modifier;
+
+    if(kev){
+      if(exposure === 'internet'){
+        band = 1;
+        rule = 'R1';
+        trace.push('R1 fired: in KEV and internet facing. Terminal rule.');
+        trace.push('CVSS ' + cvss.toFixed(1) + ', EPSS ' + fmtPct(epss) + ' and data sensitivity were not used.');
+        trace.push('band = 1');
+        return { band:band, rule:rule, ct:ct, et:et, trace:trace, kevFloor:false, base:1, modifier:0 };
+      }
+      if(exposure === 'internal'){
+        base = 2; rule = 'R2';
+        trace.push('R2 fired: in KEV and internal only. Base band = P2.');
+      } else {
+        base = 3; rule = 'R3';
+        trace.push('R3 fired: in KEV and isolated. Base band = P3.');
+      }
+      modifier = sShift;
+      trace.push('sensitivity shift (' + SENSITIVITY_LABEL[sensitivity] + ') = ' + sgn(modifier) + '. Exposure shift not applied, already consumed by ' + rule + '.');
+      band = clamp(base + modifier, 1, 4);
+      trace.push('band = clamp(' + base + ' ' + (modifier >= 0 ? '+ ' + modifier : '- ' + Math.abs(modifier)) + ', 1, 4) = ' + band);
+      var floored = false;
+      if(band === 4){
+        band = 3;
+        floored = true;
+        trace.push('R4 fired: a KEV item is never P4. Floored to band 3.');
+      }
+      return { band:band, rule:rule + (floored ? ' + R4' : ''), ct:ct, et:et, trace:trace, kevFloor:floored, base:base, modifier:modifier };
+    }
+
+    base = MATRIX[ct][et];
+    rule = 'M-' + ct + '/' + et;
+    trace.push('Not in KEV, so step 2 matrix applies.');
+    trace.push('CVSS ' + cvss.toFixed(1) + ' -> tier ' + ct + '. EPSS ' + fmtPct(epss) + ' -> tier ' + et + '.');
+    trace.push('matrix[' + ct + '][' + et + '] = base band ' + base + ' (' + BANDS[base].name + ')');
+
+    var rawModifier = xShift + sShift;
+    modifier = clamp(rawModifier, -1, 2);
+    trace.push('exposure shift (' + EXPOSURE_LABEL[exposure] + ') = ' + (xShift >= 0 ? '+' : '') + xShift +
+               ', sensitivity shift (' + SENSITIVITY_LABEL[sensitivity] + ') = ' + (sShift >= 0 ? '+' : '') + sShift +
+               ', sum = ' + (rawModifier >= 0 ? '+' : '') + rawModifier);
+    if(modifier !== rawModifier){
+      trace.push('M1 fired: combined escalation capped at one band, so the modifier is ' + sgn(modifier) + ' rather than ' + sgn(rawModifier) + '.');
+      rule = rule + ' + M1';
+    }
+    band = clamp(base + modifier, 1, 4);
+    trace.push('band = clamp(' + base + ' ' + (modifier >= 0 ? '+ ' + modifier : '- ' + Math.abs(modifier)) + ', 1, 4) = ' + band);
+
+    return { band:band, rule:rule, ct:ct, et:et, trace:trace, kevFloor:false, base:base, modifier:modifier };
+  }
+
+  function render(){
+    var cvss = num(cvssEl, 0, 10, 0);
+    var pct  = num(epssEl, 0, 100, 0);
+    var epss = pct / 100;
+    var kev  = kevEl.checked;
+    var exposure = expEl.value;
+    var sensitivity = sensEl.value;
+
+    var r = decide(cvss, epss, kev, exposure, sensitivity);
+    var b = BANDS[r.band];
+
+    var expected = cvss * epss;
+
+    /* Fixed illustrative comparison, stated as arithmetic on this page, not as data. */
+    var refSevere = 9.8 * 0.0042;
+    var refLikely = 5.3 * 0.37;
+
+    var html = '';
+
+    html += '<div class="band ' + b.name.toLowerCase() + '">';
+    html += '<div class="k">Priority band</div>';
+    html += '<div class="v">' + b.name + ' ' + esc(b.title) + '</div>';
+    html += '<div class="win">Suggested remediation window: <strong>' + esc(b.window) + '</strong></div>';
+    html += '</div>';
+
+    html += '<div class="grid">';
+
+    html += '<div class="card"><div class="k">CVSS base score</div><div class="v">' + cvss.toFixed(1) +
+            '</div><div class="sub">tier ' + esc(r.ct) + '</div></div>';
+
+    html += '<div class="card"><div class="k">EPSS probability</div><div class="v">' + esc(fmtPct(epss)) +
+            '</div><div class="sub">score ' + epss.toFixed(5) + ', tier ' + esc(r.et) + '</div></div>';
+
+    html += '<div class="card hi"><div class="k">Expected risk (CVSS x EPSS)</div><div class="v">' + expected.toFixed(3) +
+            '</div><div class="sub">ordering heuristic on a 0 to 10 scale, not a probability</div></div>';
+
+    html += '<div class="card"><div class="k">Context</div><div class="v" style="font-size:.95rem">' +
+            esc(EXPOSURE_LABEL[exposure]) + ', ' + esc(SENSITIVITY_LABEL[sensitivity]) +
+            '</div><div class="sub">' + (kev ? 'in the CISA KEV catalogue, as declared by you' : 'not declared as a KEV entry') + '</div></div>';
+
+    html += '<div class="card full"><div class="k">Rule that fired</div><div class="v">' + esc(r.rule) + '</div></div>';
+
+    html += '</div>';
+
+    html += '<div class="trace"><b>Decision trace</b>\n' + esc(r.trace.join('\n')) + '</div>';
+
+    var notes = [];
+
+    if(cvss >= 9 && epss < 0.10){
+      notes.push('This is the common case that breaks severity based queues: a CVSS ' + cvss.toFixed(1) +
+                 ' with an EPSS of ' + fmtPct(epss) + '. Most vulnerabilities scoring 9.0 and above sit below an EPSS of 0.1, so a queue sorted by CVSS alone puts this ahead of items that are far more likely to be exploited.');
+    }
+    if(!kev && epss >= 0.10 && cvss < 7){
+      notes.push('Likelihood is doing the work here. A CVSS ' + cvss.toFixed(1) +
+                 ' would fall below a "high and above" patch threshold, yet an EPSS of ' + fmtPct(epss) +
+                 ' puts it among the most likely to be exploited. Severity based triage would miss it.');
+    }
+    if(kev && exposure === 'internet'){
+      notes.push('KEV membership plus internet exposure is a terminal P1 by rule R1. Exploitation has been observed, so no predicted probability and no severity score can move this down.');
+    }
+    if(r.kevFloor){
+      notes.push('The context shifts would have produced P4, but a vulnerability with observed exploitation is never accepted outright, so rule R4 floored the result at P3.');
+    }
+    notes.push('Comparison, fixed arithmetic: a CVSS 9.8 at EPSS 0.42 percent gives an expected risk of ' + refSevere.toFixed(3) +
+               ', while a CVSS 5.3 at EPSS 37 percent gives ' + refLikely.toFixed(3) + ', about ' +
+               Math.round(refLikely / refSevere) + ' times higher despite being the milder vulnerability.');
+
+    for(var i = 0; i < notes.length; i++){
+      html += '<div class="note">' + esc(notes[i]) + '</div>';
+    }
+
+    out.innerHTML = html;
+  }
+
+  function syncFromNumber(numEl, rangeEl){
+    return function(){
+      var v = parseFloat(numEl.value);
+      if(isFinite(v)) rangeEl.value = clamp(v, parseFloat(rangeEl.min), parseFloat(rangeEl.max));
+      render();
+    };
+  }
+
+  function syncFromRange(numEl, rangeEl){
+    return function(){
+      numEl.value = rangeEl.value;
+      render();
+    };
+  }
+
+  cvssEl.addEventListener('input',  syncFromNumber(cvssEl, cvssR));
+  cvssEl.addEventListener('change', syncFromNumber(cvssEl, cvssR));
+  cvssR.addEventListener('input',   syncFromRange(cvssEl, cvssR));
+  epssEl.addEventListener('input',  syncFromNumber(epssEl, epssR));
+  epssEl.addEventListener('change', syncFromNumber(epssEl, epssR));
+  epssR.addEventListener('input',   syncFromRange(epssEl, epssR));
+  kevEl.addEventListener('change',  render);
+  expEl.addEventListener('change',  render);
+  sensEl.addEventListener('change', render);
+
+  var presetBtns = document.getElementById('presets').getElementsByTagName('button');
+  for(var i = 0; i < presetBtns.length; i++){
+    presetBtns[i].addEventListener('click', function(){
+      cvssEl.value = this.getAttribute('data-c');
+      cvssR.value  = this.getAttribute('data-c');
+      epssEl.value = this.getAttribute('data-e');
+      epssR.value  = this.getAttribute('data-e');
+      kevEl.checked = this.getAttribute('data-k') === '1';
+      expEl.value  = this.getAttribute('data-x');
+      sensEl.value = this.getAttribute('data-s');
+      render();
+    });
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

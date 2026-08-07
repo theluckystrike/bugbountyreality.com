@@ -112,4 +112,8 @@
   <url><loc>https://bugbountyreality.com/tools/recon-dork-generator.html</loc></url>
   <url><loc>https://bugbountyreality.com/tools/spf-record-analyzer.html</loc></url>
   <url><loc>https://bugbountyreality.com/tools/ssrf-ip-obfuscation-generator.html</loc></url>
+  <url><loc>https://bugbountyreality.com/tools/pytorch-model-load-risk-analyzer</loc><lastmod>2026-08-08</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://bugbountyreality.com/tools/ghsa-cve-advisory-decoder</loc><lastmod>2026-08-08</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://bugbountyreality.com/tools/cvss-4-0-calculator</loc><lastmod>2026-08-08</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://bugbountyreality.com/tools/epss-cvss-triage-prioritizer</loc><lastmod>2026-08-08</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
 </urlset>

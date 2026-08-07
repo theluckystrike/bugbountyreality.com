@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PyTorch Model Load Risk Analyzer | torch.load Safety</title>
+<meta name="description" content="Score a torch.load call for pickle RCE. Resolves weights_only against your PyTorch version, rates the source and format, and prints a safe code line.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://bugbountyreality.com/tools/pytorch-model-load-risk-analyzer">
+<meta property="og:title" content="PyTorch Model Load Risk Analyzer | torch.load Safety">
+<meta property="og:description" content="Score a torch.load call for pickle RCE. Resolves weights_only against your PyTorch version, rates the source and format, and prints a safe code line.">
+<meta property="og:url" content="https://bugbountyreality.com/tools/pytorch-model-load-risk-analyzer">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="BugBountyReality">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "PyTorch Model Load Risk Analyzer",
+      "url": "https://bugbountyreality.com/tools/pytorch-model-load-risk-analyzer",
+      "description": "Analyze a torch.load call for pickle deserialization risk. Resolves the effective weights_only value from the PyTorch version, rates the file source and format, and outputs a corrected safe load line.",
+      "applicationCategory": "SecurityApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Michael Lip",
+        "url": "https://zovo.one"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bugbountyreality.com/" },
+        { "@type": "ListItem", "position": 2, "name": "Tools", "item": "https://bugbountyreality.com/tools/" },
+        { "@type": "ListItem", "position": 3, "name": "PyTorch Model Load Risk Analyzer | torch.load Safety", "item": "https://bugbountyreality.com/tools/pytorch-model-load-risk-analyzer" }
+      ]
+    }
+  ]
+}
+</script>
+<style>
+:root{
+  --bg:#0c0f14;
+  --panel:#141923;
+  --panel2:#1b2230;
+  --border:#2a3344;
+  --text:#e6ebf2;
+  --muted:#94a3b8;
+  --accent:#3ddc97;
+  --accent2:#5aa9ff;
+  --warn:#f4b740;
+  --crit:#ef4444;
+  --high:#f97316;
+  --med:#eab308;
+  --low:#3ddc97;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.6;
+}
+nav{
+  display:flex;
+  gap:1.25rem;
+  align-items:center;
+  padding:1rem 1.25rem;
+  border-bottom:1px solid var(--border);
+  background:#0a0d12;
+  flex-wrap:wrap;
+}
+nav a{color:var(--accent2);text-decoration:none;font-weight:600;font-size:.95rem}
+nav a:hover{text-decoration:underline}
+main{max-width:860px;margin:0 auto;padding:1.5rem 1.25rem 3rem}
+.crumb{font-size:.82rem;color:var(--muted);margin-top:1rem}
+.crumb a{color:var(--accent2);text-decoration:none}
+.crumb a:hover{text-decoration:underline}
+h1{font-size:1.8rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.3rem;margin:2rem 0 .75rem;border-left:3px solid var(--accent);padding-left:.6rem}
+h3{font-size:1.05rem;margin:1.25rem 0 .4rem}
+.intro{color:var(--muted);font-size:1.05rem;margin-bottom:1.5rem}
+section#tool{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:1.25rem;
+}
+label{display:block;font-weight:600;margin:0 0 .4rem;font-size:.95rem}
+.hint{font-weight:400;color:var(--muted);font-size:.82rem}
+textarea,input,select{
+  width:100%;
+  background:var(--panel2);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:9px;
+  padding:.7rem .8rem;
+  font-size:1rem;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+textarea{resize:vertical;min-height:84px}
+.row{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem}
+.row > div{flex:1 1 200px}
+.out{
+  margin-top:1.25rem;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:1rem;
+}
+.verdict{
+  display:flex;
+  align-items:center;
+  gap:.9rem;
+  flex-wrap:wrap;
+  border:1px solid var(--border);
+  border-left-width:4px;
+  border-radius:10px;
+  background:#0f141d;
+  padding:.85rem 1rem;
+  margin-bottom:1rem;
+}
+.verdict .lvl{
+  font-family:ui-monospace,monospace;
+  font-size:1.15rem;
+  font-weight:700;
+  letter-spacing:.06em;
+}
+.verdict .headline{color:var(--muted);font-size:.92rem;flex:1 1 240px}
+.v-critical{border-left-color:var(--crit)} .v-critical .lvl{color:var(--crit)}
+.v-high{border-left-color:var(--high)} .v-high .lvl{color:var(--high)}
+.v-medium{border-left-color:var(--med)} .v-medium .lvl{color:var(--med)}
+.v-low{border-left-color:var(--low)} .v-low .lvl{color:var(--low)}
+.facts{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem}
+.fact{
+  background:#0f141d;
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:.5rem .7rem;
+  font-size:.82rem;
+  color:var(--muted);
+}
+.fact b{display:block;color:var(--accent);font-size:1rem;font-family:ui-monospace,monospace;word-break:break-all}
+.block{margin-bottom:1rem}
+.block h4{margin:0 0 .35rem;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent2)}
+pre{
+  background:#0f141d;
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:.8rem;
+  overflow-x:auto;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:.86rem;
+  margin:0;
+  line-height:1.55;
+}
+pre .c{color:var(--muted)}
+ul.notes{margin:.4rem 0 0;padding-left:1.1rem;font-size:.9rem;color:var(--muted)}
+ul.notes li{margin:.3rem 0}
+ul.notes b{color:var(--text)}
+.flag{
+  border:1px solid var(--warn);
+  background:rgba(244,183,64,.08);
+  border-radius:8px;
+  padding:.6rem .8rem;
+  font-size:.88rem;
+  margin-bottom:.75rem;
+  color:var(--text);
+}
+.limits{
+  margin-top:1.25rem;
+  border:1px dashed var(--border);
+  border-radius:10px;
+  padding:.9rem 1rem;
+  font-size:.88rem;
+  color:var(--muted);
+  background:#0f141d;
+}
+.limits b{color:var(--warn)}
+.prose p{margin:.75rem 0}
+.prose code,.prose b code{background:var(--panel2);padding:.1rem .35rem;border-radius:4px;font-size:.9rem;font-family:ui-monospace,monospace}
+table{width:100%;border-collapse:collapse;margin:.75rem 0;font-size:.9rem}
+th,td{border:1px solid var(--border);padding:.5rem .6rem;text-align:left;vertical-align:top}
+th{background:var(--panel2);color:var(--accent2);font-size:.85rem}
+.tablewrap{overflow-x:auto}
+.related a{
+  display:inline-block;
+  margin:.35rem .5rem .35rem 0;
+  padding:.5rem .85rem;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--accent2);
+  text-decoration:none;
+  font-weight:600;
+  font-size:.92rem;
+}
+.related a:hover{border-color:var(--accent2)}
+footer{
+  border-top:1px solid var(--border);
+  padding:1.5rem 1.25rem;
+  text-align:center;
+  color:var(--muted);
+  font-size:.9rem;
+}
+footer a{color:var(--accent2);text-decoration:none;margin:0 .5rem}
+footer a:hover{text-decoration:underline}
+@media (max-width:480px){h1{font-size:1.5rem}main{padding:1rem}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/">bugbountyreality.com</a>
+  <a href="/tools/">All Tools</a>
+</nav>
+<main>
+  <p class="crumb"><a href="/">Home</a> / <a href="/tools/">Tools</a> / PyTorch Model Load Risk Analyzer</p>
+
+  <h1>PyTorch Model Load Risk Analyzer</h1>
+  <p class="intro">Paste a <code>torch.load</code> call and this tool resolves the effective <code>weights_only</code> value against your PyTorch version, rates the file source and format, and prints the corrected load line for your exact inputs. Everything runs in your browser. Nothing is uploaded and no file is opened.</p>
+
+  <section id="tool">
+    <label for="codeIn">torch.load call to analyze
+      <span class="hint">the parser reads weights_only, the filename extension, and pickle_module from this text</span>
+    </label>
+    <textarea id="codeIn" spellcheck="false">state_dict = torch.load("pytorch_model.bin", map_location="cpu")</textarea>
+
+    <div class="row">
+      <div>
+        <label for="woSel">weights_only</label>
+        <select id="woSel">
+          <option value="unset" selected>Unset (use version default)</option>
+          <option value="false">False (explicit)</option>
+          <option value="true">True (explicit)</option>
+        </select>
+      </div>
+      <div>
+        <label for="verSel">PyTorch version</label>
+        <select id="verSel">
+          <option value="le112">1.12 or older</option>
+          <option value="v113">1.13</option>
+          <option value="v2025" selected>2.0 to 2.5</option>
+          <option value="ge26">2.6 or newer</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="srcSel">File source</label>
+        <select id="srcSel">
+          <option value="internal">Trusted internal artifact store</option>
+          <option value="hub" selected>Public model hub</option>
+          <option value="untrusted">Untrusted third party</option>
+        </select>
+      </div>
+      <div>
+        <label for="fmtSel">File format</label>
+        <select id="fmtSel">
+          <option value="pickle">.pt / .pth (pickle)</option>
+          <option value="bin" selected>.bin (pickle)</option>
+          <option value="safetensors">.safetensors</option>
+          <option value="gguf">GGUF</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="out" id="out" aria-live="polite"></div>
+  </section>
+
+  <div class="limits">
+    <b>What this tool does not do.</b> It performs static analysis of the text you paste plus the four controls. It never opens, downloads, or unpickles a file, so it cannot tell you whether a specific checkpoint actually contains a malicious <code>REDUCE</code> opcode. Version buckets are coarse on purpose: the only boundaries that change behavior are 1.13 (the release that added <code>weights_only</code>) and 2.6 (the release that flipped its default and fixed CVE-2025-32434). Ratings for the trusted internal source assume your artifact store and CI integrity actually hold. Verify any CVE claim against the upstream advisory before you put it in a report.
+  </div>
+
+  <section class="prose">
+    <h2>Why pickle deserialization is code execution</h2>
+    <p>A <code>.pt</code>, <code>.pth</code>, or <code>.bin</code> checkpoint is a zip archive whose payload is a Python pickle stream. Pickle is not a data format. It is a small stack language, and two of its opcodes exist specifically to rebuild arbitrary Python objects: <code>GLOBAL</code> imports a name from a module, and <code>REDUCE</code> calls a callable with a tuple of arguments.</p>
+    <p>Any class can control what those opcodes emit by defining <code>__reduce__</code>. The unpickler does not sandbox the result and does not wait for you to touch the object. The callable runs during <code>torch.load</code> itself, before a single tensor reaches your model:</p>
+    <pre><span class="c"># the entire attack, on the producer side</span>
+import os, torch
+
+class Payload:
+    def __reduce__(self):
+        return (os.system, ("id",))
+
+torch.save({"state_dict": Payload()}, "model.pt")
+
+<span class="c"># on the victim side, this one line runs os.system("id")</span>
+torch.load("model.pt")            <span class="c"># weights_only=False before 2.6</span></pre>
+    <p>Nothing here is a memory corruption bug or a parser flaw. It is pickle working exactly as documented, which is why the Python standard library warns against unpickling untrusted data and why the fix is never a patch to the checkpoint. The fix is to stop running the unrestricted unpickler.</p>
+
+    <h2>What weights_only actually changes</h2>
+    <p><code>weights_only=True</code> swaps the standard unpickler for a restricted one that walks the same stream but refuses to resolve <code>GLOBAL</code> to anything outside a small allowlist of tensor and container types. An attacker payload that references <code>os.system</code>, <code>builtins.eval</code>, or any custom class hits an <code>UnpicklingError</code> instead of executing.</p>
+    <p>The cost is that it also rejects legitimate checkpoints. Anything that pickled an optimizer wrapper, a config dataclass, a numpy scalar, or a project-specific class will fail to load with the same error. The supported escape hatch is <code>torch.serialization.add_safe_globals([...])</code>, which extends the allowlist one class at a time. Adding a class you do not control back to the allowlist gives back exactly as much attack surface as that class can reach, so it is a decision, not a formality.</p>
+
+    <h3>The version timeline that decides your default</h3>
+    <div class="tablewrap">
+    <table>
+      <tr><th>PyTorch version</th><th>weights_only parameter</th><th>Default when unset</th></tr>
+      <tr><td>1.12 and older</td><td>Does not exist</td><td>No restricted mode at all</td></tr>
+      <tr><td>1.13 through 2.5</td><td>Available</td><td>False, so unrestricted pickle</td></tr>
+      <tr><td>2.6 and newer</td><td>Available</td><td>True, so restricted unpickler</td></tr>
+    </table>
+    </div>
+    <p>The 2.6 flip is why an audit finding can be correct on one machine and wrong on the next. The same source line, unchanged, is arbitrary code execution on 2.5 and a hard <code>UnpicklingError</code> on 2.6. Pin the version in the report or the finding is not reproducible.</p>
+    <p>One more version detail matters for anything at or below 2.5.1: CVE-2025-32434 describes remote code execution through <code>torch.load</code> even when <code>weights_only=True</code> was set, and it is fixed in 2.6.0. That is why this tool refuses to call <code>weights_only=True</code> a clean Low on pre-2.6 versions fed by an untrusted source. The flag was intended as the boundary, and on those versions the boundary itself had a hole.</p>
+
+    <h2>Why safetensors ends the argument</h2>
+    <p><code>.safetensors</code> is a header of JSON metadata followed by a flat block of raw tensor bytes. There is no opcode stream, no callable, and no way for the format to name a Python object, so a malicious file has no code execution primitive by design. It is loaded with <code>safetensors.torch.load_file</code>, not with <code>torch.load</code>. This does not mean any safetensors file is safe to trust in the wider sense. The weights themselves can still be backdoored so the model behaves badly on a trigger input, and parsers can still have ordinary memory safety bugs. It means the specific class of bug this page is about, load-time arbitrary code execution, is gone.</p>
+    <p>GGUF is the same shape of answer for a different ecosystem. It is a binary tensor container read by llama.cpp and gguf-py, not by <code>torch.load</code>, and it has no deserialization-to-callable primitive. Its real risk class is memory safety in the parser, so keeping that runtime patched is the control, not a flag.</p>
+
+    <h2>Frameworks that call torch.load for you</h2>
+    <p>The reason this keeps landing as a real bug bounty finding is that most consumers never write the vulnerable line. Trainer and inference frameworks, DeepSpeed among them, load checkpoints internally, so the <code>weights_only</code> decision is made inside a dependency you did not author and cannot fix by changing your own call site. When you triage a report or write one, trace the checkpoint path all the way down to the library that actually deserializes, then check the pinned version of that library against the timeline above. A wrapper that hardcodes <code>weights_only=False</code> to keep old checkpoints loading silently reintroduces the pre-2.6 behavior on a patched PyTorch, and that is the finding.</p>
+  </section>
+
+  <section class="related">
+    <h2>Related Tools</h2>
+    <a href="/tools/hash-type-analyzer">Hash Type Analyzer</a>
+    <a href="/tools/cvss-calculator/">CVSS 3.1 Calculator</a>
+    <a href="/tools/disclosure-timeline-generator">Disclosure Timeline Generator</a>
+  </section>
+</main>
+
+<footer>
+  <div>
+    <a href="/">Home</a>
+    <a href="/tools/">All Tools</a>
+    <a href="/blog/">Blog</a>
+  </div>
+  <p>&copy; 2026 bugbountyreality.com. Runs entirely in your browser.</p>
+</footer>
+
+<script>
+(function(){
+  var codeIn = document.getElementById('codeIn');
+  var woSel  = document.getElementById('woSel');
+  var verSel = document.getElementById('verSel');
+  var srcSel = document.getElementById('srcSel');
+  var fmtSel = document.getElementById('fmtSel');
+  var out    = document.getElementById('out');
+
+  var VER_LABEL = { le112:'1.12 or older', v113:'1.13', v2025:'2.0 to 2.5', ge26:'2.6 or newer' };
+  var SRC_LABEL = { internal:'trusted internal artifact store', hub:'public model hub', untrusted:'untrusted third party' };
+  var SRC_SHORT = { internal:'Internal', hub:'Public hub', untrusted:'Untrusted' };
+  var FMT_LABEL = { pickle:'.pt / .pth (pickle)', bin:'.bin (pickle)', safetensors:'.safetensors', gguf:'GGUF' };
+
+  function esc(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ---------- 1. Static parse of the pasted call ----------
+  function parseCode(txt){
+    var r = { hasLoad:false, wo:null, file:null, ext:null, pickleModule:false, safetensorsApi:false };
+    if(!txt || !txt.trim()) return r;
+
+    r.hasLoad = /\btorch\s*\.\s*load\s*\(/.test(txt);
+    r.safetensorsApi = /safetensors/i.test(txt) || /\bload_file\s*\(/.test(txt);
+
+    var m = txt.match(/\bweights_only\s*=\s*(True|False)\b/);
+    if(m) r.wo = (m[1] === 'True') ? 'true' : 'false';
+
+    if(/\bpickle_module\s*=/.test(txt)) r.pickleModule = true;
+
+    // First quoted string that looks like a checkpoint path.
+    var f = txt.match(/["']([^"'\n]*\.(safetensors|gguf|pth|pt|bin|ckpt|pkl|pickle|tar))["']/i);
+    if(f){ r.file = f[1]; r.ext = f[2].toLowerCase(); }
+    return r;
+  }
+
+  function extToFormat(ext, safetensorsApi){
+    if(ext === 'safetensors') return 'safetensors';
+    if(ext === 'gguf') return 'gguf';
+    if(ext === 'bin') return 'bin';
+    if(ext === 'pt' || ext === 'pth' || ext === 'ckpt' || ext === 'pkl' || ext === 'pickle' || ext === 'tar') return 'pickle';
+    if(!ext && safetensorsApi) return 'safetensors';
+    return null;
+  }
+
+  // Parsing only drives the controls when the code text changes, so a manual
+  // selection is never overwritten while the user is clicking through options.
+  function syncFromCode(){
+    var p = parseCode(codeIn.value);
+    if(p.wo) woSel.value = p.wo; else woSel.value = 'unset';
+    var fmt = extToFormat(p.ext, p.safetensorsApi);
+    if(fmt) fmtSel.value = fmt;
+    render();
+  }
+
+  // ---------- 2. Resolve the effective weights_only ----------
+  function resolveWO(requested, ver){
+    if(ver === 'le112'){
+      return {
+        value:false,
+        how:'forced False: weights_only was added in PyTorch 1.13, so this version has no restricted unpickler at all',
+        typeError:(requested === 'true')
+      };
+    }
+    if(requested === 'true')  return { value:true,  how:'explicit in the call', typeError:false };
+    if(requested === 'false') return { value:false, how:'explicit in the call', typeError:false };
+    if(ver === 'ge26')        return { value:true,  how:'unset, resolved from the 2.6 and newer default (True)', typeError:false };
+    return { value:false, how:'unset, resolved from the pre-2.6 default (False)', typeError:false };
+  }
+
+  // ---------- 3. Risk rules ----------
+  function assess(eff, ver, src, fmt){
+    var untrusted = (src === 'untrusted' || src === 'hub');
+
+    if(fmt === 'safetensors'){
+      return {
+        level:'Low',
+        head:'No load-time code execution primitive exists in this format.',
+        attack:'safetensors is a JSON header plus a raw tensor block. It cannot name a Python callable, so there is no __reduce__ path and weights_only is irrelevant here. A hostile file can still carry backdoored weight values, which is a model behavior problem, not a deserialization problem.',
+        cve:null
+      };
+    }
+    if(fmt === 'gguf'){
+      return {
+        level:'Low',
+        head:'GGUF is not a pickle format and torch.load cannot read it.',
+        attack:'GGUF is a binary tensor container parsed by llama.cpp and gguf-py. There is no deserialization-to-callable primitive, so the pickle attack does not apply. The residual risk is ordinary memory safety in the parser, which is handled by keeping that runtime patched, not by a load flag.',
+        cve:null
+      };
+    }
+
+    // Pickle formats: .pt / .pth / .bin / .ckpt
+    if(!eff.value){
+      if(untrusted){
+        return {
+          level:'Critical',
+          head:'Arbitrary code execution at load time, with an attacker-controlled file.',
+          attack:'The unrestricted unpickler runs on a file you do not control. Any object in the stream can define __reduce__ and return a callable plus arguments, and torch.load invokes it while parsing, before any tensor is returned. The result is code execution as the user running the process, with that process credentials, network position, and mounted secrets.' +
+                 (src === 'hub' ? ' A public hub is an upload-anyone surface, so treat it as attacker controlled: typosquatted repository names and stolen maintainer tokens are the delivery path that has actually been used.' : ''),
+          cve:null
+        };
+      }
+      return {
+        level:'Medium',
+        head:'Full code execution primitive present, but no assumed external attacker path.',
+        attack:'The unrestricted unpickler still runs, so the code execution primitive is fully present. This is rated Medium only because the file is assumed to come from an artifact store whose integrity holds. Anyone who can write to that bucket, poison a CI step, or land a malicious training job turns this into remote code execution on every consumer of the checkpoint. That assumption is the entire rating.',
+        cve:null
+      };
+    }
+
+    // weights_only resolves to True
+    if(ver === 'ge26'){
+      return {
+        level:'Low',
+        head:'Restricted unpickler active on a version where the flag is intact.',
+        attack:'weights_only=True resolves GLOBAL opcodes only against a small allowlist of tensor and container types, so a payload referencing os.system or a custom class raises UnpicklingError instead of running. Expect legitimate checkpoints that pickled optimizer wrappers, config objects, or project classes to fail the same way; widen the allowlist deliberately with torch.serialization.add_safe_globals, one class at a time.',
+        cve:null
+      };
+    }
+    if(untrusted){
+      return {
+        level:'High',
+        head:'weights_only=True is set, but this version predates the fix for the bypass.',
+        attack:'The restricted unpickler is requested, which blocks the ordinary __reduce__ payload. It is not rated Low here because CVE-2025-32434 reports remote code execution through torch.load on versions at or below 2.5.1 even with weights_only=True, and the fix shipped in 2.6.0. With an untrusted source on a pre-2.6 runtime the flag alone is not a boundary you can rely on. Upgrade to 2.6 or newer, or move the artifact to safetensors.',
+        cve:'CVE-2025-32434'
+      };
+    }
+    return {
+      level:'Medium',
+      head:'Flag set correctly, version predates the fix, source assumed internal.',
+      attack:'weights_only=True blocks the ordinary __reduce__ payload, and the source is assumed to be a trusted artifact store. The residual exposure is CVE-2025-32434, which reports code execution through torch.load on versions at or below 2.5.1 even with weights_only=True and is fixed in 2.6.0. Upgrading past 2.6 closes it and also makes the safe default automatic.',
+      cve:'CVE-2025-32434'
+    };
+  }
+
+  // ---------- 4. Corrected code for these exact inputs ----------
+  function safeCode(ver, fmt, file, ext){
+    // Only echo the detected filename when its extension matches the chosen
+    // format, otherwise a .pth path would be printed inside a safetensors call.
+    var fam = function(x){ return (x === 'pickle' || x === 'bin') ? 'pickle' : x; };
+    var consistent = file && fam(extToFormat(ext, false)) === fam(fmt);
+    var f = consistent ? file : (fmt === 'safetensors' ? 'model.safetensors' : (fmt === 'gguf' ? 'model.gguf' : 'checkpoint.pt'));
+    f = esc(f);
+    var C = function(s){ return '<span class="c">' + s + '</span>'; };
+
+    if(fmt === 'safetensors'){
+      return C('# Already the safe format. Do not route it through torch.load.') + '\n' +
+             'from safetensors.torch import load_file\n' +
+             'state_dict = load_file("' + f + '")\n' +
+             'model.load_state_dict(state_dict)';
+    }
+    if(fmt === 'gguf'){
+      return C('# torch.load cannot read GGUF and no pickle stream is involved.') + '\n' +
+             C('# Load it with the runtime that owns the format and keep that parser patched:') + '\n' +
+             C('#   llama.cpp / llama-cpp-python, or gguf-py for inspection.');
+    }
+    var pre = '';
+    if(ver === 'le112'){
+      pre = C('# weights_only does not exist before torch 1.13. There is no safe flag on this version.') + '\n' +
+            C('# Upgrade first:  pip install --upgrade "torch>=2.6"') + '\n';
+    } else if(ver !== 'ge26'){
+      pre = C('# This version is at or below 2.5, which CVE-2025-32434 affects even with weights_only=True.') + '\n' +
+            C('# Upgrade first:  pip install --upgrade "torch>=2.6"') + '\n';
+    }
+    return pre +
+      'import torch\n' +
+      'state_dict = torch.load("' + f + '", map_location="cpu", weights_only=True)\n\n' +
+      C('# If this raises UnpicklingError on a checkpoint you trust, allowlist the') + '\n' +
+      C('# specific classes instead of turning the flag off:') + '\n' +
+      C('#   torch.serialization.add_safe_globals([MyConfigClass])') + '\n' +
+      C('# The durable fix is converting the artifact to safetensors.');
+  }
+
+  // ---------- 5. Render ----------
+  function render(){
+    var p    = parseCode(codeIn.value);
+    var ver  = verSel.value;
+    var src  = srcSel.value;
+    var fmt  = fmtSel.value;
+    var eff  = resolveWO(woSel.value, ver);
+    var res  = assess(eff, ver, src, fmt);
+    var isPickle = (fmt === 'pickle' || fmt === 'bin');
+
+    var html = '';
+
+    html += '<div class="verdict v-' + res.level.toLowerCase() + '">' +
+              '<span class="lvl">' + res.level.toUpperCase() + '</span>' +
+              '<span class="headline">' + esc(res.head) + '</span>' +
+            '</div>';
+
+    html += '<div class="facts">' +
+              '<div class="fact">Effective weights_only<b>' + (eff.value ? 'True' : 'False') + '</b></div>' +
+              '<div class="fact">PyTorch version<b>' + esc(VER_LABEL[ver]) + '</b></div>' +
+              '<div class="fact">Source<b>' + esc(SRC_SHORT[src]) + '</b></div>' +
+              '<div class="fact">Format<b>' + esc(FMT_LABEL[fmt]) + '</b></div>' +
+            '</div>';
+
+    // Configuration flags
+    if(eff.typeError){
+      html += '<div class="flag"><b>Configuration error.</b> weights_only=True on PyTorch 1.12 or older raises TypeError, because the parameter was only added in 1.13. The risk below is the risk of what this version can actually do, which is an unrestricted pickle load.</div>';
+    }
+    if(p.pickleModule && eff.value){
+      html += '<div class="flag"><b>Conflicting arguments.</b> The call passes pickle_module, which torch.load rejects when weights_only is True. One of the two has to go, and the one to keep is weights_only.</div>';
+    }
+    if(!p.hasLoad && !p.safetensorsApi && codeIn.value.trim()){
+      html += '<div class="flag">No <code>torch.load(</code> call was found in the pasted text, so the rating below comes from the four controls alone.</div>';
+    }
+    if(p.ext && isPickle && !p.hasLoad){
+      html += '<div class="flag">A checkpoint filename was detected but no load call, so the deserializer in use is unverified.</div>';
+    }
+
+    html += '<div class="block"><h4>How weights_only resolved</h4>' +
+              '<ul class="notes"><li><b>' + (eff.value ? 'True' : 'False') + '</b> ' + esc(eff.how) + '.</li>' +
+              (p.wo ? '<li>Read <b>weights_only=' + (p.wo === 'true' ? 'True' : 'False') + '</b> directly from the pasted call.</li>'
+                    : '<li>No <b>weights_only</b> argument appears in the pasted call.</li>') +
+              (p.file ? '<li>Detected file <b>' + esc(p.file) + '</b> in the pasted call. Format currently rated as <b>' + esc(FMT_LABEL[fmt]) + '</b>.</li>' : '') +
+              '</ul></div>';
+
+    html += '<div class="block"><h4>Concrete exposure</h4>' +
+              '<ul class="notes"><li>' + esc(res.attack) + '</li>' +
+              (res.cve ? '<li>Referenced advisory: <b>' + esc(res.cve) + '</b>. Confirm the affected range against the upstream advisory before citing it in a report.</li>' : '') +
+              '</ul></div>';
+
+    if(isPickle && !eff.value){
+      html += '<div class="block"><h4>Why this is exploitable</h4>' +
+                '<pre><span class="c"># attacker side</span>\n' +
+                'class Payload:\n' +
+                '    def __reduce__(self):\n' +
+                '        return (os.system, ("id",))\n\n' +
+                '<span class="c"># victim side: the callable runs inside torch.load,</span>\n' +
+                '<span class="c"># while the stream is parsed, before any tensor is returned.</span></pre></div>';
+    }
+
+    html += '<div class="block"><h4>Corrected load for these inputs</h4><pre>' + safeCode(ver, fmt, p.file, p.ext) + '</pre></div>';
+
+    out.innerHTML = html;
+  }
+
+  codeIn.addEventListener('input', syncFromCode);
+  woSel.addEventListener('change', render);
+  verSel.addEventListener('change', render);
+  srcSel.addEventListener('change', render);
+  fmtSel.addEventListener('change', render);
+
+  syncFromCode();
+})();
+</script>
+</body>
+</html>
