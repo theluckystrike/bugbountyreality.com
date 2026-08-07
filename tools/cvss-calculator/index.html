@@ -502,9 +502,12 @@
         const metrics = {
             AV: { N: 0.85, A: 0.62, L: 0.55, P: 0.20 },
             AC: { L: 0.77, H: 0.44 },
+            // Privileges Required is scope-dependent in CVSS 3.1: Low and High
+            // take higher weights when Scope is Changed.
             PR: { N: 0.85, L: 0.62, H: 0.27 },
+            PR_CHANGED: { N: 0.85, L: 0.68, H: 0.50 },
             UI: { N: 0.85, R: 0.62 },
-            S: { U: 1.0, C: 1.0 },
+            S: { U: 1.0, C: 1.08 },
             C: { H: 0.56, L: 0.22, N: 0.0 },
             I: { H: 0.56, L: 0.22, N: 0.0 },
             A: { H: 0.56, L: 0.22, N: 0.0 }
@@ -521,27 +524,41 @@
             A: 'H'
         };
 
+        // CVSS 3.1 Roundup: always round UP to one decimal place. Plain rounding
+        // understates scores, so 9.76 must become 9.8 and 9.71 must also become 9.8.
+        function roundUp(value) {
+            const scaled = Math.round(value * 100000);
+            return (scaled % 10000 === 0) ? scaled / 100000 : (Math.floor(scaled / 10000) + 1) / 10;
+        }
+
         function calculateCVSS() {
+            const scopeChanged = selectedMetrics.S === 'C';
+
             const av = metrics.AV[selectedMetrics.AV];
             const ac = metrics.AC[selectedMetrics.AC];
-            const pr = metrics.PR[selectedMetrics.PR];
+            const pr = (scopeChanged ? metrics.PR_CHANGED : metrics.PR)[selectedMetrics.PR];
             const ui = metrics.UI[selectedMetrics.UI];
-            const s = metrics.S[selectedMetrics.S];
             const c = metrics.C[selectedMetrics.C];
             const i = metrics.I[selectedMetrics.I];
             const a = metrics.A[selectedMetrics.A];
 
-            let impactScore = 1 - ((1 - c) * (1 - i) * (1 - a));
-            let exploitabilityScore = 8.15 * av * ac * pr * ui;
+            // CVSS 3.1 specification, section 8.1 (Base Score equations).
+            const iss = 1 - ((1 - c) * (1 - i) * (1 - a));
+
+            const impactScore = scopeChanged
+                ? 7.52 * (iss - 0.029) - 3.25 * Math.pow(iss - 0.02, 15)
+                : 6.42 * iss;
+
+            const exploitabilityScore = 8.22 * av * ac * pr * ui;
 
             let score;
-            if (selectedMetrics.S === 'U') {
-                score = Math.min(exploitabilityScore + impactScore, 10);
+            if (impactScore <= 0) {
+                score = 0;
+            } else if (scopeChanged) {
+                score = roundUp(Math.min(1.08 * (impactScore + exploitabilityScore), 10));
             } else {
-                score = Math.min((exploitabilityScore + impactScore) * s, 10);
+                score = roundUp(Math.min(impactScore + exploitabilityScore, 10));
             }
-
-            score = Math.round(score * 10) / 10;
 
             let severity;
             if (score === 0) severity = 'None';
