@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://bugbountyreality.com/</loc><lastmod>2026-06-02</lastmod><priority>1.0</priority></url>
+  <url>
+    <loc>https://bugbountyreality.com/</loc>
+    <lastmod>2026-06-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://bugbountyreality.com/tools/api-scanner/</loc>
+    <lastmod>2026-06-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
   <url>
     <loc>https://bugbountyreality.com/tools/bug-bounty-earnings-calculator-realistic-income-estimator</loc>
     <lastmod>2026-06-03</lastmod>
@@ -14,8 +25,68 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://bugbountyreality.com/tools/cidr-to-ip-range-calculator</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bugbountyreality.com/tools/cors-checker/</loc>
+    <lastmod>2026-06-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bugbountyreality.com/tools/csp-header-generator/</loc>
+    <lastmod>2026-06-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bugbountyreality.com/tools/cvss-4-0-calculator</loc>
+    <lastmod>2026-08-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bugbountyreality.com/tools/cvss-calculator/</loc>
+    <lastmod>2026-06-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://bugbountyreality.com/tools/cvss-score-calculator-interactive-vulnerability-severity</loc>
     <lastmod>2026-06-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bugbountyreality.com/tools/disclosure-timeline-generator</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bugbountyreality.com/tools/dns-lookup-tool/</loc>
+    <lastmod>2026-06-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bugbountyreality.com/tools/epss-cvss-triage-prioritizer</loc>
+    <lastmod>2026-08-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bugbountyreality.com/tools/ghsa-cve-advisory-decoder</loc>
+    <lastmod>2026-08-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bugbountyreality.com/tools/hash-type-analyzer</loc>
+    <lastmod>2026-06-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -26,14 +97,80 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://bugbountyreality.com/tools/jwt-debugger/</loc>
+    <lastmod>2026-06-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bugbountyreality.com/tools/nmap-command-generator</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bugbountyreality.com/tools/password-entropy-calculator</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bugbountyreality.com/tools/pytorch-model-load-risk-analyzer</loc>
+    <lastmod>2026-08-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bugbountyreality.com/tools/rate-limit-tester/</loc>
+    <lastmod>2026-06-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bugbountyreality.com/tools/recon-dork-generator</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bugbountyreality.com/tools/reverse-shell-generator</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://bugbountyreality.com/tools/scope-parser-analyze-bug-bounty-program-scope</loc>
     <lastmod>2026-06-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://bugbountyreality.com/tools/spf-record-analyzer</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bugbountyreality.com/tools/ssl-certificate-checker/</loc>
+    <lastmod>2026-06-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bugbountyreality.com/tools/ssrf-ip-obfuscation-generator</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://bugbountyreality.com/tools/subdomain-enumeration-checklist-manual-recon-guide</loc>
     <lastmod>2026-06-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bugbountyreality.com/tools/subdomain-finder/</loc>
+    <lastmod>2026-06-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -50,70 +187,9 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://bugbountyreality.com/tools/ssl-certificate-checker/</loc>
-    <lastmod>2026-06-14</lastmod>
+    <loc>https://bugbountyreality.com/tools/xss-encoder/</loc>
+    <lastmod>2026-08-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
-  <url>
-    <loc>https://bugbountyreality.com/tools/jwt-debugger/</loc>
-    <lastmod>2026-06-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://bugbountyreality.com/tools/rate-limit-tester/</loc>
-    <lastmod>2026-06-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://bugbountyreality.com/tools/dns-lookup-tool/</loc>
-    <lastmod>2026-06-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://bugbountyreality.com/tools/csp-header-generator/</loc>
-    <lastmod>2026-06-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://bugbountyreality.com/tools/api-scanner/</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://bugbountyreality.com/tools/cors-checker/</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://bugbountyreality.com/tools/cvss-calculator/</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://bugbountyreality.com/tools/subdomain-finder/</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-<url><loc>https://bugbountyreality.com/tools/disclosure-timeline-generator</loc><lastmod>2026-06-30</lastmod></url>
-<url><loc>https://bugbountyreality.com/tools/hash-type-analyzer</loc><lastmod>2026-06-30</lastmod></url>
-<url><loc>https://bugbountyreality.com/tools/nmap-command-generator</loc><lastmod>2026-06-30</lastmod></url>
-<url><loc>https://bugbountyreality.com/tools/password-entropy-calculator</loc><lastmod>2026-06-30</lastmod></url>
-<url><loc>https://bugbountyreality.com/tools/reverse-shell-generator</loc><lastmod>2026-06-30</lastmod></url>
-  <url><loc>https://bugbountyreality.com/tools/cidr-to-ip-range-calculator.html</loc></url>
-  <url><loc>https://bugbountyreality.com/tools/recon-dork-generator.html</loc></url>
-  <url><loc>https://bugbountyreality.com/tools/spf-record-analyzer.html</loc></url>
-  <url><loc>https://bugbountyreality.com/tools/ssrf-ip-obfuscation-generator.html</loc></url>
-  <url><loc>https://bugbountyreality.com/tools/pytorch-model-load-risk-analyzer</loc><lastmod>2026-08-08</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://bugbountyreality.com/tools/ghsa-cve-advisory-decoder</loc><lastmod>2026-08-08</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://bugbountyreality.com/tools/cvss-4-0-calculator</loc><lastmod>2026-08-08</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://bugbountyreality.com/tools/epss-cvss-triage-prioritizer</loc><lastmod>2026-08-08</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
 </urlset>
