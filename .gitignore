@@ -1,0 +1,3 @@
+
+# wrangler local cache — was being published (leaked account id + owner email)
+.wrangler/
