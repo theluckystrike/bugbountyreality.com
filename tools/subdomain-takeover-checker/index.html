@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subdomain Takeover Checker — DNS Fingerprint Scan</title>
+<meta name="description" content="Free subdomain takeover checker. Scan a domain's subdomains for dangling CNAMEs pointing to vulnerable services (S3, Heroku, GitHub Pages, Azure, CloudFront) — all DNS, all in your browser.">
+<style>
+  :root{
+    --bg:#0f1420; --card:#1a2233; --border:#2a3550; --text:#e7ecf5; --muted:#93a0b8;
+    --accent:#4f8cff; --ok:#34d399; --bad:#f87171; --warn:#fbbf24;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+  .wrap{max-width:920px;margin:0 auto;padding:24px 16px 64px}
+  h1{font-size:1.7rem;margin:0 0 4px}
+  p.sub{color:var(--muted);margin:0 0 20px}
+  label{display:block;font-weight:600;margin-bottom:6px}
+  input[type=text],textarea{width:100%;background:#101828;color:var(--text);border:1px solid var(--border);
+    border-radius:10px;padding:12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92rem;resize:vertical}
+  textarea{min-height:90px}
+  input:focus,textarea:focus{outline:2px solid var(--accent);border-color:transparent}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}
+  button{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:10px 22px;font-size:1rem;font-weight:600;cursor:pointer}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  button.secondary{background:transparent;border:1px solid var(--border);color:var(--text);font-weight:500}
+  .hint{color:var(--muted);font-size:.85rem}
+  .progress{height:8px;background:#101828;border:1px solid var(--border);border-radius:99px;overflow:hidden;display:none}
+  .progress > div{height:100%;width:0;background:var(--accent);transition:width .2s}
+  table{width:100%;border-collapse:collapse;margin-top:20px;font-size:.9rem;display:none}
+  th,td{border-bottom:1px solid var(--border);padding:9px 10px;text-align:left;vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em}
+  td.mono,span.mono{font-family:ui-monospace,Menlo,Consolas,monospace;word-break:break-all}
+  .tag{display:inline-block;padding:2px 10px;border-radius:99px;font-size:.78rem;font-weight:600}
+  .tag.ok{background:rgba(52,211,153,.15);color:var(--ok)}
+  .tag.bad{background:rgba(248,113,113,.15);color:var(--bad)}
+  .tag.warn{background:rgba(251,191,36,.15);color:var(--warn)}
+  details{margin-top:24px;color:var(--muted);font-size:.92rem}
+  details h2{font-size:1.05rem;color:var(--text)}
+  code{background:#101828;border:1px solid var(--border);border-radius:6px;padding:1px 5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Subdomain Takeover Checker</h1>
+  <p class="sub">Fingerprint subdomains for takeover risk using DNS only. Enter a domain to scan ~60 common subdomain prefixes, or paste your own hostnames — everything runs client-side against Google DNS.</p>
+
+  <label for="domain">Domain (scans common subdomains)</label>
+  <input type="text" id="domain" placeholder="example.com" spellcheck="false" autocomplete="off">
+
+  <label for="hosts" style="margin-top:14px">…or paste specific hostnames (one per line, optional)</label>
+  <textarea id="hosts" placeholder="staging.example.com&#10;old-blog.example.com" spellcheck="false"></textarea>
+
+  <div class="row">
+    <button id="goBtn" onclick="run()">Scan</button>
+    <button class="secondary" onclick="clearAll()">Clear</button>
+    <span class="hint">DNS-only check. Flags are risk indicators — always verify a takeover manually.</span>
+  </div>
+
+  <div class="progress" id="progress"><div id="bar"></div></div>
+  <table id="tbl">
+    <thead><tr><th>Host</th><th>Status</th><th>CNAME target</th><th>Risk</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+  <details>
+    <h2>What is subdomain takeover?</h2>
+    <p>Subdomain takeover happens when a DNS record (usually a CNAME) points to a service — S3 bucket, Heroku app, GitHub Pages site, Azure cloud app — that has been <b>deprovisioned but not removed from DNS</b>. Anyone can then claim that resource on the provider and serve content on your subdomain: cookie-stealing, phishing, and bypassing subdomain-based security controls all follow.</p>
+    <h2>How this checker works</h2>
+    <p>For each host it queries <span class="mono">dns.google</span> for CNAME records. If a CNAME exists, the target is matched against fingerprints of commonly-claimable services:</p>
+    <ul>
+      <li><span class="mono">*.s3.amazonaws.com / s3-website-*</span> — AWS S3 (bucket claim)</li>
+      <li><span class="mono">*.herokuapp.com</span> — Heroku</li>
+      <li><span class="mono">*.github.io</span> — GitHub Pages</li>
+      <li><span class="mono">*.azurewebsites.net / *.cloudapp.azure.com</span> — Azure</li>
+      <li><span class="mono">*.cloudfront.net</span> — CloudFront (distribution claim)</li>
+      <li><span class="mono">*.ghost.io, *.shopify.com, *.fastly.net, *.netlify.com, *.vercel.app</span> and more</li>
+    </ul>
+    <h2>Risk levels</h2>
+    <ul>
+      <li><b class="tag bad">HIGH</b> — dangling CNAME to a claimable service. Verify manually: visit the host and look for the provider's "NoSuchBucket"/"no app"/404 fingerprint page.</li>
+      <li><b class="tag warn">CHECK</b> — CNAME to a claimable service that may or may not be registered. Manual verification required.</li>
+      <li><b class="tag ok">OK</b> — resolves normally, no claimable CNAME found.</li>
+    </ul>
+    <p><b>HIGH flags here are DNS-level signals only.</b> A real takeover proof requires claiming or observing the provider error page — never test on domains without authorization, and always verify before reporting.</p>
+  </details>
+</div>
+<script>
+"use strict";
+var PREFIXES = ["www","mail","ftp","webmail","smtp","pop","ns1","ns2","dns","vpn","api","dev","staging","stage","test","testing","qa","uat","demo","beta","alpha","sandbox","admin","portal","intranet","internal","git","gitlab","jenkins","ci","cd","build","app","apps","mobile","m","blog","shop","store","support","help","docs","doc","wiki","status","monitor","monitoring","grafana","prometheus","kibana","elastic","analytics","cdn","static","assets","img","images","media","files","download","downloads","backup","old","new","legacy","auth","login","sso","oauth","id","account","accounts","billing","pay","payment","checkout"];
+var FINGERPRINTS = [
+  {re: /s3[-.]amazonaws\.com|s3-website/, svc: "AWS S3", risk: "HIGH"},
+  {re: /herokuapp\.com/, svc: "Heroku", risk: "HIGH"},
+  {re: /github\.io/, svc: "GitHub Pages", risk: "HIGH"},
+  {re: /azurewebsites\.net|cloudapp\.azure\.com/, svc: "Azure", risk: "HIGH"},
+  {re: /cloudfront\.net/, svc: "CloudFront", risk: "CHECK"},
+  {re: /ghost\.io/, svc: "Ghost", risk: "HIGH"},
+  {re: /myshopify\.com/, svc: "Shopify", risk: "HIGH"},
+  {re: /netlify\.com|vercel\.app/, svc: "Netlify/Vercel", risk: "CHECK"},
+  {re: /fastly\.net/, svc: "Fastly", risk: "CHECK"},
+  {re: /zendesk\.com/, svc: "Zendesk", risk: "HIGH"},
+  {re: /helpjuice\.com|intercom\.io|helpscoutdocs\.com/, svc: "Support SaaS", risk: "HIGH"},
+  {re: /webflow\.io|tumblr\.com|pagespeedmobilizer\.com|trafficmanager\.net/, svc: "Other claimable", risk: "CHECK"}
+];
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function hostList(){
+  var hosts = [];
+  var pasted = $("hosts").value.trim();
+  if(pasted){
+    pasted.split(/\s+/).forEach(function(h){
+      h = h.trim().toLowerCase().replace(/^https?:\/\//,"").replace(/\/.*$/,"");
+      if(h && hosts.indexOf(h) === -1) hosts.push(h);
+    });
+  }
+  var dom = $("domain").value.trim().toLowerCase().replace(/^https?:\/\//,"").replace(/\/.*$/,"");
+  if(dom && dom.indexOf(".") !== -1){
+    PREFIXES.forEach(function(p){
+      var h = p + "." + dom;
+      if(hosts.indexOf(h) === -1) hosts.push(h);
+    });
+  }
+  return hosts.slice(0, 120);
+}
+function dnsQuery(name, type){
+  return fetch("https://dns.google/resolve?name=" + encodeURIComponent(name) + "&type=" + type)
+    .then(function(r){ return r.json(); })
+    .catch(function(){ return null; });
+}
+function run(){
+  var hosts = hostList();
+  if(!hosts.length) return;
+  var btn = $("goBtn"); btn.disabled = true;
+  $("tbl").style.display = "table";
+  $("progress").style.display = "block";
+  $("bar").style.width = "0%";
+  var tb = $("tbody"); tb.innerHTML = "";
+  var done = 0, CONC = 8, i = 0;
+  function worker(){
+    if(i >= hosts.length){
+      if(done >= hosts.length){ btn.disabled = false; $("progress").style.display = "none"; }
+      return;
+    }
+    var host = hosts[i++];
+    dnsQuery(host, "CNAME").then(function(cn){
+      var target = null, risk = "OK", svc = "";
+      if(cn && cn.Answer){
+        for(var j = 0; j < cn.Answer.length; j++){
+          if(cn.Answer[j].type === 5){ target = cn.Answer[j].data.replace(/\.$/,""); break; }
+        }
+      }
+      if(target){
+        var fp = null;
+        FINGERPRINTS.forEach(function(f){ if(!fp && f.re.test(target)) fp = f; });
+        if(fp){ risk = fp.risk; svc = fp.svc; }
+        else { risk = "CHECK"; svc = "unknown CNAME target"; }
+      } else {
+        return dnsQuery(host, "A").then(function(a){
+          var resolves = !!(a && a.Answer && a.Answer.length);
+          addRow(host, resolves ? "OK" : "NXDOMAIN", "", risk, "");
+        });
+      }
+      addRow(host, "CNAME", target, risk, svc);
+    }).finally(function(){
+      done++;
+      $("bar").style.width = Math.round(done / hosts.length * 100) + "%";
+      worker();
+    });
+  }
+  for(var k = 0; k < CONC; k++) worker();
+}
+function addRow(host, status, target, risk, svc){
+  var tb = $("tbody");
+  var tr = document.createElement("tr");
+  var cls = risk === "HIGH" ? "bad" : (risk === "CHECK" ? "warn" : "ok");
+  tr.innerHTML = "<td class='mono'>" + esc(host) + "</td>" +
+    "<td class='mono'>" + esc(status) + "</td>" +
+    "<td class='mono'>" + esc(target) + (svc ? " <span class='tag warn'>" + esc(svc) + "</span>" : "") + "</td>" +
+    "<td><span class='tag " + cls + "'>" + esc(risk) + "</span></td>";
+  tb.appendChild(tr);
+}
+function clearAll(){
+  $("domain").value = ""; $("hosts").value = "";
+  $("tbl").style.display = "none"; $("tbody").innerHTML = "";
+  $("progress").style.display = "none";
+}
+$("domain").addEventListener("keydown", function(e){ if(e.key === "Enter") run(); });
+</script>
+</body>
+</html>

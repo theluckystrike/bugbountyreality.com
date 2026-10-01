@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Certificate Transparency Lookup — Search CT Logs via crt.sh</title>
+<meta name="description" content="Free certificate transparency log lookup. Search crt.sh CT logs for any domain, see issued certificates, issuers, validity dates and expired certificates instantly.">
+<style>
+  :root{
+    --bg:#0f1420; --card:#1a2233; --border:#2a3550; --text:#e7ecf5; --muted:#93a0b8;
+    --accent:#4f8cff; --ok:#34d399; --bad:#f87171; --warn:#fbbf24;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+  .wrap{max-width:960px;margin:0 auto;padding:24px 16px 64px}
+  h1{font-size:1.7rem;margin:0 0 4px}
+  p.sub{color:var(--muted);margin:0 0 20px}
+  label{display:block;font-weight:600;margin-bottom:6px}
+  input[type=text]{width:100%;background:#101828;color:var(--text);border:1px solid var(--border);
+    border-radius:10px;padding:12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.95rem}
+  input:focus{outline:2px solid var(--accent);border-color:transparent}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}
+  button{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:10px 22px;font-size:1rem;font-weight:600;cursor:pointer}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  button.secondary{background:transparent;border:1px solid var(--border);color:var(--text);font-weight:500}
+  .hint{color:var(--muted);font-size:.85rem}
+  .summary{display:none;margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+  .stat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 16px}
+  .stat b{display:block;font-size:1.3rem}
+  .stat span{color:var(--muted);font-size:.8rem}
+  table{width:100%;border-collapse:collapse;margin-top:20px;font-size:.88rem;display:none}
+  th,td{border-bottom:1px solid var(--border);padding:9px 10px;text-align:left;vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em}
+  td.mono,span.mono{font-family:ui-monospace,Menlo,Consolas,monospace;word-break:break-all}
+  .tag{display:inline-block;padding:2px 10px;border-radius:99px;font-size:.78rem;font-weight:600;white-space:nowrap}
+  .tag.ok{background:rgba(52,211,153,.15);color:var(--ok)}
+  .tag.bad{background:rgba(248,113,113,.15);color:var(--bad)}
+  .toolbar{display:none;margin-top:12px}
+  input#filter{width:auto;min-width:220px}
+  details{margin-top:24px;color:var(--muted);font-size:.92rem}
+  details h2{font-size:1.05rem;color:var(--text)}
+  code{background:#101828;border:1px solid var(--border);border-radius:6px;padding:1px 5px}
+  .err{display:none;margin-top:14px;color:var(--bad);background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:10px;padding:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Certificate Transparency Lookup</h1>
+  <p class="sub">Search public Certificate Transparency logs (via <span class="mono">crt.sh</span>) for every certificate ever issued for a domain — free, no signup, runs in your browser.</p>
+
+  <label for="domain">Domain</label>
+  <input type="text" id="domain" placeholder="example.com" spellcheck="false" autocomplete="off">
+
+  <div class="row">
+    <button id="goBtn" onclick="run()">Search CT Logs</button>
+    <button class="secondary" onclick="clearAll()">Clear</button>
+    <span class="hint">Queries crt.sh directly from your browser. Large domains can take a few seconds.</span>
+  </div>
+
+  <div class="err" id="err"></div>
+
+  <div class="summary" id="summary">
+    <div class="stat"><b id="s-total">0</b><span>log entries</span></div>
+    <div class="stat"><b id="s-certs">0</b><span>unique certificates</span></div>
+    <div class="stat"><b id="s-sans">0</b><span>unique hostnames covered</span></div>
+    <div class="stat"><b id="s-expired">0</b><span>expired certs</span></div>
+  </div>
+
+  <div class="row toolbar" id="toolbar">
+    <input type="text" id="filter" placeholder="Filter by hostname or issuer…" oninput="render()" spellcheck="false">
+    <button class="secondary" onclick="exportCsv()">Export CSV</button>
+  </div>
+
+  <table id="tbl">
+    <thead><tr><th>Common name</th><th>SANs</th><th>Issuer</th><th>Not before</th><th>Not after</th><th>Status</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+  <details>
+    <h2>What are Certificate Transparency logs?</h2>
+    <p>Certificate Transparency (CT) is a public, append-only record of every TLS/SSL certificate issued by a participating certificate authority. Whenever a CA issues a certificate, it must log it in public CT logs — otherwise major browsers won't trust it.</p>
+    <p>For bug bounty hunters and security researchers, CT logs are one of the highest-signal passive recon sources: they reveal <b>hidden subdomains</b> (every SAN in a cert is a hostname), <b>internal naming patterns</b> (<span class="mono">dev-</span>, <span class="mono">staging-</span>, <span class="mono">vpn.</span>), and <b>orphaned infrastructure</b> — certs issued long ago for hosts that may no longer exist.</p>
+    <h2>Why use a CT lookup?</h2>
+    <ul>
+      <li><b>Subdomain discovery:</b> any hostname a company ever got a certificate for shows up here — even ones never linked from anywhere.</li>
+      <li><b>Finding expired infrastructure:</b> an expired cert for a still-live hostname is a classic takeover / forgotten-service lead.</li>
+      <li><b>Issuer hygiene:</b> certificates from unusual CAs can flag mis-issued or test certificates.</li>
+    </ul>
+    <h2>How this tool works</h2>
+    <p>This page queries the public <span class="mono">crt.sh</span> JSON API from your browser and renders the results locally. No data is stored, no account is needed, and the domain you search never touches our servers. crt.sh can be slow for very large domains — if a search times out, try a narrower domain (e.g. <span class="mono">app.example.com</span> instead of <span class="mono">com</span>-level TLDs).</p>
+  </details>
+</div>
+<script>
+"use strict";
+var DATA = [];
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function fmtDate(iso){
+  if(!iso) return "—";
+  var d = new Date(iso);
+  if(isNaN(d)) return iso;
+  return d.toISOString().slice(0,10);
+}
+function run(){
+  var dom = $("domain").value.trim().toLowerCase().replace(/^https?:\/\//,"").replace(/\/.*$/,"");
+  var err = $("err");
+  err.style.display = "none";
+  if(!dom || dom.indexOf(".") === -1){ err.textContent = "Enter a valid domain, e.g. example.com."; err.style.display = "block"; return; }
+  var btn = $("goBtn"); btn.disabled = true; btn.textContent = "Searching…";
+  fetch("https://crt.sh/json?q=" + encodeURIComponent(dom))
+    .then(function(r){ if(!r.ok) throw new Error("crt.sh returned HTTP " + r.status); return r.json(); })
+    .then(function(j){
+      DATA = j;
+      $("summary").style.display = "flex";
+      $("toolbar").style.display = "flex";
+      $("tbl").style.display = "table";
+      render();
+    })
+    .catch(function(e){
+      err.textContent = "Lookup failed: " + e.message + ". crt.sh can be slow or rate-limit large queries — wait a moment and retry, or try a narrower domain.";
+      err.style.display = "block";
+    })
+    .finally(function(){ btn.disabled = false; btn.textContent = "Search CT Logs"; });
+}
+function filtered(){
+  var f = $("filter").value.trim().toLowerCase();
+  if(!f) return DATA;
+  return DATA.filter(function(e){
+    return ((e.common_name||"") + " " + (e.name_value||"") + " " + (e.issuer_name||"")).toLowerCase().indexOf(f) !== -1;
+  });
+}
+function render(){
+  var rows = filtered();
+  var uniq = {}, hosts = {}, expired = 0, now = Date.now();
+  rows.forEach(function(e){
+    uniq[e.min_cert_id || (e.common_name + e.not_after)] = 1;
+    String(e.name_value||"").split("\n").forEach(function(h){ if(h.trim()) hosts[h.trim().toLowerCase()] = 1; });
+    if(e.not_after && new Date(e.not_after) < now) expired++;
+  });
+  $("s-total").textContent = rows.length;
+  $("s-certs").textContent = Object.keys(uniq).length;
+  $("s-sans").textContent = Object.keys(hosts).length;
+  $("s-expired").textContent = expired;
+  var tb = $("tbody"); tb.innerHTML = "";
+  rows.slice(0, 500).forEach(function(e){
+    var isExp = e.not_after && new Date(e.not_after) < now;
+    var tr = document.createElement("tr");
+    tr.innerHTML = "<td class='mono'>" + esc(e.common_name) + "</td>" +
+      "<td class='mono'>" + esc(String(e.name_value||"").split("\n").slice(0,5).join(", ")) + (String(e.name_value||"").split("\n").length>5?" …":"") + "</td>" +
+      "<td class='mono'>" + esc(String(e.issuer_name||"").replace(/^[A-Z0-9]+=/,"")) + "</td>" +
+      "<td class='mono'>" + fmtDate(e.not_before) + "</td>" +
+      "<td class='mono'>" + fmtDate(e.not_after) + "</td>" +
+      "<td><span class='tag " + (isExp ? "bad'>expired" : "ok'>valid") + "</span></td>";
+    tb.appendChild(tr);
+  });
+  if(rows.length > 500){
+    var tr = document.createElement("tr");
+    tr.innerHTML = "<td colspan='6' style='color:var(--muted)'>Showing first 500 of " + rows.length + " entries — use the filter to narrow.</td>";
+    tb.appendChild(tr);
+  }
+}
+function exportCsv(){
+  var rows = filtered();
+  var lines = ["common_name,name_value,issuer_name,not_before,not_after"];
+  rows.forEach(function(e){
+    var cells = [e.common_name, String(e.name_value||"").replace(/\n/g," "), e.issuer_name, e.not_before, e.not_after];
+    lines.push(cells.map(function(c){ return '"' + String(c==null?"":c).replace(/"/g,'""') + '"'; }).join(","));
+  });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([lines.join("\n")], {type:"text/csv"}));
+  a.download = "ct-lookup-" + $("domain").value.trim() + ".csv";
+  a.click();
+}
+function clearAll(){
+  $("domain").value = ""; $("filter").value = ""; DATA = [];
+  ["summary","toolbar"].forEach(function(i){ $(i).style.display = i==="summary" ? "none" : "none"; });
+  $("tbl").style.display = "none"; $("err").style.display = "none";
+}
+$("domain").addEventListener("keydown", function(e){ if(e.key === "Enter") run(); });
+</script>
+</body>
+</html>

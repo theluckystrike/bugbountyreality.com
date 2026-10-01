@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subdomain Finder — Find Subdomains of a Domain (CT Logs + DNS)</title>
+<meta name="description" content="Free online subdomain finder. Find subdomains of a domain using live certificate transparency (crt.sh) logs and DNS existence checks via Google DNS. No signup, runs in your browser.">
+<meta name="keywords" content="subdomain finder, find subdomains of a domain, subdomain enumeration, certificate transparency, crt.sh, dns lookup">
+<meta property="og:title" content="Subdomain Finder — Find Subdomains of a Domain">
+<meta property="og:description" content="Enumerate subdomains live from CT logs and DNS checks, right in your browser.">
+<link rel="canonical" href="./index.html">
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         background:#0d1117; color:#e6edf3; margin:0; padding:2rem 1rem; max-width:1100px; margin-inline:auto; }
+  h1 { font-size:1.6rem; margin:0 0 .25rem; }
+  p.sub { color:#8b949e; margin:0 0 1.5rem; }
+  form { display:flex; gap:.5rem; flex-wrap:wrap; }
+  input[type=text] { flex:1 1 260px; padding:.65rem .8rem; font-size:1rem; border-radius:8px;
+    border:1px solid #30363d; background:#161b22; color:#e6edf3; }
+  button { padding:.65rem 1.1rem; font-size:.95rem; border-radius:8px; border:1px solid #30363d;
+    background:#21262d; color:#e6edf3; cursor:pointer; }
+  button.primary { background:#1f6feb; border-color:#1f6feb; color:#fff; }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  #progress { margin:.9rem 0; color:#8b949e; font-size:.9rem; min-height:1.2em; }
+  .summary { display:flex; gap:1rem; flex-wrap:wrap; margin:1rem 0; font-size:.95rem; }
+  .summary b { color:#58a6ff; }
+  table { border-collapse:collapse; width:100%; font-size:.92rem; }
+  th, td { text-align:left; padding:.5rem .7rem; border-bottom:1px solid #21262d; }
+  th { color:#8b949e; font-weight:600; background:#161b22; position:sticky; top:0; }
+  td.src-both { color:#3fb950; font-weight:600; }
+  td.src-ct { color:#d29922; }
+  td.src-dns { color:#58a6ff; }
+  .status-ok { color:#3fb950; }
+  .toolbar { display:flex; gap:.5rem; align-items:center; margin:1rem 0 .5rem; flex-wrap:wrap; }
+  #err { color:#f85149; margin:.75rem 0; white-space:pre-wrap; }
+  footer { margin-top:2rem; color:#8b949e; font-size:.8rem; }
+</style>
+</head>
+<body>
+<h1>Subdomain Finder</h1>
+<p class="sub">Find subdomains of a domain using live <b>certificate transparency</b> logs (crt.sh) and <b>DNS existence checks</b> (dns.google). Runs entirely in your browser — no server, no signup.</p>
+
+<form id="form">
+  <input type="text" id="domain" placeholder="example.com" autocomplete="off" spellcheck="false" required>
+  <button type="submit" class="primary" id="goBtn">Find subdomains</button>
+</form>
+
+<div id="progress"></div>
+<div id="err"></div>
+
+<div class="summary" id="summary" hidden>
+  <span><b id="c-total">0</b> unique subdomains</span>
+  <span><b id="c-ct">0</b> from CT logs</span>
+  <span><b id="c-dns">0</b> resolved via DNS</span>
+  <span><b id="c-both">0</b> in both sources</span>
+</div>
+
+<div class="toolbar" id="toolbar" hidden>
+  <button id="copyBtn">Copy list</button>
+  <button id="csvBtn">Download CSV</button>
+</div>
+
+<table id="results" hidden>
+  <thead><tr><th>#</th><th>Subdomain</th><th>Source</th><th>Status</th></tr></thead>
+  <tbody id="tbody"></tbody>
+</table>
+
+<footer>Sources: <a href="https://crt.sh" style="color:#58a6ff">crt.sh</a> certificate transparency search &amp; Google DNS-over-HTTPS resolver. Wildcard entries (<code>*.domain</code>) are stripped.</footer>
+
+<script>
+(function () {
+  "use strict";
+  var PREFIXES = ["www","mail","api","dev","staging","admin","vpn","ftp","test","portal",
+    "app","blog","shop","cdn","ns1","ns2","smtp","imap","webmail","remote","git","jenkins",
+    "jira","confluence","wiki","docs","status","support","help","assets","static","media",
+    "img","images","download","downloads","beta","alpha","demo","sandbox","qa","uat",
+    "internal","intranet","gateway","proxy","auth","login","sso","oauth","dashboard",
+    "monitor","grafana","prometheus","elastic","db","sql","mysql","postgres","redis"]; // 60 prefixes
+
+  var form = document.getElementById("form");
+  var input = document.getElementById("domain");
+  var goBtn = document.getElementById("goBtn");
+  var progressEl = document.getElementById("progress");
+  var errEl = document.getElementById("err");
+  var tbody = document.getElementById("tbody");
+  var summary = document.getElementById("summary");
+  var toolbar = document.getElementById("toolbar");
+  var resultsTable = document.getElementById("results");
+  var copyBtn = document.getElementById("copyBtn");
+  var csvBtn = document.getElementById("csvBtn");
+
+  var lastRows = [];
+  var aborted = false;
+
+  function cleanDomain(raw) {
+    var d = (raw || "").trim().toLowerCase();
+    d = d.replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/^[*.\s]+/, "");
+    return d;
+  }
+  function isSubOf(name, domain) {
+    return name === domain || name.endsWith("." + domain);
+  }
+  function setProgress(msg) { progressEl.textContent = msg; }
+  function fail(msg) { errEl.textContent = msg; goBtn.disabled = false; }
+
+  function fetchJson(url, timeoutMs) {
+    var ctrl = new AbortController();
+    var t = setTimeout(function () { ctrl.abort(); }, timeoutMs || 20000);
+    return fetch(url, { signal: ctrl.signal }).then(function (r) {
+      clearTimeout(t);
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    });
+  }
+
+  // Source 1: certificate transparency via crt.sh
+  function fetchCT(domain) {
+    setProgress("Querying certificate transparency logs (crt.sh)…");
+    return fetchJson("https://crt.sh/json?q=%25." + encodeURIComponent(domain), 25000)
+      .then(function (entries) {
+        var ct = new Set();
+        (entries || []).forEach(function (e) {
+          var nv = e && e.name_value;
+          if (!nv) return;
+          nv.split(/\n/).forEach(function (n) {
+            n = n.trim().toLowerCase().replace(/^\*\./, "");
+            if (n && isSubOf(n, domain)) ct.add(n);
+          });
+        });
+        return ct;
+      })
+      .catch(function (e) {
+        if (aborted) throw e;
+        // crt.sh can rate-limit/503 — degrade gracefully
+        return { __error: "CT log lookup failed (" + e.message + "); continuing with DNS only." };
+      })
+      .then(function (r) {
+        if (r && r.__error) return { set: new Set(), error: r.__error };
+        return { set: r, error: null };
+      });
+  }
+
+  // Source 2: DNS existence via dns.google
+  function dnsCheck(name) {
+    return fetchJson("https://dns.google/resolve?name=" + encodeURIComponent(name) + "&type=A", 8000)
+      .then(function (j) { return j && j.Status === 0 && j.Answer && j.Answer.length > 0; })
+      .catch(function () { return false; });
+  }
+
+  function fetchDNS(domain, onProgress) {
+    var found = new Set();
+    var i = 0;
+    var CONCURRENCY = 8;
+    return new Promise(function (resolve) {
+      function next() {
+        if (aborted) return resolve(found);
+        if (i >= PREFIXES.length) return resolve(found);
+        var sub = PREFIXES[i++];
+        dnsCheck(sub + "." + domain).then(function (ok) {
+          if (ok) found.add(sub + "." + domain);
+          onProgress(i, PREFIXES.length, found.size);
+          next();
+        });
+      }
+      for (var k = 0; k < CONCURRENCY; k++) next();
+    });
+  }
+
+  function render(domain, ctSet, dnsSet) {
+    var all = new Set();
+    ctSet.forEach(function (s) { all.add(s); });
+    dnsSet.forEach(function (s) { all.add(s); });
+    var rows = Array.from(all).sort().map(function (name) {
+      var inCT = ctSet.has(name), inDNS = dnsSet.has(name);
+      return {
+        name: name,
+        source: inCT && inDNS ? "both" : (inCT ? "ct" : "dns"),
+        sourceLabel: inCT && inDNS ? "CT log + DNS" : (inCT ? "CT log" : "DNS"),
+        status: inDNS ? "Resolves (DNS OK)" : "Seen in CT log"
+      };
+    });
+    lastRows = rows;
+
+    tbody.innerHTML = "";
+    var frag = document.createDocumentFragment();
+    rows.forEach(function (r, idx) {
+      var tr = document.createElement("tr");
+      tr.innerHTML = "<td>" + (idx + 1) + "</td>" +
+        "<td><a href=\"https://" + r.name + "\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color:#58a6ff\">" + r.name + "</a></td>" +
+        "<td class=\"src-" + r.source + "\">" + r.sourceLabel + "</td>" +
+        "<td class=\"status-ok\">" + r.status + "</td>";
+      frag.appendChild(tr);
+    });
+    tbody.appendChild(frag);
+
+    document.getElementById("c-total").textContent = rows.length;
+    document.getElementById("c-ct").textContent = ctSet.size;
+    document.getElementById("c-dns").textContent = dnsSet.size;
+    var both = rows.filter(function (r) { return r.source === "both"; }).length;
+    document.getElementById("c-both").textContent = both;
+
+    summary.hidden = false;
+    toolbar.hidden = false;
+    resultsTable.hidden = false;
+    setProgress("Done — " + rows.length + " subdomains found for " + domain + ".");
+    goBtn.disabled = false;
+  }
+
+  function run(domain) {
+    return fetchCT(domain).then(function (ct) {
+      if (ct.error) errEl.textContent = ct.error;
+      setProgress("Checking " + PREFIXES.length + " common subdomains via DNS (dns.google)…");
+      return fetchDNS(domain, function (done, total, foundN) {
+        setProgress("DNS check " + done + "/" + total + " — " + foundN + " resolved so far…");
+      }).then(function (dnsSet) {
+        render(domain, ct.set, dnsSet);
+      });
+    });
+  }
+
+  form.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    errEl.textContent = "";
+    summary.hidden = true; toolbar.hidden = true; resultsTable.hidden = true;
+    var domain = cleanDomain(input.value);
+    if (!domain || domain.indexOf(".") === -1) { fail("Please enter a valid domain, e.g. example.com"); return; }
+    goBtn.disabled = true;
+    run(domain).catch(function (e) { fail("Lookup failed: " + e.message); goBtn.disabled = false; });
+  });
+
+  copyBtn.addEventListener("click", function () {
+    var text = lastRows.map(function (r) { return r.name; }).join("\n");
+    function done() { copyBtn.textContent = "Copied " + lastRows.length + " ✓"; setTimeout(function(){ copyBtn.textContent = "Copy list"; }, 2000); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { fallback(); });
+    } else fallback();
+    function fallback() {
+      var ta = document.createElement("textarea");
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+  });
+
+  csvBtn.addEventListener("click", function () {
+    var lines = ["subdomain,source,status"];
+    lastRows.forEach(function (r) {
+      lines.push(r.name + ",\"" + r.sourceLabel + "\",\"" + r.status + "\"");
+    });
+    var blob = new Blob([lines.join("\n")], { type: "text/csv" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "subdomains.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+})();
+</script>
+</body>
+</html>

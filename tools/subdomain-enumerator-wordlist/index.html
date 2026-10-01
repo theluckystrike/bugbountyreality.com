@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subdomain Enumerator — Common Wordlist Check</title>
+<meta name="description" content="Free client-side subdomain enumeration tool. Check ~120 common subdomain prefixes (www, mail, api, dev, staging...) against Google DNS-over-HTTPS. Live progress, results table with IP & TTL, CSV export.">
+<style>
+  :root {
+    --bg: #0d1117; --card: #161b22; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --accent: #2f81f7;
+    --green: #3fb950; --red: #f85149;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; padding: 2rem 1rem; }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 1.8rem; margin-bottom: .3rem; }
+  h1 span { color: var(--accent); }
+  .sub { color: var(--muted); margin-bottom: 1.5rem; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem; }
+  form { display: flex; gap: .5rem; flex-wrap: wrap; }
+  input[type=text] { flex: 1 1 260px; padding: .6rem .8rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 1rem; }
+  button { padding: .6rem 1.2rem; border-radius: 6px; border: 1px solid var(--border); background: var(--accent); color: #fff; font-size: 1rem; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  button.secondary { background: transparent; color: var(--text); }
+  #bar-outer { height: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 5px; margin: 1rem 0 .4rem; overflow: hidden; }
+  #bar { height: 100%; width: 0%; background: var(--green); transition: width .2s; }
+  #status { font-size: .9rem; color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; }
+  td.ip { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  tr:hover { background: rgba(47,129,247,.08); }
+  .found { color: var(--green); font-weight: 600; }
+  .hidden { display: none; }
+  h2 { font-size: 1.25rem; margin-bottom: .6rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .chip { background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: .15rem .7rem; font-size: .85rem; color: var(--muted); }
+  .chip.hot { color: var(--green); border-color: var(--green); }
+  p.note { color: var(--muted); font-size: .9rem; margin-top: .8rem; }
+  a { color: var(--accent); }
+  footer { color: var(--muted); font-size: .85rem; text-align: center; margin-top: 2rem; }
+  .count { color: var(--accent); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Subdomain <span>Enumerator</span> — Wordlist Check</h1>
+  <p class="sub">Enter a domain and we check ~120 common subdomain prefixes (www, mail, api, dev, staging…) live via Google DNS-over-HTTPS — entirely in your browser. Nothing is uploaded.</p>
+
+  <div class="card">
+    <form id="form">
+      <input type="text" id="domain" placeholder="example.com" autocomplete="off" spellcheck="false" aria-label="Domain">
+      <button type="submit" id="go">Enumerate</button>
+      <button type="button" id="stop" class="secondary hidden">Stop</button>
+      <button type="button" id="csv" class="secondary hidden">Export CSV</button>
+    </form>
+    <div id="bar-outer" class="hidden"><div id="bar"></div></div>
+    <p id="status"></p>
+  </div>
+
+  <div class="card hidden" id="results-card">
+    <h2>Results (<span class="count" id="found-count">0</span> found)</h2>
+    <table id="results">
+      <thead><tr><th>#</th><th>Subdomain</th><th>IP (A record)</th><th>TTL (s)</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Most common subdomains found in the wild</h2>
+    <p>Based on public scanning datasets (census-style scans and passive DNS corpora), these prefixes turn up most often on real domains. The <span class="found">highlighted</span> ones appear on a large share of all scanned zones:</p>
+    <div class="chips" id="chips"></div>
+    <p class="note"><strong>www</strong> is near-universal; <strong>mail, webmail, smtp, imap</strong> dominate mail infrastructure; <strong>api, app, dev, staging, test, demo</strong> are the most exposed dev/app hosts; <strong>vpn, remote, citrix, owa</strong> are common remote-access endpoints worth hardening. This list is a starting wordlist — for thorough subdomain enumeration, run a full wordlist (e.g. SecLists / subfinder / amass) with active resolution.</p>
+  </div>
+
+  <footer>Queries go directly from your browser to <code>dns.google/resolve</code> (DNS-over-HTTPS, JSON API). No data leaves your machine except DNS queries. Educational / authorized testing use only.</footer>
+</div>
+
+<script>
+(function () {
+  // ~120 common subdomain prefixes, roughly ordered by prevalence in the wild
+  var PREFIXES = ["www","mail","remote","blog","webmail","server","ns1","ns2","smtp","secure","vpn","m","shop","ftp","mail2","test","portal","ns","ww1","host","support","dev","web","bbs","mx","email","cloud","1","mail1","demo","local","git","api","staging","beta","app","admin","intranet","wiki","news","store","mobile","api2","cdn","smtp2","jasmin","owa","exchange","box","auth","gateway","chat","im","docs","status","img","images","static","assets","media","files","download","downloads","vpn2","proxy","gw","relay","monitor","grafana","kibana","jenkins","ci","jira","confluence","svn","hg","cvs","mysql","db","database","sql","postgres","redis","mongo","cache","backup","backups","old","new","sandbox","uat","qa","preprod","prod","internal","corp","office","intra","crm","erp","hr","help","helpdesk","ticket","tickets","billing","pay","payment","payments","checkout","cart","account","accounts","login","sso","id","identity","oauth","vpn1","ssl","cert","cname","dns","ns3","ns4","mx1","mx2","mx3","pop","pop3","imap","webdisk","cpanel","whm","plesk","direct","direct-connect","autodiscover","autoconfig","sip","voip","pbx","call","meet","video","stream","radio","tv","games","forum","forums","community","social","share","sharing","drive","sync","cloud2","s3","bucket","storage","data","etl","bi","report","reports","analytics","metrics","log","logs","syslog","alert","alerts","status2","health","ping","nagios","zabbix","prometheus"];
+
+  var form = document.getElementById("form"),
+      input = document.getElementById("domain"),
+      goBtn = document.getElementById("go"),
+      stopBtn = document.getElementById("stop"),
+      csvBtn = document.getElementById("csv"),
+      barOuter = document.getElementById("bar-outer"),
+      bar = document.getElementById("bar"),
+      statusEl = document.getElementById("status"),
+      resultsCard = document.getElementById("results-card"),
+      tbody = document.getElementById("tbody"),
+      foundCount = document.getElementById("found-count");
+
+  var results = [], running = false, stopFlag = false;
+  document.getElementById("status").textContent =
+    "Ready. " + PREFIXES.length + " prefixes will be queried with concurrency 8.";
+
+  // static chips UI: first 10 are the "hottest"
+  var chipsEl = document.getElementById("chips");
+  PREFIXES.slice(0, 40).forEach(function (p, i) {
+    var s = document.createElement("span");
+    s.className = "chip" + (i < 10 ? " hot" : "");
+    s.textContent = p;
+    chipsEl.appendChild(s);
+  });
+
+  function normalize(d) {
+    d = d.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, "").replace(/[^a-z0-9.\-]/g, "");
+    return d;
+  }
+
+  function resolve(fqdn) {
+    var url = "https://dns.google/resolve?name=" + encodeURIComponent(fqdn) + "&type=A";
+    return fetch(url).then(function (r) { return r.json(); }).then(function (j) {
+      if (j.Status === 0 && j.Answer) {
+        for (var i = 0; i < j.Answer.length; i++) {
+          if (j.Answer[i].type === 1) return { ip: j.Answer[i].data, ttl: j.Answer[i].TTL };
+        }
+      }
+      return null;
+    }).catch(function () { return null; });
+  }
+
+  // simple worker-pool with concurrency 8
+  function runPool(domain, onProgress, onFound) {
+    var idx = 0, done = 0, total = PREFIXES.length, active = 0;
+    return new Promise(function (finish) {
+      function next() {
+        while (active < 8 && idx < total && !stopFlag) {
+          const p = PREFIXES[idx++];
+          active++;
+          resolve(p + "." + domain).then(function (res) {
+            active--; done++;
+            if (res) onFound(p, res);
+            onProgress(done, total);
+            next();
+          });
+        }
+        if ((stopFlag || idx >= total) && active === 0) finish();
+      }
+      next();
+    });
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (running) return;
+    var domain = normalize(input.value);
+    if (!domain || domain.indexOf(".") === -1) {
+      statusEl.textContent = "Please enter a valid domain, e.g. example.com";
+      return;
+    }
+    running = true; stopFlag = false;
+    results = [];
+    tbody.innerHTML = "";
+    foundCount.textContent = "0";
+    resultsCard.classList.add("hidden");
+    csvBtn.classList.add("hidden");
+    goBtn.disabled = true; stopBtn.classList.remove("hidden");
+    barOuter.classList.remove("hidden");
+    bar.style.width = "0%";
+    statusEl.textContent = "Enumerating " + domain + " …";
+
+    var t0 = Date.now();
+    runPool(domain,
+      function (done, total) {
+        bar.style.width = (done / total * 100).toFixed(1) + "%";
+        statusEl.textContent = "Checked " + done + "/" + total + " prefixes on " + domain + "…";
+      },
+      function (prefix, res) {
+        var fq = prefix + "." + domain;
+        results.push({ prefix: prefix, fqdn: fq, ip: res.ip, ttl: res.ttl });
+        var tr = document.createElement("tr");
+        tr.innerHTML = "<td></td><td class='found'></td><td class='ip'></td><td></td>";
+        tr.children[1].textContent = fq;
+        tr.children[2].textContent = res.ip;
+        tr.children[3].textContent = res.ttl;
+        tbody.appendChild(tr);
+        foundCount.textContent = results.length;
+        resultsCard.classList.remove("hidden");
+      }
+    ).then(function () {
+      running = false;
+      goBtn.disabled = false; stopBtn.classList.add("hidden");
+      bar.style.width = "100%";
+      var secs = ((Date.now() - t0) / 1000).toFixed(1);
+      statusEl.textContent = stopFlag
+        ? "Stopped after " + secs + "s — " + results.length + " subdomain(s) found."
+        : "Done in " + secs + "s — " + results.length + " of " + PREFIXES.length + " prefixes resolved.";
+      if (results.length) csvBtn.classList.remove("hidden");
+    });
+  });
+
+  stopBtn.addEventListener("click", function () { if (running) stopFlag = true; });
+
+  csvBtn.addEventListener("click", function () {
+    var lines = ["prefix,fqdn,ip,ttl"];
+    results.forEach(function (r) {
+      lines.push(r.prefix + "," + r.fqdn + "," + r.ip + "," + r.ttl);
+    });
+    var blob = new Blob([lines.join("\n")], { type: "text/csv" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "subdomains-" + (results[0] ? results[0].fqdn.split(".").slice(-2).join(".") : "export") + ".csv";
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+})();
+</script>
+</body>
+</html>

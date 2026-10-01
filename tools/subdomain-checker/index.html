@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subdomain Checker — DNS Lookup Tool</title>
+<meta name="description" content="Free online subdomain checker. Paste one domain or a list of hostnames (up to 50) and instantly check DNS resolution via Google DNS.">
+<style>
+  :root{
+    --bg:#0f1420; --card:#1a2233; --border:#2a3550; --text:#e7ecf5; --muted:#93a0b8;
+    --accent:#4f8cff; --ok:#34d399; --bad:#f87171; --warn:#fbbf24;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+  .wrap{max-width:880px;margin:0 auto;padding:24px 16px 64px}
+  h1{font-size:1.7rem;margin:0 0 4px}
+  p.sub{color:var(--muted);margin:0 0 20px}
+  label{display:block;font-weight:600;margin-bottom:6px}
+  textarea{width:100%;min-height:130px;background:#101828;color:var(--text);border:1px solid var(--border);
+    border-radius:10px;padding:12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92rem;resize:vertical}
+  textarea:focus{outline:2px solid var(--accent);border-color:transparent}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}
+  button{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:10px 22px;font-size:1rem;font-weight:600;cursor:pointer}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  button.secondary{background:transparent;border:1px solid var(--border);color:var(--text);font-weight:500}
+  .hint{color:var(--muted);font-size:.85rem}
+  .count{margin-left:auto;color:var(--muted);font-size:.85rem}
+  .progress{height:8px;background:#101828;border:1px solid var(--border);border-radius:99px;overflow:hidden;display:none}
+  .progress > div{height:100%;width:0;background:var(--accent);transition:width .2s}
+  .ptext{display:none;color:var(--muted);font-size:.85rem;margin-top:6px}
+  table{width:100%;border-collapse:collapse;margin-top:20px;font-size:.92rem;display:none}
+  th,td{border-bottom:1px solid var(--border);padding:9px 10px;text-align:left;vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em}
+  td.mono,span.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+  .tag{display:inline-block;padding:2px 10px;border-radius:99px;font-size:.78rem;font-weight:600}
+  .tag.ok{background:rgba(52,211,153,.15);color:var(--ok)}
+  .tag.bad{background:rgba(248,113,113,.15);color:var(--bad)}
+  .tag.err{background:rgba(251,191,36,.15);color:var(--warn)}
+  .toolbar{display:none;margin-top:12px}
+  details{margin-top:18px;color:var(--muted);font-size:.9rem}
+  details h2{font-size:1.05rem;color:var(--text)}
+  code{background:#101828;border:1px solid var(--border);border-radius:6px;padding:1px 5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Subdomain Checker</h1>
+  <p class="sub">Check whether hostnames resolve in DNS. Enter a single domain (e.g. <span class="mono">example.com</span>) or paste a list of hostnames — up to 50, one per line.</p>
+
+  <label for="input">Domains / hostnames</label>
+  <textarea id="input" placeholder="example.com&#10;mail.example.com&#10;dev.example.com" spellcheck="false"></textarea>
+
+  <div class="row">
+    <button id="checkBtn" onclick="runCheck()">Check</button>
+    <button class="secondary" onclick="clearAll()">Clear</button>
+    <span class="hint" id="hint">Queries sent to dns.google (Google Public DNS) directly from your browser.</span>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="progress" id="progress"><div id="bar"></div></div>
+  <div class="ptext" id="ptext"></div>
+
+  <table id="table" aria-label="Results">
+    <thead><tr><th>#</th><th>Host</th><th>Status</th><th>Resolved IPs</th><th>TTL</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+  <div class="toolbar" id="toolbar">
+    <button class="secondary" onclick="copyCsv()">Copy results as CSV</button>
+    <span class="hint" id="copyMsg" role="status"></span>
+  </div>
+
+  <details>
+    <summary><h2 style="display:inline">How it works</h2></summary>
+    <p>Each hostname is queried against <code>https://dns.google/resolve?name=&lt;host&gt;&amp;type=A</code> (Google DNS-over-HTTPS). If no A record exists, an AAAA lookup is attempted as a fallback.</p>
+    <ul>
+      <li><strong>exists</strong> — the name resolved to one or more A/AAAA records.</li>
+      <li><strong>NXDOMAIN</strong> — DNS status 3: the name does not exist.</li>
+      <li><strong>error</strong> — network failure or unexpected DNS status (e.g. SERVFAIL).</li>
+    </ul>
+    <p>Nothing is uploaded anywhere besides the DNS query itself; there is no server-side component.</p>
+  </details>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var MAX = 50;
+  var results = [];
+
+  var $ = function(id){ return document.getElementById(id); };
+  var input = $("input"), checkBtn = $("checkBtn"), tbody = $("tbody"),
+      table = $("table"), toolbar = $("toolbar"), progress = $("progress"),
+      bar = $("bar"), ptext = $("ptext"), count = $("count"), copyMsg = $("copyMsg");
+
+  function setStatus(host, status, ips, ttl){
+    results.push({host:host, status:status, ips:ips, ttl:ttl});
+    var tr = document.createElement("tr");
+    var cls = status === "exists" ? "ok" : (status === "NXDOMAIN" ? "bad" : "err");
+    tr.innerHTML = "<td>" + results.length + "</td>" +
+      "<td class='mono'></td>" +
+      "<td><span class='tag " + cls + "'>" + status + "</span></td>" +
+      "<td class='mono'></td>" +
+      "<td class='mono'>" + (ttl != null ? ttl + "s" : "—") + "</td>";
+    tr.children[1].textContent = host;
+    tr.children[3].textContent = ips.length ? ips.join(", ") : "—";
+    tbody.appendChild(tr);
+  }
+
+  function resolve(host, type){
+    var url = "https://dns.google/resolve?name=" + encodeURIComponent(host) + "&type=" + type;
+    return fetch(url).then(function(r){
+      if(!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    });
+  }
+
+  function pick(r){
+    var ips = [], ttl = null;
+    if(r && r.Status === 0 && Array.isArray(r.Answer)){
+      r.Answer.forEach(function(a){
+        if(a.type === 1 || a.type === 28){ // A or AAAA
+          ips.push(a.data);
+          if(ttl == null || a.TTL < ttl) ttl = a.TTL;
+        }
+      });
+    }
+    return {ips: ips, ttl: ttl};
+  }
+
+  function checkOne(host){
+    return resolve(host, "A").then(function(r){
+      if(r.Status === 3) return "NXDOMAIN";
+      var p = pick(r);
+      if(p.ips.length) return ["exists", p.ips, p.ttl];
+      // Status 0 but no A record -> try AAAA fallback
+      return resolve(host, "AAAA").then(function(r2){
+        if(r2.Status === 3) return "NXDOMAIN";
+        var p2 = pick(r2);
+        if(p2.ips.length) return ["exists", p2.ips, p2.ttl];
+        return ["exists", [], null]; // name exists (CNAME etc.) but no v4/v6 address
+      });
+    }).catch(function(){
+      return "error";
+    });
+  }
+
+  function normalize(line){
+    var h = line.trim().replace(/^https?:\/\//i, "").replace(/\/.*$/, "").toLowerCase();
+    return h;
+  }
+
+  function runCheck(){
+    var hosts = [];
+    input.value.split(/\r?\n/).forEach(function(l){
+      var h = normalize(l);
+      if(h && hosts.indexOf(h) === -1) hosts.push(h);
+    });
+    if(!hosts.length){ input.focus(); return; }
+    if(hosts.length > MAX) hosts = hosts.slice(0, MAX);
+
+    results = [];
+    tbody.innerHTML = "";
+    table.style.display = "table";
+    toolbar.style.display = "block";
+    copyMsg.textContent = "";
+    checkBtn.disabled = true;
+    progress.style.display = "block";
+    ptext.style.display = "block";
+
+    var done = 0, chain = Promise.resolve();
+    hosts.forEach(function(h){
+      chain = chain.then(function(){
+        return checkOne(h).then(function(res){
+          if(res === "NXDOMAIN" || res === "error"){
+            setStatus(h, res, [], null);
+          } else {
+            setStatus(h, res[0], res[1], res[2]);
+          }
+          done++;
+          bar.style.width = Math.round(done / hosts.length * 100) + "%";
+          ptext.textContent = "Checking… " + done + " of " + hosts.length;
+        });
+      });
+    });
+    chain.then(function(){
+      checkBtn.disabled = false;
+      ptext.textContent = "Done — " + hosts.length + " host" + (hosts.length === 1 ? "" : "s") + " checked.";
+    });
+  }
+
+  function csvEscape(v){
+    v = String(v);
+    return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+  }
+
+  function copyCsv(){
+    var rows = ["host,status,ips,ttl"];
+    results.forEach(function(r){
+      rows.push([r.host, r.status, r.ips.join(" "), r.ttl == null ? "" : r.ttl].map(csvEscape).join(","));
+    });
+    var text = rows.join("\n");
+    function fallback(){
+      var ta = document.createElement("textarea");
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      try{ document.execCommand("copy"); copyMsg.textContent = "Copied."; }
+      catch(e){ copyMsg.textContent = "Copy failed — please copy manually."; }
+      document.body.removeChild(ta);
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ copyMsg.textContent = "Copied " + results.length + " rows."; }, fallback);
+    } else fallback();
+  }
+
+  function updateCount(){
+    var n = 0, seen = {};
+    input.value.split(/\r?\n/).forEach(function(l){
+      var h = normalize(l);
+      if(h && !seen[h]){ seen[h] = 1; n++; }
+    });
+    count.textContent = n ? n + " / " + MAX + " hostnames" : "";
+  }
+
+  function clearAll(){
+    input.value = ""; results = []; tbody.innerHTML = "";
+    table.style.display = "none"; toolbar.style.display = "none";
+    progress.style.display = "none"; ptext.style.display = "none";
+    count.textContent = ""; input.focus();
+  }
+
+  input.addEventListener("input", updateCount);
+  input.addEventListener("keydown", function(e){
+    if((e.metaKey || e.ctrlKey) && e.key === "Enter") runCheck();
+  });
+})();
+</script>
+</body>
+</html>
