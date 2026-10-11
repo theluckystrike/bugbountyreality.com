@@ -197,4 +197,10 @@
   <url><loc>https://bugbountyreality.com/tools/subdomain-enumerator-wordlist/</loc><changefreq>weekly</changefreq></url>
   <url><loc>https://bugbountyreality.com/tools/certificate-transparency-lookup/</loc><changefreq>weekly</changefreq></url>
   <url><loc>https://bugbountyreality.com/tools/subdomain-takeover-checker/</loc><changefreq>weekly</changefreq></url>
+  <url>
+    <loc>https://bugbountyreality.com/tools/bugcrowd-vrt-priority-lookup</loc>
+    <lastmod>2026-10-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>
