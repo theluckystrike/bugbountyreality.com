@@ -348,6 +348,10 @@
  }
  .update-body p + p { margin-top: 10px; }
  .update-body p code { font-family: var(--mono); font-size: 13px; background: var(--paper-2); padding: 1px 6px; border-radius: 2px; }
+ /* mobile overflow fix 2026-10-16: grid items default to min-width:auto */
+ .update > * { min-width: 0; }
+ .update-body, .update-body * { max-width: 100%; }
+ .update-body h3, .update-body p, .update-body li, .update-body code { overflow-wrap: anywhere; word-break: break-word; }
  .update-body p strong { color: var(--ink); font-weight: 600; }
  .update-body .email-quote {
  margin: 16px 0;
