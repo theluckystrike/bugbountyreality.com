@@ -1,2 +1,7 @@
 # GSC verification: serve the file at its exact .html URL (200), rewriting internally to the extensionless path
 /google1a218412aeef37cf.html /google1a218412aeef37cf 200
+
+# Old simulated subdomain finder -> real CT + DNS finder (2026-10-16)
+/tools/subdomain-finder/ /tools/subdomain-finder-real/ 301
+/tools/subdomain-finder /tools/subdomain-finder-real/ 301
+/tools/subdomain-finder/index.html /tools/subdomain-finder-real/ 301
