@@ -37,6 +37,9 @@ a{color:var(--accent-deep,#8a2f1c)}
 [data-support-cta] a.sc-btn .sc-sub{font-size:.75rem;font-weight:400;opacity:.8}
 [data-support-cta] a.sc-btn.sc-two{flex-direction:column;gap:3px;padding:5px 18px}
 [data-support-cta] a.sc-btn.sc-two .sc-l{display:inline-flex;align-items:center;gap:8px}
+[data-support-cta] a.sc-btn.sc-quiet{border-color:transparent;background:transparent;font-weight:500}
+[data-support-cta] a.sc-btn.sc-quiet:hover{background:color-mix(in srgb,currentColor 10%,transparent)}
+[data-support-cta] a.sc-btn.sc-quiet .sc-l{text-decoration:underline;text-underline-offset:3px}
 [data-support-cta] a.sc-btn:focus-visible,[data-support-cta] a.sc-link:focus-visible,[data-support-cta] .sc-dismiss:focus-visible{outline:2px solid currentColor;outline-offset:3px}
 [data-support-cta] a.sc-link{color:inherit!important;text-decoration:underline!important;text-underline-offset:3px;display:inline-flex;align-items:center;min-height:44px;padding:0 4px}
 [data-support-cta] .sc-dismiss{display:inline-flex;align-items:center;min-height:44px;padding:0 4px;margin:0;border:0;background:none;color:inherit;font:inherit;font-size:.85rem;text-decoration:underline;text-underline-offset:3px;opacity:.8;cursor:pointer;width:auto}
@@ -73,6 +76,7 @@ a{color:var(--accent-deep,#8a2f1c)}
 <a class="sc-btn" data-rail="paypal" href="https://paypal.me/najzzz/20USD" target="_blank" rel="noopener" aria-label="Tip 20 US dollars with PayPal">$20</a>
 <a class="sc-btn" data-rail="paypal" href="https://paypal.me/najzzz" target="_blank" rel="noopener" aria-label="Tip any other amount with PayPal">Other amount</a>
 <a class="sc-btn" data-rail="bmc" href="https://buymeacoffee.com/michaellip" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M6 2v2M10 2v2M14 2v2"/></svg>Card, any amount or monthly</a>
+<a class="sc-btn sc-two sc-quiet" data-rail="github" href="https://github.com/sponsors/theluckystrike" target="_blank" rel="noopener"><span class="sc-l">Sponsor on GitHub</span><span class="sc-sub">monthly or one-time</span></a>
 </div>
 <p class="sc-small">The $5, $10, $20 and Other amount buttons open PayPal. PayPal shows my legal name, Micha&#322; Lip. Buy Me a Coffee takes a card with no account.</p>
 <p style="margin-top:16px">Prefer monthly? On Buy Me a Coffee you can tick &ldquo;Make this monthly&rdquo;. You can cancel at any time.</p>
