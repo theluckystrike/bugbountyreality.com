@@ -18,7 +18,7 @@
       "@type": "WebApplication",
       "name": "CIDR to IP Range Calculator",
       "url": "https://bugbountyreality.com/tools/cidr-to-ip-range-calculator",
-      "description": "Parse an IPv4 CIDR block or start-end range and compute the network address, broadcast address, netmask, wildcard mask, usable host range, address counts and equal subnet splits using exact 32-bit integer math.",
+      "description": "get the network address, broadcast address, netmask, wildcard mask, first and last usable host, and exact address counts",
       "applicationCategory": "UtilitiesApplication",
       "operatingSystem": "Any",
       "offers": {
@@ -27,10 +27,11 @@
         "priceCurrency": "USD"
       },
       "author": {
-        "@type": "Person",
-        "name": "Michael Lip",
-        "url": "https://zovo.one"
-      }
+        "@type": "Organization",
+        "name": "Bug Bounty Reality",
+        "url": "https://bugbountyreality.com/"
+      },
+      "dateModified": "2026-10-28"
     },
     {
       "@type": "BreadcrumbList",
@@ -246,6 +247,11 @@ footer a:hover{text-decoration:underline}
 </nav>
 <main>
   <h1>Turn A CIDR Block Into Its Exact IP Range</h1>
+  <div class="answer-block" style="border-left:3px solid #3ddc97;background:#141923;padding:14px 18px;margin:18px 0;border-radius:6px">
+    <p style="margin:0 0 8px"><strong>Short answer.</strong> Paste an IPv4 CIDR block and this calculator returns the network address, broadcast address, netmask, wildcard mask, first and last usable host, and exact address counts. It also runs in reverse: give a start and end IP and it finds the smallest CIDR block that covers the whole range, with optional equal-subnet splits and a membership check.</p>
+    <p style="margin:0;font-size:.85em;color:#94a3b8"><em>Updated 2026-10-28</em></p>
+  </div>
+
   <p class="intro">Paste a block like <code>10.0.0.0/22</code> and get the network address, broadcast address, netmask, wildcard mask, first and last usable host, and exact address counts. Reverse mode takes a start and end IP and finds the smallest CIDR that covers them. Everything is 32-bit integer math running in your browser &mdash; no lookups, no requests.</p>
 
   <section id="tool">

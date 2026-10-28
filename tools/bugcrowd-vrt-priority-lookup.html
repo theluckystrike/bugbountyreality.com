@@ -20,7 +20,7 @@
       "@type": "WebApplication",
       "name": "Bugcrowd VRT Priority Lookup",
       "url": "https://bugbountyreality.com/tools/bugcrowd-vrt-priority-lookup",
-      "description": "Search the 437 leaf entries of the Bugcrowd Vulnerability Rating Taxonomy v1.19.1. Each entry shows the VRT id, the baseline priority (P1 to P5, or Varies), the mapped CWE ids and the mapped CVSS v3 vector. The data is embedded in the page and the lookup sends no request.",
+      "description": "Search the Bugcrowd Vulnerability Rating Taxonomy (VRT) and read the baseline priority of each entry.",
       "applicationCategory": "SecurityApplication",
       "operatingSystem": "Any",
       "offers": {
@@ -28,11 +28,8 @@
         "price": "0",
         "priceCurrency": "USD"
       },
-      "author": {
-        "@type": "Person",
-        "name": "Michael Lip",
-        "url": "https://zovo.one"
-      }
+      "author": { "@type": "Organization", "name": "Bug Bounty Reality", "url": "https://bugbountyreality.com/" },
+      "dateModified": "2026-10-28"
     },
     {
       "@type": "BreadcrumbList",
@@ -346,6 +343,11 @@ footer a:hover{text-decoration:underline}
   </div>
 
   <h1>Bugcrowd VRT Priority Lookup</h1>
+  <div class="answer-block" style="border-left:3px solid #3ddc97;background:#141923;padding:14px 18px;margin:18px 0;border-radius:6px">
+    <p style="margin:0 0 8px"><strong>Short answer.</strong> The Bugcrowd Vulnerability Rating Taxonomy gives each vulnerability class a baseline priority from P1 to P5, or Varies when no single value fits. This lookup covers all 437 leaf entries of VRT v1.19.1 with the VRT id, mapped CWE ids and mapped CVSS v3 vector, so you can check the baseline before a program rates your report.</p>
+    <p style="margin:0;font-size:.85em;color:#94a3b8"><em>Updated 2026-10-28</em></p>
+  </div>
+
   <p class="intro">Search the Bugcrowd Vulnerability Rating Taxonomy (VRT) and read the baseline priority of each entry. The data is VRT v1.19.1, released on 2026-07-08 and fetched from the Bugcrowd repository on 2026-10-11. The table has all 437 leaf entries with the VRT id, the priority (P1 to P5, or Varies), the mapped CWE ids and the mapped CVSS v3 vector. The priority is a baseline. A program can give your report a different rating. The lookup runs in your browser and sends no request.</p>
 
   <section id="tool">

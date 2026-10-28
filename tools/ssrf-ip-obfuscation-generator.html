@@ -18,7 +18,7 @@
       "@type": "WebApplication",
       "name": "SSRF IP Obfuscation Generator",
       "url": "https://bugbountyreality.com/tools/ssrf-ip-obfuscation-generator",
-      "description": "Pack a target IPv4 into a single 32-bit integer and emit every mathematically equivalent representation (decimal, octal, hex, dotless, class-form and IPv4-mapped IPv6) that SSRF and URL allow/deny filters commonly fail to normalise.",
+      "description": "Naive SSRF and URL allow/deny lists compare the raw string 127.0.0.1 and stop there.",
       "applicationCategory": "SecurityApplication",
       "operatingSystem": "Any",
       "offers": {
@@ -26,11 +26,8 @@
         "price": "0",
         "priceCurrency": "USD"
       },
-      "author": {
-        "@type": "Person",
-        "name": "Michael Lip",
-        "url": "https://zovo.one"
-      }
+      "author": { "@type": "Organization", "name": "Bug Bounty Reality", "url": "https://bugbountyreality.com/" },
+      "dateModified": "2026-10-28"
     },
     {
       "@type": "BreadcrumbList",
@@ -247,6 +244,11 @@ footer a{color:var(--accent2);text-decoration:none;margin:0 .5rem}
 </nav>
 <main>
   <h1>Turn One Internal IP Into Every Form A Filter Misses</h1>
+  <div class="answer-block" style="border-left:3px solid #3ddc97;background:#141923;padding:14px 18px;margin:18px 0;border-radius:6px">
+    <p style="margin:0 0 8px"><strong>Short answer.</strong> The operating system packs an IPv4 address into one 32-bit number, so 127.0.0.1, 2130706433 and 0x7f000001 all reach the same host while a naive filter only blocks the dotted form. This generator turns one internal IP into every equivalent spelling, including decimal, octal, hex, dotless, class-form and IPv4-mapped IPv6.</p>
+    <p style="margin:0;font-size:.85em;color:#94a3b8"><em>Updated 2026-10-28</em></p>
+  </div>
+
   <p class="intro">Naive SSRF and URL allow/deny lists compare the raw string <code>127.0.0.1</code> and stop there. The operating system resolver does not: it packs the four octets into a single 32-bit number first, so a dozen other spellings resolve to the exact same host. Paste a target below to see them, computed live in your browser &mdash; nothing is sent anywhere.</p>
 
   <section id="tool">
